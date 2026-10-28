@@ -1,35 +1,3 @@
-<!--
-SYNC IMPACT REPORT — temporary review artifact for this amendment.
-Remove this comment before committing the constitution file.
-
-Version change: (none, initial ratification) → 1.0.0
-
-Modified principles: none (no prior ratified constitution existed).
-The following principles were added at initial ratification:
-  - I. Mobile-First Web Application
-  - II. Local-First Data Ownership
-  - III. Self-Contained Runtime
-  - IV. One Network Egress: The OpenAI-Compatible API
-  - V. Tests Where It Makes Sense
-  - VI. Documentation Is Part of the Change
-
-Added sections:
-  - Core Principles (I–VI)
-  - Technical Constraints, Security & Privacy
-  - Development Workflow & Quality Gates
-  - Governance
-
-Removed sections: none.
-
-Follow-up TODOs / deferred items:
-  - RATIFICATION_DATE set to 2026-10-28, inferred from the initial Spec Kit
-    setup commit in this repository; adjust only if the owner states otherwise.
-  - The concrete web stack (framework, bundler, test runner) is intentionally
-    left to the feature plan; the constitution only constrains its behavior.
-  - README.md does not exist yet in the repository. Creating and populating it
-    is deferred to feature work and is governed by Principle VI.
--->
-
 # Embrollado Constitution
 
 ## Core Principles
