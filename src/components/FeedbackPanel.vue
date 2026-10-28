@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { Turn } from '@/domain/types'
 import QualityBadge from '@/components/QualityBadge.vue'
 import ExplainButton from '@/components/ExplainButton.vue'
@@ -6,6 +7,12 @@ import { renderMarkdown } from '@/utils/markdown'
 
 const _props = defineProps<{
   turn: Turn
+  /**
+   * The partner line this answer responds to. Its translation/explanation is what the feedback
+   * block must show first ("the translation of the partner's line", FR-036) — the current turn's
+   * own translation belongs to the partner's NEXT line.
+   */
+  prevTurn?: Turn
   explaining?: boolean
   showExplain?: boolean
   explainDisabled?: boolean
@@ -14,6 +21,10 @@ const emit = defineEmits<{ explain: [] }>()
 
 const md = (value: string | null | undefined) => (value ? renderMarkdown(value) : '')
 const heading = 'text-xs font-semibold uppercase tracking-wide text-fg-muted'
+
+/** The translation of the partner line the learner just answered. */
+const partnerTranslation = computed(() => _props.prevTurn?.translation ?? _props.turn.translation)
+const partnerExplanation = computed(() => _props.prevTurn?.explanation ?? _props.turn.explanation)
 </script>
 
 <template>
@@ -22,15 +33,16 @@ const heading = 'text-xs font-semibold uppercase tracking-wide text-fg-muted'
     data-testid="feedback"
   >
     <!-- Fixed order (settings-profile.md §3): translation → explanation → correction →
-         interpretation → assumptions → badge → issues (T052). -->
-    <section v-if="turn.translation" class="mb-2">
+         interpretation → assumptions → badge → issues (T052). The translation/explanation are of
+         the partner line the learner just answered (prevTurn), not of the line this turn carries. -->
+    <section v-if="partnerTranslation" class="mb-2">
       <h4 :class="heading">{{ $t('feedback.translation') }}</h4>
-      <p class="text-left">{{ turn.translation }}</p>
+      <p class="text-left">{{ partnerTranslation }}</p>
     </section>
 
-    <section v-if="turn.explanation" class="mb-2">
+    <section v-if="partnerExplanation" class="mb-2">
       <h4 :class="heading">{{ $t('feedback.explanation') }}</h4>
-      <div class="text-left" v-html="md(turn.explanation)" />
+      <div class="text-left" v-html="md(partnerExplanation)" />
     </section>
 
     <section v-if="turn.correctedText" class="mb-2">

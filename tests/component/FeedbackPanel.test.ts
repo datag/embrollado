@@ -75,6 +75,26 @@ describe('feedback panel (T046, T052)', () => {
     expect(after).toContain('Where is the washroom?')
   })
 
+  it("shows the translation of the PREVIOUS partner line, not the current turn's", () => {
+    // The answered turn carries the translation of the partner's NEXT line…
+    const turn = makeTurn({ translation: 'Fresh bread is baking in the oven.' })
+    // …while the previous turn holds the line the learner actually responded to.
+    const prev: Turn = {
+      ...turn,
+      id: 't0',
+      position: 1,
+      partnerText: '¿Dónde está el lavadero?',
+      translation: 'Where is the washroom?',
+      explanation: 'A polite question.',
+      learnerText: null,
+    }
+    const wrapper = mountPanel(turn, { prevTurn: prev })
+    expect(wrapper.text()).toContain('Where is the washroom?')
+    expect(wrapper.text()).not.toContain('Fresh bread is baking')
+    // The assessment still comes from the answered turn (FR-040).
+    expect(wrapper.text()).toContain('Good!')
+  })
+
   it('has a distinct coloured badge per tier', () => {
     const wrapper = mountPanel(
       makeTurn({ badge: { tier: 'perfect', labelKey: 'perfect.0', label: 'Perfect!' } }),

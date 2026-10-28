@@ -57,6 +57,11 @@ export function buildSystemPrompt(input: PromptInput): string {
     '- When the learner used "???" or a word from the native language as a gap, fill it with the most ' +
       'plausible replacement and explain in the "assumptions" field why that reading fits the context ' +
       '(max 5 assumptions).',
+    '- The "interpretation" field MUST paraphrase what THE LEARNER meant with their own answer, ' +
+      'in the feedback language (e.g. "You asked whether the washroom is nearby"). Never describe ' +
+      "your own (the partner's) next line there.",
+    '- The "translation" field MUST translate the partner line you just produced (partnerText) ' +
+      'into the feedback language.',
     "- If the learner's text is already correct, set correctedText to null.",
     '- Rate the learner\'s answer against the selected level. Perfect to very good: tier "perfect". ' +
       'Good: tier "good". Acceptable: tier "acceptable". Unsatisfying: tier "unsatisfactory".',

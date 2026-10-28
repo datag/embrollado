@@ -139,13 +139,14 @@ const statusHint = computed(() => (offline.value ? 'network' : null) ?? errorKin
       />
 
       <div class="space-y-3">
-        <template v-for="turn in turns" :key="turn.id">
+        <template v-for="(turn, idx) in turns" :key="turn.id">
           <!-- Chronologische Reihenfolge pro Turn (FR-011): die Lernenden-Antwort samt Feedback
                kommt zuerst, danach die neue Partnerzeile, die diese Antwort hervorrief. -->
           <div v-if="turn.learnerText" class="flex flex-col gap-2">
             <TurnBubble :text="turn.learnerText" side="learner" />
             <FeedbackPanel
               :turn="turn"
+              :prev-turn="idx > 0 ? turns[idx - 1] : undefined"
               :explaining="phase === 'explaining'"
               :show-explain="true"
               :explain-disabled="readOnly"
@@ -153,7 +154,7 @@ const statusHint = computed(() => (offline.value ? 'network' : null) ?? errorKin
             />
           </div>
 
-          <div class="flex items-start gap-2">
+          <div v-if="turn.partnerText" class="flex items-start gap-2">
             <TurnBubble :text="turn.partnerText" side="partner" />
             <SpeechButton
               class="shrink-0"

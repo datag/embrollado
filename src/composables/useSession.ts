@@ -79,6 +79,8 @@ export function useSession(): UseSessionReturn {
   const error = ref<SessionError | null>(null)
   const speechAvailable = ref(true)
   const imagesAvailable = ref(true)
+  /** The learner's answer awaiting the model's reply — kept across failures for retry (FR-025). */
+  const pendingText = ref<string | null>(null)
   // Per-session AI chat history: the system prompt + the turns so far.
   const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = []
   let lastHandle: Turn | null = null
@@ -157,22 +159,30 @@ export function useSession(): UseSessionReturn {
     messages.push({ role: 'system', content: await buildSystemPromptFor(s) })
 
     let acc = ''
-    const parsed = await requestTurn(null, (data) => {
-      acc += data
-      partnerProgress.value = growingStringValue(acc, 'partnerText')
-    })
-    const opening = createOpeningTurn(
-      s,
-      typeof parsed.partnerText === 'string' ? parsed.partnerText : '',
-      typeof parsed.translation === 'string' ? parsed.translation : '',
-      typeof parsed.explanation === 'string' ? parsed.explanation : null,
-      feedbackLanguage(),
-    )
-    await saveTurn(opening)
-    turns.value = await getTurns(s.id)
-    lastHandle = opening
-    phase.value = 'waiting-answer'
-    await generateIllustration(s)
+    try {
+      const parsed = await requestTurn(null, (data) => {
+        acc += data
+        partnerProgress.value = growingStringValue(acc, 'partnerText')
+      })
+      if (typeof parsed.partnerText !== 'string' || !parsed.partnerText.trim()) {
+        throw { kind: 'unexpectedFormat', message: 'The service answered in an unexpected format.' }
+      }
+      const opening = createOpeningTurn(
+        s,
+        parsed.partnerText,
+        typeof parsed.translation === 'string' ? parsed.translation : '',
+        typeof parsed.explanation === 'string' ? parsed.explanation : null,
+        feedbackLanguage(),
+      )
+      await saveTurn(opening)
+      turns.value = await getTurns(s.id)
+      lastHandle = opening
+      phase.value = 'waiting-answer'
+      await generateIllustration(s)
+    } catch (err) {
+      phase.value = 'failed'
+      handleError(err)
+    }
   }
 
   async function sendAnswer(input: string) {
@@ -182,6 +192,7 @@ export function useSession(): UseSessionReturn {
     phase.value = 'generating'
     partnerProgress.value = ''
     error.value = null
+    pendingText.value = text
 
     let acc = ''
     try {
@@ -189,6 +200,11 @@ export function useSession(): UseSessionReturn {
         acc += data
         partnerProgress.value = growingStringValue(acc, 'partnerText')
       })
+      // Reject a broken model response instead of persisting an empty, half-filled turn — that
+      // would surface as an empty partner bubble and a missing assessment (FR-025).
+      if (typeof parsed.partnerText !== 'string' || !parsed.partnerText.trim()) {
+        throw { kind: 'unexpectedFormat', message: 'The service answered in an unexpected format.' }
+      }
       const { settings } = useSettings()
       const previousBadgeIndex = lastBadgeIndexByTier.get(s.id) ?? 0
       const feedback = assembleFeedback(parsed, {
@@ -203,7 +219,7 @@ export function useSession(): UseSessionReturn {
         id: crypto.randomUUID(),
         sessionId: s.id,
         position: turns.value.length + 1, // 1-based, consecutive after the stored turns (T038)
-        partnerText: typeof parsed.partnerText === 'string' ? parsed.partnerText : '',
+        partnerText: parsed.partnerText,
         partnerTextLanguage: s.language,
         translation: feedback.translation,
         explanation: typeof parsed.explanation === 'string' ? parsed.explanation : null,
@@ -222,6 +238,7 @@ export function useSession(): UseSessionReturn {
       await saveTurn(turn)
       turns.value = await getTurns(s.id)
       lastHandle = turn
+      pendingText.value = null
       phase.value = 'waiting-answer'
       // Manuell nachbestellte Bilder gibt es nur für den Start der Konversation — nicht für jeden
       // Turn (owner-Anforderung). Illustrationen bleiben für importierte Sessions lesbar.
@@ -368,6 +385,11 @@ export function useSession(): UseSessionReturn {
 
   async function retry() {
     if (!session.value) return
+    if (pendingText.value) {
+      // Re-send the answer that failed — the learner's text is kept (FR-025, FR-035).
+      await sendAnswer(pendingText.value)
+      return
+    }
     const last = lastHandle
     if (last && last.learnerText) {
       await sendAnswer(last.learnerText)
