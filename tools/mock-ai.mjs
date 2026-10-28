@@ -155,30 +155,48 @@ const server = http.createServer((req, res) => {
   }
 
   if (req.method === 'POST' && path === `${BASE}/audio/speech`) {
-    // 0.3s of silence in WAV format (~2.5 KB).
-    const sampleRate = 24000
-    const seconds = 0.3
-    const n = Math.floor(sampleRate * seconds)
-    const dataSize = n * 2
-    const buf = Buffer.alloc(44 + dataSize)
-    buf.write('RIFF', 0)
-    buf.writeUInt32LE(36 + dataSize, 4)
-    buf.write('WAVE', 8)
-    buf.write('fmt ', 12)
-    buf.writeUInt32LE(16, 16)
-    buf.writeUInt16LE(1, 20)
-    buf.writeUInt16LE(1, 22)
-    buf.writeUInt32LE(sampleRate, 24)
-    buf.writeUInt32LE(sampleRate * 2, 28)
-    buf.writeUInt16LE(2, 32)
-    buf.writeUInt16LE(16, 34)
-    buf.write('data', 36)
-    buf.writeUInt32LE(dataSize, 40)
-    res.writeHead(200, {
-      'content-type': 'audio/wav',
-      'content-length': buf.length,
+    // The mock honours `response_format`: request `pcm` to receive header-less raw 16-bit LE
+    // PCM (Gemini-TTS style) so the app's PCM→WAV conversion is exercised end to end.
+    let speechBody = ''
+    req.on('data', (c) => (speechBody += c))
+    req.on('end', () => {
+      let parsed = {}
+      try {
+        parsed = JSON.parse(speechBody || '{}')
+      } catch {
+        /* ignore */
+      }
+      const sampleRate = 24000
+      const seconds = 0.3
+      const n = Math.floor(sampleRate * seconds)
+      if (parsed.response_format === 'pcm') {
+        const raw = Buffer.alloc(n * 2) // silence, 16-bit little-endian
+        res.writeHead(200, { 'content-type': 'audio/pcm', 'content-length': raw.length })
+        res.end(raw)
+        return
+      }
+      // 0.3s of silence in WAV format (~2.5 KB).
+      const dataSize = n * 2
+      const buf = Buffer.alloc(44 + dataSize)
+      buf.write('RIFF', 0)
+      buf.writeUInt32LE(36 + dataSize, 4)
+      buf.write('WAVE', 8)
+      buf.write('fmt ', 12)
+      buf.writeUInt32LE(16, 16)
+      buf.writeUInt16LE(1, 20)
+      buf.writeUInt16LE(1, 22)
+      buf.writeUInt32LE(sampleRate, 24)
+      buf.writeUInt32LE(sampleRate * 2, 28)
+      buf.writeUInt16LE(2, 32)
+      buf.writeUInt16LE(16, 34)
+      buf.write('data', 36)
+      buf.writeUInt32LE(dataSize, 40)
+      res.writeHead(200, {
+        'content-type': 'audio/wav',
+        'content-length': buf.length,
+      })
+      res.end(buf)
     })
-    res.end(buf)
     return
   }
 

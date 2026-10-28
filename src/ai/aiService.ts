@@ -4,6 +4,7 @@ import type { EndpointProfile } from '@/ai/providers'
 import { profileById } from '@/ai/providers'
 import { postJson, postStream, request } from '@/ai/transport'
 import { normalizeBodyError } from '@/ai/errors'
+import { pcmToWavBlob } from '@/utils/audio'
 import {
   buildResponseFormat,
   FALLBACK_RESPONSE_FORMAT,
@@ -399,6 +400,12 @@ export async function listModels(service: ServiceConfig): Promise<string[]> {
 export type CapabilityResult =
   { ok: true; blob: Blob; mimeType: string } | { ok: false; unsupported: boolean; message: string }
 
+/**
+ * Request a partner line as speech. The profile's primary format is tried first; on an HTTP 400
+ * (Gemini TTS / HeyGen accept only `pcm`, MiniMax only `mp3`) a single retry with the alternate
+ * format is made. Raw `pcm` responses are wrapped into a WAV container so browser playback and
+ * the speech cache work regardless of format.
+ */
 export async function requestSpeech(
   service: ServiceConfig,
   text: string,
@@ -410,28 +417,44 @@ export async function requestSpeech(
   }
   const headers = authHeaders(service, profile)
   const url = buildUrl(service, '/audio/speech')
-  try {
-    const response = await postJsonRaw(url, headers, {
-      model: service.speechModel,
-      input: text.slice(0, 4096),
-      voice,
-      response_format: profile.audioResponseFormat,
-    })
-    const blob = await response.blob()
-    return { ok: true, blob, mimeType: blob.type || 'audio/mp3' }
-  } catch (err) {
-    if (
-      err instanceof AiError &&
-      (err.kind === 'not_found' || err.status === 404 || err.status === 405)
-    ) {
-      return { ok: false, unsupported: true, message: 'This service cannot produce speech.' }
-    }
-    return {
-      ok: false,
-      unsupported: false,
-      message: err instanceof Error ? err.message : String(err),
+  const formats = [profile.audioResponseFormat, profile.altAudioResponseFormat].filter(
+    (f): f is string => Boolean(f),
+  )
+
+  for (let i = 0; i < formats.length; i++) {
+    const fmt = formats[i]
+    try {
+      const response = await postJsonRaw(url, headers, {
+        model: service.speechModel,
+        input: text.slice(0, 4096),
+        voice,
+        response_format: fmt,
+      })
+      const bytes = new Uint8Array(await response.arrayBuffer())
+      const mimeType = response.headers.get('content-type')?.split(';')[0] ?? 'audio/mpeg'
+      if (mimeType === 'audio/pcm' || fmt === 'pcm') {
+        // Header-less raw 16-bit LE PCM → playable WAV.
+        const wav = pcmToWavBlob(bytes, profile.pcmSampleRate, profile.pcmChannels)
+        return { ok: true, blob: wav, mimeType: 'audio/wav' }
+      }
+      return { ok: true, blob: new Blob([bytes], { type: mimeType }), mimeType }
+    } catch (err) {
+      const isFormatError = err instanceof AiError && err.kind === 'bad_request'
+      if (isFormatError && i < formats.length - 1) continue
+      if (
+        err instanceof AiError &&
+        (err.kind === 'not_found' || err.status === 404 || err.status === 405)
+      ) {
+        return { ok: false, unsupported: true, message: 'This service cannot produce speech.' }
+      }
+      return {
+        ok: false,
+        unsupported: false,
+        message: err instanceof Error ? err.message : String(err),
+      }
     }
   }
+  return { ok: false, unsupported: false, message: 'The service could not produce speech.' }
 }
 
 /** Internal: like postJson but returns the raw Response (raw bytes for speech). */

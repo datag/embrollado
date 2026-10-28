@@ -147,15 +147,15 @@ diagnostic before it reaches the UI or the console (FR-022).
 The app ships profiles for the common endpoints. The profile is selected from the base URL and can
 be changed manually.
 
-| Profile      | Base URL                       | Auth                 | Schema placement        | JSON mode     | Audio format                                                          | Images path           |
-| ------------ | ------------------------------ | -------------------- | ----------------------- | ------------- | --------------------------------------------------------------------- | --------------------- |
-| `openai`     | `https://api.openai.com/v1`    | `bearer`             | nested                  | `json_schema` | `mp3`                                                                 | `/images/generations` |
-| `openrouter` | `https://openrouter.ai/api/v1` | `bearer`             | nested                  | `json_schema` | `mp3` (API default is raw `pcm`, not playable in a browser `<audio>`) | `/images`             |
-| `ollama`     | `http://localhost:11434/v1`    | `bearer` (any value) | nested                  | `json_schema` | `wav`                                                                 | —                     |
-| `llamacpp`   | `http://localhost:9931/v1`     | `bearer`             | **sibling** (send both) | `json_schema` | —                                                                     | —                     |
-| `vllm`       | `http://localhost:8000/v1`     | `bearer`             | nested                  | `json_schema` | —                                                                     | —                     |
-| `lmstudio`   | `http://localhost:1234/v1`     | `bearer`             | nested                  | `json_schema` | —                                                                     | —                     |
-| `custom`     | anything else                  | selectable           | selectable              | selectable    | selectable                                                            | selectable            |
+| Profile      | Base URL                       | Auth                 | Schema placement        | JSON mode     | Audio format                                                                            | Images path           |
+| ------------ | ------------------------------ | -------------------- | ----------------------- | ------------- | --------------------------------------------------------------------------------------- | --------------------- |
+| `openai`     | `https://api.openai.com/v1`    | `bearer`             | nested                  | `json_schema` | `mp3`                                                                                   | `/images/generations` |
+| `openrouter` | `https://openrouter.ai/api/v1` | `bearer`             | nested                  | `json_schema` | `pcm` (default; Gemini TTS/HeyGen accept only pcm, MiniMax only mp3 → one 400-fallback) | `/images`             |
+| `ollama`     | `http://localhost:11434/v1`    | `bearer` (any value) | nested                  | `json_schema` | `wav`                                                                                   | —                     |
+| `llamacpp`   | `http://localhost:9931/v1`     | `bearer`             | **sibling** (send both) | `json_schema` | —                                                                                       | —                     |
+| `vllm`       | `http://localhost:8000/v1`     | `bearer`             | nested                  | `json_schema` | —                                                                                       | —                     |
+| `lmstudio`   | `http://localhost:1234/v1`     | `bearer`             | nested                  | `json_schema` | —                                                                                       | —                     |
+| `custom`     | anything else                  | selectable           | selectable              | selectable    | selectable                                                                              | selectable            |
 
 Notes carried by a profile:
 
@@ -186,11 +186,18 @@ The app never suggests a proxy of our own: FR-038 forbids one.
 
 ```http
 POST {baseUrl}/audio/speech
-{ "model": "…", "input": "<the line, max 4096 characters>", "voice": "…", "response_format": "mp3" }
+{ "model": "…", "input": "<the line, max 4096 characters>", "voice": "…", "response_format": "mp3|pcm" }
 ```
 
 The response is **raw audio bytes**, not JSON. The app wraps them in a `Blob` and plays them from
 the object URL; it never hands a provider URL to an `<audio>` element.
+
+- The profile picks the primary format (`mp3` for OpenAI, `pcm` for OpenRouter — its default, and
+  the only format Gemini TTS / HeyGen Voice accept, while MiniMax only accepts `mp3`). On an HTTP
+  400 the app retries **once** with the alternate format.
+- A `pcm` response is header-less raw 16-bit little-endian audio, which a browser `<audio>` cannot
+  play: the app wraps it in a WAV container client-side (24 kHz mono by default) before storage and
+  playback, so `pcm`-only services work transparently.
 
 If the endpoint answers 404/405, the speech capability is marked unavailable: the button is hidden
 or disabled with a one-line explanation, and the dialogue continues (FR-027).

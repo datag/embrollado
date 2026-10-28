@@ -8,14 +8,14 @@ export const MOCK_BASE_URL = 'http://localhost:8787/v1'
 
 export async function configureService(
   page: Page,
-  opts: { speech?: boolean; image?: boolean } = {},
+  opts: { speech?: boolean; image?: boolean; profile?: string } = {},
 ) {
   await page.goto('/#/settings')
   const baseUrl = page.getByTestId('service-base-url')
   await baseUrl.fill(MOCK_BASE_URL)
   await page.getByTestId('service-api-key').fill('test')
   await page.getByTestId('service-auth-mode').selectOption('bearer')
-  await page.getByTestId('service-provider').selectOption('openai')
+  await page.getByTestId('service-provider').selectOption(opts.profile ?? 'openai')
   await page.getByTestId('service-chat-model').fill('mock-chat')
   if (opts.speech) {
     await page.getByTestId('service-speech-model').fill('mock-speech')

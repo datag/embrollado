@@ -30,6 +30,27 @@ test.describe('speech and illustrations', () => {
     await expect.poll(() => page.getByTestId('speech-hint').count(), { timeout: 15_000 }).toBe(0)
   })
 
+  test('plays a pcm-only service (Gemini-TTS style) by converting pcm to wav', async ({ page }) => {
+    // OpenRouter profile requests pcm (the only format Gemini TTS accepts); the mock answers
+    // header-less 16-bit LE PCM and the app wraps it in WAV before playback.
+    await configureService(page, { speech: true, profile: 'openrouter' })
+    await startConversation(page)
+    await expectPartnerLine(page, 'Hello! Nice to meet you.')
+
+    const speechRequests: string[] = []
+    page.on('request', (req) => {
+      if (req.url().includes('/audio/speech')) speechRequests.push(req.postData() ?? '')
+    })
+
+    await page.getByTestId('speech-button').first().click()
+    await expect.poll(() => speechRequests.length, { timeout: 15_000 }).toBeGreaterThan(0)
+    // The request asked for the pcm format…
+    await expect.poll(() => speechRequests.length, { timeout: 15_000 }).toBeGreaterThan(0)
+    expect(speechRequests[0]).toContain('"response_format":"pcm"')
+    // …and playback succeeded (no hint) — the stored bytes were cached as playable WAV.
+    await expect.poll(() => page.getByTestId('speech-hint').count(), { timeout: 15_000 }).toBe(0)
+  })
+
   test('degrades gracefully on a service without these capabilities', async ({ page }) => {
     await configureService(page, { speech: false, image: false })
     await startConversation(page)

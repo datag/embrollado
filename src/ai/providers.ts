@@ -17,8 +17,13 @@ export interface EndpointProfile {
   schemaPlacement: SchemaPlacement
   jsonMode: JsonMode
   defaultVoice: string
-  /** Explicit speech `response_format`; null = the capability is not offered by this profile. */
+  /** Primary speech `response_format`; null = the capability is not offered by this profile. */
   audioResponseFormat: string | null
+  /** Retried once after an HTTP 400 (Gemini/HeyGen accept only pcm, MiniMax only mp3). */
+  altAudioResponseFormat: string | null
+  /** Used to wrap raw 16-bit LE PCM into a WAV container so browsers can play it. */
+  pcmSampleRate: number
+  pcmChannels: number
   /** The images endpoint path (relative to baseUrl); null = no images. */
   imagesPath: string | null
   /** The learner's key IS sent. False for local servers that require any non-empty value. */
@@ -37,6 +42,9 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     jsonMode: 'json_schema',
     defaultVoice: 'alloy',
     audioResponseFormat: 'mp3',
+    altAudioResponseFormat: 'pcm',
+    pcmSampleRate: 24000,
+    pcmChannels: 1,
     imagesPath: '/images/generations',
     sendRealKey: true,
     corsHint: null,
@@ -49,9 +57,12 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     schemaPlacement: 'nested',
     jsonMode: 'json_schema',
     defaultVoice: 'alloy',
-    // mp3 (not the API's own default "pcm"): raw 16-bit PCM cannot be played by a browser
-    // <audio> element, so an explicit playable format is requested.
-    audioResponseFormat: 'mp3',
+    // pcm is the API's default and the only format Gemini TTS / HeyGen accept; raw 16-bit LE PCM
+    // is wrapped into a WAV container client-side so it plays in a browser <audio> element.
+    audioResponseFormat: 'pcm',
+    altAudioResponseFormat: 'mp3',
+    pcmSampleRate: 24000,
+    pcmChannels: 1,
     imagesPath: '/images',
     sendRealKey: true,
     corsHint: null,
@@ -65,6 +76,9 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     jsonMode: 'json_schema',
     defaultVoice: 'alloy',
     audioResponseFormat: 'wav',
+    altAudioResponseFormat: null,
+    pcmSampleRate: 24000,
+    pcmChannels: 1,
     imagesPath: null,
     // Ollama ignores the key but requires a non-empty one — send a placeholder, not the real key.
     sendRealKey: false,
@@ -80,6 +94,9 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     jsonMode: 'json_schema',
     defaultVoice: 'alloy',
     audioResponseFormat: null,
+    altAudioResponseFormat: null,
+    pcmSampleRate: 24000,
+    pcmChannels: 1,
     imagesPath: null,
     sendRealKey: true,
     corsHint: 'llama-server --cors-origins "http://localhost:5173"',
@@ -93,6 +110,9 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     jsonMode: 'json_schema',
     defaultVoice: 'alloy',
     audioResponseFormat: null,
+    altAudioResponseFormat: null,
+    pcmSampleRate: 24000,
+    pcmChannels: 1,
     imagesPath: null,
     sendRealKey: true,
     corsHint:
@@ -107,6 +127,9 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     jsonMode: 'json_schema',
     defaultVoice: 'alloy',
     audioResponseFormat: null,
+    altAudioResponseFormat: null,
+    pcmSampleRate: 24000,
+    pcmChannels: 1,
     imagesPath: null,
     sendRealKey: true,
     corsHint: null, // no documented flag (verified: none found)
@@ -120,6 +143,9 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     jsonMode: 'json_schema',
     defaultVoice: 'alloy',
     audioResponseFormat: 'mp3',
+    altAudioResponseFormat: 'pcm',
+    pcmSampleRate: 24000,
+    pcmChannels: 1,
     imagesPath: '/images/generations',
     sendRealKey: true,
     corsHint: "Allow the app origin in your server's CORS configuration.",
