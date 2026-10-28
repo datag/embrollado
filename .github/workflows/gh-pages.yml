@@ -1,0 +1,101 @@
+name: Build and deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and
+# latest queued. However, do NOT cancel in-progress runs as we want to allow these production
+# deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v6
+
+      # https://github.com/actions/setup-node/issues/480#issuecomment-1915448139
+      - name: Enable Corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.0.0 --activate
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The quality gates from the constitution: a deployment only happens when the app type-checks,
+      # lints, and passes its tests.
+      - name: Type-check
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Unit tests
+        run: pnpm test:unit
+
+      - name: End-to-end tests
+        run: |
+          pnpm exec playwright install --with-deps chromium
+          pnpm test:e2e
+
+      # The app is served from https://<owner>.github.io/<repo>/, so every asset URL needs that
+      # base path. A user site (owner.github.io) is served from the root instead.
+      - name: Determine base path
+        run: |
+          if [ "$GITHUB_REPOSITORY" = "$GITHUB_REPOSITORY_OWNER.github.io" ]; then
+            echo "BASE=/" >> "$GITHUB_ENV"
+          else
+            echo "BASE=/${GITHUB_REPOSITORY#*/}/" >> "$GITHUB_ENV"
+          fi
+          echo "Building with base path $BASE"
+
+      - name: Build the project
+        # CSP_MODE=preset injects a meta Content-Security-Policy that allows only the app's own
+        # origin plus the two preset provider origins. It is off by default: a policy that pinned
+        # connect-src would make the learner's own AI service unreachable, which the BYOK design
+        # must not do. See contracts/deployment.md.
+        env:
+          CSP_MODE: ${{ vars.CSP_MODE || 'none' }}
+        run: pnpm build --base=$BASE
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ./dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
