@@ -1,0 +1,58 @@
+{
+  "name": "embrollado",
+  "version": "0.1.0",
+  "description": "AI language practice conversations — practise a foreign language through realistic role-play conversations with an AI partner, fully on your own device.",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@10.0.0",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "typecheck": "vue-tsc --noEmit",
+    "test": "pnpm test:unit && pnpm test:e2e",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test",
+    "mock-ai": "node tools/mock-ai.mjs"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "@tailwindcss/oxide",
+      "@rolldown/binding-linux-x64-gnu"
+    ]
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "4.3.3",
+    "dompurify": "3.4.17",
+    "idb": "8.0.4",
+    "marked": "18.1.2",
+    "tailwindcss": "4.3.3",
+    "vite": "8.3.5",
+    "vue": "3.5.44",
+    "vue-i18n": "11.4.16",
+    "vue-router": "5.4.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "1.64.1",
+    "@types/node": "^26.6.6",
+    "@vitejs/plugin-vue": "^6.0.10",
+    "@vue/test-utils": "2.5.1",
+    "eslint": "^10.13.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-vue": "^10.12.0",
+    "fake-indexeddb": "6.2.6",
+    "happy-dom": "21.0.4",
+    "prettier": "^3.9.10",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.72.1",
+    "vitest": "5.0.5",
+    "vue-tsc": "3.3.13"
+  }
+}

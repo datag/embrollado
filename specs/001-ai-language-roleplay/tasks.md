@@ -35,22 +35,22 @@ of each story.
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create the repository skeleton per `specs/001-ai-language-roleplay/plan.md`: `src/{ai,assets/fonts,components,composables,data,domain,i18n/locales,router,views}/`, `public/`, `tests/{unit,component,e2e}/`, `tools/`
-- [ ] T002 Initialize the pnpm project in `package.json` with `"packageManager": "pnpm@10.0.0"`, `"license": "MIT"`, the scripts `dev`, `build`, `preview`, `lint`, `format`, `typecheck`, `test`, `test:unit`, `test:e2e`, `mock-ai`, and `pnpm.onlyBuiltDependencies` for the native build scripts
-- [ ] T003 Add the runtime dependencies `vue@3.5.44`, `vue-router@5.4.0`, `vue-i18n@11.4.16`, `idb@8.0.4`, `marked@18.1.2`, `dompurify@3.4.17`, `tailwindcss@4.3.3`, `@tailwindcss/vite@4.3.3`, `vite@8.3.5` and the dev dependencies `typescript@6.0.3`, `vue-tsc@3.3.13`, `vitest@5.0.5`, `@vue/test-utils@2.5.1`, `happy-dom@21.0.4`, `fake-indexeddb@6.2.6`, `@playwright/test@1.64.1`; commit `pnpm-lock.yaml`
-- [ ] T004 Configure TypeScript in `tsconfig.json` with `strict: true`, `skipLibCheck: true`, `moduleResolution: "bundler"`, `types: ["vite/client"]`, and a matching `tsconfig.node.json`
-- [ ] T005 Configure Vite in `vite.config.ts` with the `@tailwindcss/vite` plugin, `build.rolldownOptions.output.codeSplitting: false`, `build.assetsInlineLimit: 0` and `build.modulePreload.polyfill: false`
-- [ ] T006 Create the Tailwind theme in `src/style.css`: `@import "tailwindcss"`, `@custom-variant dark (&:where(.dark, .dark *))`, and an `@theme inline` block mapping `--color-surface`, `--color-fg`, `--color-accent` to `:root` / `.dark` values
-- [ ] T007 [P] Configure ESLint with `eslint-plugin-vue` and `typescript-eslint` plus Prettier in `eslint.config.js` and `.prettierrc.json`
-- [ ] T008 [P] Add the MIT `LICENSE` file and the font licence files in `src/assets/fonts/LICENSES/OFL.txt` and `src/assets/fonts/LICENSES/NOTICE.md` recording the subsetting
-- [ ] T009 [P] Add the self-hosted font `src/assets/fonts/atkinson-next-var-latin.woff2` (Atkinson Hyperlegible Next, variable, subset to Latin + Latin-1 + Latin Extended-A, ~38 KB) with an `@font-face` rule using `font-weight: 200 800` and `font-display: swap`
-- [ ] T010 [P] Create `index.html` with the viewport meta tag, the `#app` mount point, a `<link rel="preload">` for the font and no inline script or style
-- [ ] T011 [P] Create the mock AI service `tools/mock-ai.mjs` with `POST /v1/chat/completions` (streamed and unstreamed), `GET /v1/models`, `POST /v1/audio/speech` and `POST /v1/images/generations`
-- [ ] T012 [P] Create `tools/check-bundle-size.mjs` that fails when the gzipped size of `dist/assets/*.js` exceeds 250 KB
-- [ ] T013 [P] Create the static server `tools/serve.mjs` that reads `allowedApiOrigin` from `embrollado.config.json` and sets the strict CSP `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' <allowedApiOrigin>; worker-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'`
-- [ ] T014 [P] Add `embrollado.config.example.json` and the `public/.nojekyll` file
-- [ ] T015 Configure Vitest in `vitest.config.ts` (environment `happy-dom`, `setupFiles: ["tests/setup.ts"]`) and Playwright in `playwright.config.ts` with the projects Pixel 5 (393 px), iPhone 12 (390 px) and iPhone SE (320 px) against `pnpm preview`
-- [ ] T016 [P] Create `tests/setup.ts` importing `fake-indexeddb/auto` and resetting `indexedDB` per test
+- [X] T001 Create the repository skeleton per `specs/001-ai-language-roleplay/plan.md`: `src/{ai,assets/fonts,components,composables,data,domain,i18n/locales,router,views}/`, `public/`, `tests/{unit,component,e2e}/`, `tools/`
+- [X] T002 Initialize the pnpm project in `package.json` with `"packageManager": "pnpm@10.0.0"`, `"license": "MIT"`, the scripts `dev`, `build`, `preview`, `lint`, `format`, `typecheck`, `test`, `test:unit`, `test:e2e`, `mock-ai`, and `pnpm.onlyBuiltDependencies` for the native build scripts
+- [X] T003 Add the runtime dependencies `vue@3.5.44`, `vue-router@5.4.0`, `vue-i18n@11.4.16`, `idb@8.0.4`, `marked@18.1.2`, `dompurify@3.4.17`, `tailwindcss@4.3.3`, `@tailwindcss/vite@4.3.3`, `vite@8.3.5` and the dev dependencies `typescript@6.0.3`, `vue-tsc@3.3.13`, `vitest@5.0.5`, `@vue/test-utils@2.5.1`, `happy-dom@21.0.4`, `fake-indexeddb@6.2.6`, `@playwright/test@1.64.1`; commit `pnpm-lock.yaml`
+- [X] T004 Configure TypeScript in `tsconfig.json` with `strict: true`, `skipLibCheck: true`, `moduleResolution: "bundler"`, `types: ["vite/client"]`, and a matching `tsconfig.node.json`
+- [X] T005 Configure Vite in `vite.config.ts` with the `@tailwindcss/vite` plugin, `build.rolldownOptions.output.codeSplitting: false`, `build.assetsInlineLimit: 0` and `build.modulePreload.polyfill: false`
+- [X] T006 Create the Tailwind theme in `src/style.css`: `@import "tailwindcss"`, `@custom-variant dark (&:where(.dark, .dark *))`, and an `@theme inline` block mapping `--color-surface`, `--color-fg`, `--color-accent` to `:root` / `.dark` values
+- [X] T007 [P] Configure ESLint with `eslint-plugin-vue` and `typescript-eslint` plus Prettier in `eslint.config.js` and `.prettierrc.json`
+- [X] T008 [P] Add the MIT `LICENSE` file and the font licence files in `src/assets/fonts/LICENSES/OFL.txt` and `src/assets/fonts/LICENSES/NOTICE.md` recording the subsetting
+- [X] T009 [P] Add the self-hosted font `src/assets/fonts/atkinson-next-var-latin.woff2` (Atkinson Hyperlegible Next, variable, subset to Latin + Latin-1 + Latin Extended-A, ~38 KB) with an `@font-face` rule using `font-weight: 200 800` and `font-display: swap`
+- [X] T010 [P] Create `index.html` with the viewport meta tag, the `#app` mount point, a `<link rel="preload">` for the font and no inline script or style
+- [X] T011 [P] Create the mock AI service `tools/mock-ai.mjs` with `POST /v1/chat/completions` (streamed and unstreamed), `GET /v1/models`, `POST /v1/audio/speech` and `POST /v1/images/generations`
+- [X] T012 [P] Create `tools/check-bundle-size.mjs` that fails when the gzipped size of `dist/assets/*.js` exceeds 250 KB
+- [X] T013 [P] Create the static server `tools/serve.mjs` that reads `allowedApiOrigin` from `embrollado.config.json` and sets the strict CSP `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' <allowedApiOrigin>; worker-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'`
+- [X] T014 [P] Add `embrollado.config.example.json` and the `public/.nojekyll` file
+- [X] T015 Configure Vitest in `vitest.config.ts` (environment `happy-dom`, `setupFiles: ["tests/setup.ts"]`) and Playwright in `playwright.config.ts` with the projects Pixel 5 (393 px), iPhone 12 (390 px) and iPhone SE (320 px) against `pnpm preview`
+- [X] T016 [P] Create `tests/setup.ts` importing `fake-indexeddb/auto` and resetting `indexedDB` per test
 
 ---
 

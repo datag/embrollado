@@ -1,0 +1,11 @@
+{
+  "name": "Embrollado",
+  "short_name": "Embrollado",
+  "description": "Practise a foreign language through realistic role-play conversations with an AI partner. Everything stays on your device.",
+  "start_url": "./#/",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f1e8",
+  "theme_color": "#f5f1e8",
+  "icons": []
+}
