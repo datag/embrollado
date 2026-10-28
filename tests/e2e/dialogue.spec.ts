@@ -43,4 +43,24 @@ test.describe('dialogue cycle', () => {
     // The mock always answers the same fixed line for every turn.
     await expect(page.getByText('Nice to meet you').last()).toBeVisible()
   })
+
+  test('explains a turn on demand without hiding the existing feedback (FR-010)', async ({
+    page,
+  }) => {
+    await configureService(page)
+    await startConversation(page)
+    await expectPartnerLine(page, 'Hello! Nice to meet you.')
+
+    await page.getByTestId('dialogue-input').fill('Is the washroom next to the showers???')
+    await page.getByTestId('send').click()
+    const feedback = page.getByTestId('feedback')
+    await expect(feedback).toBeVisible({ timeout: 20_000 })
+    await expect(feedback).toContainText('Well done!')
+
+    await page.getByRole('button', { name: 'Explain to me' }).click()
+    // The mock answers the explanation request; the previous feedback stays visible.
+    await expect(feedback).toContainText(/informal and idiomatic/i, { timeout: 20_000 })
+    await expect(feedback).toContainText('Well done!')
+    await expect(feedback).toContainText('Hallo! Schön, dich zu treffen.')
+  })
 })
