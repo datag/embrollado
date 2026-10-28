@@ -15,6 +15,7 @@ import {
   buildTurnUserMessage,
   buildExplanationMessages,
   buildIllustrationPrompt,
+  type ExplanationContext,
 } from '@/ai/prompts'
 import { TURN_SCHEMA } from '@/ai/schema'
 import {
@@ -306,8 +307,19 @@ export function useSession(): UseSessionReturn {
     error.value = null
     try {
       const systemPrompt = await buildSystemPromptFor(s)
-      const turnJson = JSON.stringify(turnAsModel(turn))
-      const requestMessages = buildExplanationMessages(systemPrompt, turnJson)
+      // The partner line this answer responds to — the context for the explanation.
+      const idx = turns.value.findIndex((t) => t.id === turn.id)
+      const prev = idx > 0 ? turns.value[idx - 1] : undefined
+      const context: ExplanationContext = {
+        partnerLine: prev
+          ? { text: prev.partnerText, translation: prev.translation || null }
+          : null,
+        learnerAnswer: turn.learnerText,
+        correctedText: turn.correctedText,
+        interpretation: turn.interpretation,
+        issues: turn.issues.map((i) => ({ category: i.category, detail: i.detail })),
+      }
+      const requestMessages = buildExplanationMessages(systemPrompt, context)
       const { service } = useServiceConfig()
       const result = await requestExplanation(service, requestMessages)
       turn.explain = {
@@ -323,19 +335,6 @@ export function useSession(): UseSessionReturn {
     } finally {
       explainingTurnId.value = null
       if (phase.value === 'explaining') phase.value = 'waiting-answer'
-    }
-  }
-
-  function turnAsModel(turn: Turn) {
-    return {
-      partnerText: turn.partnerText,
-      translation: turn.translation,
-      explanation: turn.explanation,
-      correctedText: turn.correctedText,
-      interpretation: turn.interpretation,
-      assumptions: turn.assumptions,
-      badge: turn.badge,
-      issues: turn.issues,
     }
   }
 

@@ -60,9 +60,11 @@ export function buildSystemPrompt(input: PromptInput): string {
     '- When the learner used "???" or a word from the native language as a gap, fill it with the most ' +
       'plausible replacement and explain in the "assumptions" field why that reading fits the context ' +
       '(max 5 assumptions).',
-    '- The "interpretation" field MUST paraphrase what THE LEARNER meant with their own answer, ' +
-      'in the feedback language (e.g. "You asked whether the washroom is nearby"). Never describe ' +
-      "your own (the partner's) next line there.",
+    '- The "interpretation" field MUST be a faithful paraphrase of ONLY the learner\'s answer — ' +
+      "based solely on their text, never on your (the partner's) next line. It says what the " +
+      'learner attempted to express, in the feedback language (e.g. "You asked whether the ' +
+      'washroom is nearby"). If you cannot faithfully paraphrase their answer, quote short ' +
+      'fragments of it instead of inventing meaning.',
     '- The "translation" field MUST translate the partner line you just produced (partnerText) ' +
       'into the feedback language.',
     "- If the learner's text is already correct, set correctedText to null.",
@@ -96,18 +98,35 @@ export function schemaInPrompt(schema: unknown): string {
   }
 }
 
-/** "Explain to me" message set (turn-payload.md §5). */
+/** Context for "Explain to me" — the learner's answer plus the partner line it responded to. */
+export interface ExplanationContext {
+  partnerLine: { text: string; translation: string | null } | null
+  learnerAnswer: string | null
+  correctedText: string | null
+  interpretation: string | null
+  issues: Array<{ category: string; detail: string }>
+}
+
+/**
+ * "Explain to me" message set (turn-payload.md §5). The request explains THE LEARNER's answer —
+ * never the partner's next line, which is not part of this context at all.
+ */
 export function buildExplanationMessages(
   systemPrompt: string,
-  turnJson: string,
+  context: ExplanationContext,
 ): Array<{ role: 'system' | 'user'; content: string }> {
   return [
     { role: 'system', content: systemPrompt },
-    { role: 'user', content: `The turn so far, as JSON:\n${turnJson}` },
+    {
+      role: 'user',
+      content: `The learner answered this partner line:\n${JSON.stringify(context)}\n`,
+    },
     {
       role: 'user',
       content:
-        "Explain this turn: the meaning of the partner's phrase, the learner's error, or both. " +
+        "Explain the LEARNER's answer above — what they meant, how correct it was, and the most " +
+        'useful thing to improve. Base your explanation only on the shown learner answer, the ' +
+        'correction, the interpretation and the issues; ignore any other context. ' +
         'Answer with the embrollado_explanation JSON object. ' +
         "ALL text MUST be written in the learner's native language (the feedback language declared " +
         'in the system prompt), NEVER in the target language — quoted target-language words may ' +

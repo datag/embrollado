@@ -26,21 +26,25 @@ badge) and FR-040…FR-043 (the four-tier badge).
   ],
   "badge": { "tier": "good", "labelKey": "good.short" },
   "issues": [
-    { "category": "grammar", "detail": "«¿Puede decirse?» is not idiomatic here.", "suggestion": "Use «¿Puede decirme…?»." }
+    {
+      "category": "grammar",
+      "detail": "«¿Puede decirse?» is not idiomatic here.",
+      "suggestion": "Use «¿Puede decirme…?»."
+    }
   ]
 }
 ```
 
-| Field | Required | Language | Rule |
-|---|---|---|---|
-| `partnerText` | yes | target | The partner's next line; one utterance, ≤ 300 characters |
-| `translation` | yes | native | The partner's line in the learner's native language (FR-036) |
-| `explanation` | no | native | Optional explanation of the partner's line (FR-008) |
-| `correctedText` | no | target | The learner's answer, corrected; `null` when the answer was already correct (FR-036) |
-| `interpretation` | yes | native | What the learner actually said (FR-008) |
-| `assumptions` | yes (may be empty) | native | The gaps that were filled (FR-009) |
-| `badge` | yes | — | The four-tier rating (FR-040) |
-| `issues` | yes (may be empty) | native | Concrete things to improve |
+| Field            | Required           | Language | Rule                                                                                 |
+| ---------------- | ------------------ | -------- | ------------------------------------------------------------------------------------ |
+| `partnerText`    | yes                | target   | The partner's next line; one utterance, ≤ 300 characters                             |
+| `translation`    | yes                | native   | The partner's line in the learner's native language (FR-036)                         |
+| `explanation`    | no                 | native   | Optional explanation of the partner's line (FR-008)                                  |
+| `correctedText`  | no                 | target   | The learner's answer, corrected; `null` when the answer was already correct (FR-036) |
+| `interpretation` | yes                | native   | What the learner actually said (FR-008)                                              |
+| `assumptions`    | yes (may be empty) | native   | The gaps that were filled (FR-009)                                                   |
+| `badge`          | yes                | —        | The four-tier rating (FR-040)                                                        |
+| `issues`         | yes (may be empty) | native   | Concrete things to improve                                                           |
 
 ## 2. JSON schema
 
@@ -52,14 +56,20 @@ Sent as `response_format.json_schema` with `strict: true`. Every property is lis
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "partnerText", "translation", "explanation", "correctedText",
-    "interpretation", "assumptions", "badge", "issues"
+    "partnerText",
+    "translation",
+    "explanation",
+    "correctedText",
+    "interpretation",
+    "assumptions",
+    "badge",
+    "issues"
   ],
   "properties": {
-    "partnerText":  { "type": "string" },
-    "translation":  { "type": "string" },
-    "explanation":  { "type": ["string", "null"] },
-    "correctedText":{ "type": ["string", "null"] },
+    "partnerText": { "type": "string" },
+    "translation": { "type": "string" },
+    "explanation": { "type": ["string", "null"] },
+    "correctedText": { "type": ["string", "null"] },
     "interpretation": { "type": "string" },
     "assumptions": {
       "type": "array",
@@ -69,8 +79,8 @@ Sent as `response_format.json_schema` with `strict: true`. Every property is lis
         "required": ["original", "filled", "reason"],
         "properties": {
           "original": { "type": "string" },
-          "filled":   { "type": "string" },
-          "reason":   { "type": "string" }
+          "filled": { "type": "string" },
+          "reason": { "type": "string" }
         }
       }
     },
@@ -90,8 +100,11 @@ Sent as `response_format.json_schema` with `strict: true`. Every property is lis
         "additionalProperties": false,
         "required": ["category", "detail", "suggestion"],
         "properties": {
-          "category":   { "type": "string", "enum": ["grammar", "vocabulary", "usage", "completeness"] },
-          "detail":     { "type": "string" },
+          "category": {
+            "type": "string",
+            "enum": ["grammar", "vocabulary", "usage", "completeness"]
+          },
+          "detail": { "type": "string" },
           "suggestion": { "type": ["string", "null"] }
         }
       }
@@ -110,12 +123,12 @@ Sent as `response_format.json_schema` with `strict: true`. Every property is lis
 
 ## 3. The badge
 
-| Tier | Meaning | Label examples (English) | Label examples (German) |
-|---|---|---|---|
-| `perfect` | Perfect to very good | "Perfect!", "Very good!" | "Perfekt!", "Sehr gut!" |
-| `good` | Good | "Good!", "Well done!" | "Gut!", "Gut gemacht!" |
-| `acceptable` | Acceptable | "Acceptable", "That works" | "Akzeptabel", "Das geht" |
-| `unsatisfactory` | Unsatisfying | "Not quite", "What?" | "Noch nicht ganz", "Wie?" |
+| Tier             | Meaning              | Label examples (English)   | Label examples (German)   |
+| ---------------- | -------------------- | -------------------------- | ------------------------- |
+| `perfect`        | Perfect to very good | "Perfect!", "Very good!"   | "Perfekt!", "Sehr gut!"   |
+| `good`           | Good                 | "Good!", "Well done!"      | "Gut!", "Gut gemacht!"    |
+| `acceptable`     | Acceptable           | "Acceptable", "That works" | "Akzeptabel", "Das geht"  |
+| `unsatisfactory` | Unsatisfying         | "Not quite", "What?"       | "Noch nicht ganz", "Wie?" |
 
 - The model returns the **tier** and a **label key**. The wording itself comes from the
   translation files (FR-041), so the same tier can be shown with different wordings on different
@@ -157,8 +170,14 @@ A second, separate request with the same turn in context:
   "model": "…",
   "messages": [
     { "role": "system", "content": "<the same system prompt>" },
-    { "role": "user", "content": "<the turn so far, as JSON>" },
-    { "role": "user", "content": "Explain this turn: the meaning of the phrase, the error, or both." }
+    {
+      "role": "user",
+      "content": "<the learner's answer + the partner line it responded to, as JSON>"
+    },
+    {
+      "role": "user",
+      "content": "Explain the LEARNER's answer — what they meant, how correct it was, and the most useful thing to improve."
+    }
   ],
   "response_format": {
     "type": "json_schema",
@@ -178,6 +197,10 @@ A second, separate request with the same turn in context:
   }
 }
 ```
+
+- The request explains **the learner's answer**, not the partner's next line: the context JSON
+  carries the partner line the learner responded to, the learner's own answer, the corrected
+  text, the interpretation and the issues.
 
 - The response is stored on the turn (`turn.explain`) and shown **in addition to** the existing
   feedback, which stays visible (FR-010).
