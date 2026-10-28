@@ -26,6 +26,16 @@
 >   3) Urspünglicher Satz/Frage wird nachträglich zusätzlich übersetzt; ggf. mit Erläuterung. Eigene Antwort wird korrigiert und interpretiert (z.B. fehlende Worte (Platzhalter ??? bzw. Angabe Muttersprache) mit Annahmen befüllt und Gesamtinterpretation/Sprachbewertung gegeben. Erkläre-mir-Button, welcher weitere Infos zur Semantik und/oder zum Fehler abruft.
 >   4) AI antwortet bzw. Cycle startet von Neuem.
 
+## Clarifications
+
+### Session 2026-10-28
+
+- Q: When the app talks to the AI service that the learner configured, should the request go straight from the browser to that service, or may it go through a small helper that runs on the learner's own computer? → A: Direct browser-to-service calls only; if the service refuses browser requests, the app explains how to allow them on the service side
+- Q: What should the overall assessment of the learner's answer contain? → A: A four-tier quality badge (perfect or very good, good, acceptable, unsatisfactory) shown in colour with a short label whose wording varies between turns and comes from the translation files, instead of a score
+- Q: Which situations and conversation partners should the app ship with in the first release? → A: The target language is selectable from a list of the most common languages; the three levels are beginner, intermediate and expert; 12 situations and 5 partners are predefined; learners may define their own, either saved as a reusable template or given on the fly when starting a session
+- Q: How long should the spoken audio and the generated pictures be kept on the learner's device? → A: The pictures are kept permanently, while only a bounded number of the most recent spoken lines per session are cached and older ones are requested again from the AI service when they are played
+- Q: When the learner imports a file of conversations they exported earlier, what should happen if a conversation already exists on the device? → A: The import replaces the conversations on the device with the contents of the file; a conversation with the same identifier is overwritten and a warning is shown before the import runs; a conversation is identified by a UUID
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Start a practice conversation with a chosen person and situation (Priority: P1)
@@ -34,7 +44,9 @@ A learner who wants to practise a foreign language picks a target language, a pr
 situation and a conversation partner (for example: language Spanish, level intermediate, situation
 "at the washroom of a camping site", partner "Nicole, 38, confectioner"). The app immediately opens
 the conversation with the partner's first line, spoken in the target language, so that the learner
-can start role-playing a realistic situation within a minute.
+can start role-playing a realistic situation within a minute. The learner may also bring their own
+partner or their own situation, either saved beforehand as a reusable template or written on the fly
+when starting the session.
 
 **Why this priority**: Without a configurable situation, a persona and a first line, there is no
 practice at all. Every other story builds on this one, so it is the smallest slice that delivers
@@ -50,12 +62,18 @@ No feedback features are required for this story to be considered complete.
    a level, a situation and a persona and starts, **Then** the partner's first line or question is
    shown in the target language, and the situation and partner are visible in the session header.
 2. **Given** a language and level are selected, **When** the learner opens the situation catalogue,
-   **Then** at least one situation with a person such as "Nicole, 38, confectioner" is selectable
-   together with a "washroom at a camping site" setting.
-3. **Given** a level of beginner, intermediate or advanced, **When** the first line is generated,
+   **Then** 12 situations and 5 partners are selectable, including a person such as "Nicole, 38,
+   confectioner" together with a "washroom at a camping site" setting, and every situation can be
+   combined with every partner.
+3. **Given** a level of beginner, intermediate or expert, **When** the first line is generated,
    **Then** the vocabulary, sentence length and grammatical complexity correspond to that level.
 4. **Given** the learner has started a session, **When** the learner switches to another situation
    and persona, **Then** a new, separate conversation is started and the previous one is preserved.
+5. **Given** the learner writes their own partner or situation while starting a session,
+   **When** the session begins, **Then** the partner speaks in that situation, and the entry is used
+   for that session only and is not added to the catalogue.
+6. **Given** the learner saves their own partner as a template, **When** the learner starts a later
+   session, **Then** the saved partner is offered in the catalogue and can be used again.
 
 ---
 
@@ -63,7 +81,7 @@ No feedback features are required for this story to be considered complete.
 
 After each answer, the learner sees a translation of the partner's preceding line, a corrected
 version of their own answer, an interpretation of what they actually said, the gaps that were
-filled with clearly labelled assumptions, and an overall assessment of their language. A single
+filled with clearly labelled assumptions, and a quality badge that rates the answer. A single
 "Explain to me" action gives additional information about the semantics of the phrase or about the
 specific mistake.
 
@@ -78,7 +96,7 @@ information.
 
 1. **Given** the partner asked a question, **When** the learner sends an answer, **Then** the app
    shows the translation of the partner's question, the corrected learner answer, the interpretation
-   of the answer, any filled-in assumptions, and an overall language assessment for that turn.
+   of the answer, any filled-in assumptions, and a quality badge for that turn.
 2. **Given** the learner writes an unknown word as "???" or writes it in their native language,
    **When** the feedback is generated, **Then** the gap is filled with a contextually plausible
    assumption and that assumption is visibly marked as an assumption.
@@ -86,8 +104,8 @@ information.
    **Then** additional information about the meaning of the phrase or about the specific error is
    shown without losing the existing feedback.
 4. **Given** a turn that is already correct, **When** the feedback is generated, **Then** the
-   correction confirms the answer and the assessment reports the answer as correct, without
-   inventing errors.
+   correction confirms the answer and the quality badge shows the top tier, without inventing
+   errors.
 5. **Given** the learner writes a completely empty answer, **When** they attempt to send it,
    **Then** the app does not contact the AI service and shows an inline hint instead.
 
@@ -196,12 +214,19 @@ service without those capabilities and verify the graceful fallback.
 - The learner sends an empty message, only spaces or only a placeholder: no AI request is made.
 - The learner taps "send" repeatedly or twice quickly: exactly one request per answer is issued and
   no duplicated turn appears.
+- Two consecutive answers of the same quality show different badge wordings, such as "Good!" and
+  "Well done": this is expected, the tier stays the same, and the learner is never shown two
+  different tiers for one answer.
 - The learner changes the language or level during an ongoing session: the change applies from the
   next partner line onwards, and the session header reflects the new setting.
 - The AI service returns an incomplete, malformed or unexpected answer: the app shows a
   comprehensible error, keeps the learner's typed text and never loses the session.
 - The AI service is unreachable, rejects the key, or reports a rate limit: the app shows what
   happened and how to proceed, and the learner's pending answer stays editable and sendable.
+- The configured AI service refuses browser requests because of its cross-origin policy: the app
+  says that the service is not allowing browser requests, points out that no intermediary is used,
+  and shows how to allow the requests on the service side; the session and the typed answer stay
+  intact.
 - The network drops while a partner answer is being requested: the app reports the interruption and
   allows the request to be repeated without losing the turn.
 - The session grows beyond dozens of exchanges: the transcript stays navigable and the app remains
@@ -209,16 +234,38 @@ service without those capabilities and verify the graceful fallback.
 - The learner leaves the app in the middle of a reply: after returning, the session is intact and
   the pending answer is still available.
 - The learner deletes a session: the deletion is confirmed first and cannot be undone afterwards.
+- The learner imports a file that contains a conversation with the same identifier as one on the
+  device: the conversation from the file replaces the one on the device, and the app named the
+  affected conversations in the warning before the import ran.
+- The learner cancels the import after the warning: nothing on the device changes.
+- The learner imports a file from an older version of the app: the app recognises the older
+  format, converts it, and keeps every conversation; if it cannot read the file, it says so and
+  changes nothing on the device.
 - The AI service supports neither speech nor images: the core conversation, the feedback and the
   session history remain fully usable.
+- The learner plays an older line whose audio is no longer cached: the app asks the AI service for
+  it again, shows that it is loading, and plays it when it arrives; if the request fails, the app
+  says so and leaves the text in place.
+- The AI service cannot be reached and the learner plays an older line whose audio is no longer
+  cached: the app says the audio cannot be fetched right now and shows the text of the line
+  instead.
+- The storage of the device is nearly full: the app stops caching new audio, tells the learner, and
+  keeps every picture and transcript.
+- The learner lowers the number of cached spoken lines: the app applies the smaller number from
+  that moment on and keeps the sessions and pictures that are already stored.
 - The learner has not configured an AI service yet: the app explains how to do this and does not
   fail with a technical error.
 - The learner switches the interface language in the middle of a session: the new language applies
   to the app's own texts and to the feedback of the following turns, while the turns already stored
   keep the language they were written in.
 - The learner sets a native language that differs from the interface language: the translation, the
-  explanation and the assessment are given in the native language, the interface stays in the
+  explanation and the badge label are given in the native language, the interface stays in the
   interface language, and the corrected answer stays in the target language.
+- The learner deletes a partner or situation that they saved as a template: the sessions that were
+  practised with it stay readable and still show the partner and situation as they were at the
+  time, because each session keeps its own copy of those details.
+- The learner names a partner or situation the same as an existing one: the app keeps both entries
+  apart, and the one used in a session is always the one shown in the session header.
 - The service delivers the partner's line only in parts and then fails halfway: the app keeps the
   text already shown, does not repeat it, and offers to repeat the request.
 
@@ -230,9 +277,10 @@ service without those capabilities and verify the graceful fallback.
 
 - **FR-001**: The learner MUST be able to start a practice session by selecting a target language, a
   proficiency level, a situation and a conversation partner before the first partner line is shown.
-- **FR-002**: The system MUST offer a selectable list of target languages and a selectable list of
-  proficiency levels, where each level carries a short, plain-language description of what it means.
-- **FR-003**: The system MUST offer a catalogue of situations and conversation partners, each
+- **FR-002**: The system MUST offer a selectable list of the most common target languages and
+  exactly three proficiency levels, named beginner, intermediate and expert, where each level
+  carries a short, plain-language description of what it means.
+- **FR-003**: The system MUST offer a catalogue of 12 situations and 5 conversation partners, each
   situation with a setting description and each partner with a name, an age and an occupation, and
   the catalogue MUST allow browsing and searching by keyword.
 - **FR-004**: The catalogue MUST be available without a network connection, so that a learner can
@@ -248,8 +296,8 @@ service without those capabilities and verify the graceful fallback.
   send control MUST be reachable on a phone-sized screen.
 - **FR-008**: After each answer, the system MUST show, in one place: a translation of the partner's
   preceding line, an optional explanation of that line, a corrected version of the learner's answer,
-  an interpretation of the learner's answer, the gaps that were filled with assumptions, and an
-  overall assessment of the learner's language in that turn.
+  an interpretation of the learner's answer, the gaps that were filled with assumptions, and a
+  quality badge that rates the answer.
 - **FR-009**: Where the learner's answer contains an explicit gap marker (`???`) or a word given in
   the learner's native language, the system MUST fill the gap with a plausible, context-appropriate
   assumption and MUST visibly mark that text as an assumption.
@@ -260,10 +308,10 @@ service without those capabilities and verify the graceful fallback.
   cycle MUST repeat until the learner ends the session.
 - **FR-012**: The partner's language MUST stay in the target language and MUST respect the selected
   level in vocabulary, sentence length and grammatical complexity.
-- **FR-013**: The correction, the interpretation and the assessment of the learner's answer MUST
+- **FR-013**: The correction, the interpretation and the quality badge of the learner's answer MUST
   take the selected level into account.
 - **FR-014**: The system MUST present the feedback for a turn in a fixed, predictable order so that
-  the learner always knows where to look for the translation, the correction and the assessment.
+  the learner always knows where to look for the translation, the correction and the quality badge.
 
 **Sessions and history**
 
@@ -304,8 +352,11 @@ service without those capabilities and verify the graceful fallback.
 - **FR-028**: The system MUST generate and show an illustration for the situation at the start of a
   session, for key moments within it, and at the end, and the illustration MUST be produced by the
   configured AI service.
-- **FR-029**: Illustrations and audio MUST be stored on the learner's own device and MUST NOT be
-  loaded from a third-party address when displayed.
+- **FR-029**: Illustrations MUST be kept on the learner's own device and MUST NOT be loaded from a
+  third-party address when displayed. Spoken audio MUST be cached on the device for a bounded number
+  of the most recent lines of a session, and older lines MUST be requested again from the
+  configured AI service when the learner plays them. Such a request MUST go to the configured AI
+  service only, and to no other address.
 - **FR-030**: If the AI service cannot produce images, the app MUST continue without illustrations
   and MUST NOT show an error that interrupts the conversation.
 
@@ -326,18 +377,81 @@ service without those capabilities and verify the graceful fallback.
   If the service cannot deliver the line in parts, the app MUST fall back to showing the complete
   turn at once, without duplicated or incomplete text.
 - **FR-036**: The translation of the partner's line, its explanation, the interpretation, the
-  filled-in assumptions, the assessment and the output of the "Explain to me" action MUST be
+  filled-in assumptions, the quality badge and the output of the "Explain to me" action MUST be
   delivered in the learner's native language, while the corrected version of the learner's answer
   MUST remain in the target language.
 - **FR-037**: The first release MUST include the AI-generated speech output and the AI-generated
   illustrations described in FR-026 to FR-030.
 
+**Cross-origin access to the AI service**
+
+- **FR-038**: Every request to the AI service MUST go directly from the learner's browser to the
+  configured address. The app MUST NOT route requests through an intermediary, a relay, or a
+  service of its own.
+- **FR-039**: If the configured service refuses a request because it does not allow requests from
+  the learner's browser, the app MUST report the refusal as such and MUST show guidance on how to
+  allow the requests on the service side.
+
+**Quality badge**
+
+- **FR-040**: Every rated answer MUST show a quality badge that places the answer in exactly one
+  of four tiers: perfect or very good, good, acceptable, and unsatisfactory.
+- **FR-041**: Each tier MUST be shown with a distinct colour and a short label, and the label MUST
+  be taken from the wording variants held in the translation files for the learner's language.
+- **FR-042**: Each tier MUST offer several wording variants, and the app MUST be able to show a
+  different wording than in the previous turn without changing the tier.
+- **FR-043**: The tier MUST be derived from the correctness and the quality of the answer relative
+  to the selected level, and MUST NOT be expressed as a numeric score.
+
+**Catalogue content and learner-defined entries**
+
+- **FR-044**: Each of the 12 predefined situations MUST be usable with each of the 5 predefined
+  partners. The catalogue MUST NOT restrict which situation and partner can be combined.
+- **FR-045**: The learner MUST be able to create their own partner and their own situation and
+  save them as a template, and a saved template MUST stay available for later sessions.
+- **FR-046**: The learner MUST be able to give a partner or a situation directly when starting a
+  session without saving it. Such an entry MUST apply to that session only and MUST NOT be added to
+  the catalogue.
+- **FR-047**: The learner MUST be able to rename and delete their own saved templates, and deleting
+  a template MUST NOT delete the sessions that were practised with it.
+- **FR-048**: A learner-defined partner MUST have at least a name, and a learner-defined situation
+  MUST have at least a short description. The app MUST say what is missing when either is
+  incomplete.
+- **FR-049**: Learner-defined entries MUST be stored on the learner's own device only and MUST NOT
+  be uploaded anywhere.
+
+**Keeping speech and illustrations**
+
+- **FR-050**: The number of spoken lines cached per session MUST default to the 20 most recent
+  lines, and the learner MUST be able to change that number in the settings. A smaller number MUST
+  take effect straight away and MUST NOT damage the sessions already stored.
+- **FR-051**: When the storage of the device is nearly full, the app MUST stop caching new audio
+  and MUST tell the learner. It MUST NOT delete pictures or transcripts to make room, and it MUST
+  NOT lose the session that is currently running.
+- **FR-052**: Pictures MUST be kept for as long as the session exists and MUST survive a device
+  restart.
+
+**Import and export**
+
+- **FR-053**: Every session MUST be identified by a UUID that is unique on the device. The same
+  identifier MUST be written to the exported file and MUST be used again when the session is
+  imported, so that a session keeps its identity across devices.
+- **FR-054**: An imported file MUST replace the conversations stored on the device with the
+  conversations contained in the file. A conversation in the file that carries the same identifier
+  as one on the device MUST overwrite that conversation.
+- **FR-055**: Before an import is carried out, the app MUST warn the learner that the conversations
+  on the device will be replaced, naming how many conversations are affected, and MUST only carry
+  out the import after the learner confirms.
+- **FR-056**: The exported file MUST carry a format version. When the learner imports a file from
+  an older version of the app, the app MUST recognise it and convert it; if the file cannot be
+  read, the app MUST say so and MUST leave the conversations on the device untouched.
+
 **Scope boundaries for the first release**
 
 - Out of scope: pronunciation scoring or phonetic ratings, flashcards and spaced repetition,
   accounts and cross-device synchronisation, teacher or classroom management, a catalogue that is
-  fetched from a server, and any analysis of the learner's progress across sessions beyond the
-  per-turn assessment.
+  fetched from a server, any analysis of the learner's progress across sessions beyond the
+  per-turn quality badge, and any proxy, relay or backend of our own for reaching the AI service.
 - In scope: the dialogue cycle with per-turn feedback, the situation and partner catalogue, session
   management with export and import, the configuration of the AI service, the English and German
   interface with a separate native-language setting, the AI-generated speech output for the
@@ -346,22 +460,31 @@ service without those capabilities and verify the graceful fallback.
 
 ### Key Entities
 
-- **Session**: A single practice conversation. Attributes: identifier, title, target language,
-  proficiency level, situation, partner, creation and last activity date, number of exchanges,
-  state (active or ended).
+- **Session**: A single practice conversation. Attributes: identifier (a UUID that is unique on the
+  device and is kept in the exported file), title, target language, proficiency level, situation,
+  partner, a snapshot of the situation and partner as they were described when the session started,
+  creation and last activity date, number of exchanges, state (active or ended).
 - **Turn**: One cycle step of a session. Attributes: position in the session, partner line, the
   learner's answer, translation of the partner line, explanation of that line, corrected learner
-  answer, interpretation of the learner's answer, filled-in assumptions with their markers, overall
-  language assessment, and the additional explanation retrieved via "Explain to me".
+  answer, interpretation of the learner's answer, filled-in assumptions with their markers, quality
+  badge, and the additional explanation retrieved via "Explain to me".
+- **Quality badge**: The rating shown for a learner's answer. Attributes: tier (perfect or very
+  good, good, acceptable, or unsatisfactory), the tier's colour, and the label wording shown to the
+  learner. The label wordings are variants held in the translation files, for example "Very good!",
+  "Good!", "Acceptable", "Not quite" or "What?".
 - **Persona (conversation partner)**: A character the learner talks to. Attributes: name, age,
-  occupation, short description, and the situations the person belongs to.
+  occupation, short description, the situations the person belongs to, and whether the person is
+  predefined or defined by the learner, and whether the learner saved it as a template or used it
+  for one session only.
 - **Situation**: A scenario the conversation takes place in. Attributes: name, setting description,
-  key moments, and the personas available for it.
+  key moments, the personas available for it, and whether the situation is predefined or defined by
+  the learner, and whether the learner saved it as a template or used it for one session only.
 - **Learner profile and settings**: The learner's configuration. Attributes: target language,
-  proficiency level, native language, the address, credentials and model of the AI service, and the
-  settings for speech and illustrations.
+  proficiency level, native language, the address, credentials and model of the AI service, the
+  settings for speech and illustrations, and the number of spoken lines kept in the local cache.
 - **Illustration**: A generated picture for a situation moment. Attributes: referenced session and
-  turn, the moment it depicts, and the locally stored asset.
+  turn, the moment it depicts, and the locally stored asset, which is kept as long as the session
+  exists.
 - **Explanation**: Additional information about a turn, retrieved on demand. Attributes: referenced
   turn, content, and the kind of information (meaning of a phrase, a specific error, or both).
 
@@ -374,7 +497,7 @@ service without those capabilities and verify the graceful fallback.
 - **SC-002**: At least 90% of first-time test users complete an exchange of 10 or more turns in one
   sitting without leaving the dialogue view on a phone-sized screen.
 - **SC-003**: 100% of turns that the learner sends receive a translation, a correction, an
-  interpretation, a list of filled-in assumptions and an overall assessment.
+  interpretation, a list of filled-in assumptions and a quality badge in one of the four tiers.
 - **SC-004**: The complete feedback for a turn is visible within 10 seconds of sending an answer in
   at least 95% of turns under normal network conditions.
 - **SC-005**: Every session opened after a device restart shows the full transcript including all
@@ -382,7 +505,8 @@ service without those capabilities and verify the graceful fallback.
 - **SC-006**: At least 85% of test users state that the "Explain to me" action told them what to
   improve, without needing a further explanation.
 - **SC-007**: In a full practice session, a network trace shows no request to any destination other
-  than the configured AI service.
+  than the configured AI service, and every request reaches that address directly, without any
+  intermediary.
 - **SC-008**: With the network disconnected, all functions that do not require the AI service
   (session list, transcript, settings, export) remain fully usable.
 - **SC-009**: On a 320-pixel-wide screen, the primary flow is usable without horizontal scrolling
@@ -400,6 +524,24 @@ service without those capabilities and verify the graceful fallback.
 - **SC-014**: All interface texts and all feedback are shown in the language the learner selected,
   in English or German, with the native-language setting applied where the learner has set it, in
   100% of cases.
+- **SC-015**: Every rated turn shows exactly one of the four tiers with its own colour and a label
+  taken from the translation files, in 100% of cases, and consecutive turns of the same tier may
+  show different wordings without being rated differently.
+- **SC-016**: The first release offers 12 situations and 5 partners, and every situation can be
+  combined with every partner, in 100% of combinations.
+- **SC-017**: A partner or situation that the learner saved as a template is still offered after a
+  device restart and can be used in a later session, in 100% of cases, and a partner or situation
+  given on the fly is never listed in the catalogue.
+- **SC-018**: After practising in 50 sessions, the app still starts, lists and opens every one of
+  them, and the stored transcripts and pictures are intact, in 100% of cases.
+- **SC-019**: Playing an older line whose audio is no longer cached fetches it again from the AI
+  service and plays it, in at least 95% of cases with the service reachable, and the text of the
+  line stays visible in the meantime.
+- **SC-020**: An import replaces the conversations on the device with the conversations of the
+  file, a conversation with the same identifier is overwritten, and the app warned before anything
+  changed, in 100% of imports.
+- **SC-021**: A file exported on one device and imported on another reproduces every conversation
+  with all of its feedback and keeps the same identifiers, in 100% of cases.
 
 ## Assumptions
 
@@ -410,6 +552,9 @@ service without those capabilities and verify the graceful fallback.
   language being practised is always a separate, selectable choice.
 - The AI service is an OpenAI-compatible service that the learner configures themselves. The app
   does not ship with a service, a key or a model.
+- The app contains no server component and no intermediary of any kind. Every request goes
+  directly from the browser to the configured address, so the service must allow requests from the
+  learner's browser; a service that refuses them cannot be used with the app.
 - The service must be able to return the content the dialogue cycle needs. Where a service cannot
   guarantee a structured answer, the app asks for the required pieces in plain text and is
   tolerant about their order.
@@ -417,14 +562,23 @@ service without those capabilities and verify the graceful fallback.
   configured AI service, never by another provider. They are optional at runtime in the sense that
   the app continues without them when the service does not support them; the core dialogue, the
   feedback and the session history never depend on them.
+- Pictures are kept on the device as long as the session exists. Spoken lines are cached for the 20
+  most recent lines of a session by default; older lines are requested again from the AI service
+  when the learner plays them, which costs the learner a request but keeps the storage small.
 - The partner's line is displayed progressively while it is being generated, and the feedback for
   the turn arrives as one block afterwards. Where the service cannot deliver partial text, the app
   falls back to the complete turn at once, and the interface always shows a visible progress
   indication while a request is running.
-- The language assessment is limited to semantics, grammar and vocabulary. A rating of the
-  learner's pronunciation is a later feature and is not part of the first release.
+- The quality badge is based on semantics, grammar and vocabulary. A rating of the learner's
+  pronunciation is a later feature and is not part of the first release.
 - The situation and partner catalogue is part of the shipped app and is maintained with it, so that
-  it is available offline and requires no external service.
+  it is available offline and requires no external service. The first release ships 12 situations
+  and 5 partners, which can be combined freely, and the target-language list covers the most
+  commonly spoken languages, for example English, German, French, Spanish, Italian, Portuguese,
+  Dutch, Polish, Turkish, Russian, Japanese and Chinese.
+- The three proficiency levels are beginner, intermediate and expert.
 - The learner may mark a word they cannot express with `???` or by writing it in their native
   language; both are treated as an explicit gap to be filled with a labelled assumption.
+- The export format is a JSON file that carries a format version, and every session keeps the same
+  UUID for its whole life, on every device it is carried to.
 - The feature branch for this work is `001-ai-language-roleplay`.
