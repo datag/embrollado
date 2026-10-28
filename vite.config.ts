@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 import { fileURLToPath } from 'node:url'
 
@@ -40,7 +41,7 @@ function cspMetaPlugin() {
 }
 
 export default defineConfig({
-  plugins: [tailwindcss(), cspMetaPlugin()],
+  plugins: [vue(), tailwindcss(), cspMetaPlugin()],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

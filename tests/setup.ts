@@ -1,3 +1,4 @@
+import { beforeEach } from 'vitest'
 import 'fake-indexeddb/auto'
 
 // Reset the entire IndexedDB database before each unit test so no test leaks state into another.
