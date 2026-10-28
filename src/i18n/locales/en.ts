@@ -123,6 +123,9 @@ export default {
     chatModel: 'Chat model',
     speechModel: 'Speech model',
     speechModelHint: 'Empty disables the playback button',
+    speechVoice: 'Voice (TTS)',
+    speechVoiceHint:
+      'Model-specific — check your service for the valid voices. Empty uses the provider default.',
     imageModel: 'Image model',
     imageModelHint: 'Empty disables illustrations',
     fetchModels: 'Fetch models',

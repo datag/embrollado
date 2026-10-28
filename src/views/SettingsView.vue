@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useSettings, useServiceConfig } from '@/composables/useSettings'
 import { useTheme } from '@/composables/useTheme'
 import { LANGUAGES } from '@/domain/catalogue'
@@ -62,9 +62,17 @@ function onChatModel(event: Event) {
 function onSpeechModel(event: Event) {
   updateService({ speechModel: (event.target as HTMLInputElement).value.trim() || null })
 }
+function onSpeechVoice(event: Event) {
+  updateService({ speechVoice: (event.target as HTMLInputElement).value.trim() || null })
+}
 function onImageModel(event: Event) {
   updateService({ imageModel: (event.target as HTMLInputElement).value.trim() || null })
 }
+
+const speechVoicePlaceholder = computed(() => {
+  const profile = PROVIDER_PROFILES[service.providerProfile] ?? PROVIDER_PROFILES.custom
+  return profile.defaultVoice
+})
 
 function onSaveSettings(nav: { interfaceLanguage?: string; theme?: string }) {
   const patch: Record<string, unknown> = {}
@@ -228,6 +236,19 @@ function lowSpaceComputed(): boolean {
           @input="onSpeechModel"
         />
         <span class="mt-1 block text-xs text-fg-muted">{{ $t('settings.speechModelHint') }}</span>
+      </label>
+
+      <label class="block">
+        <span class="mb-1 block text-sm">{{ $t('settings.speechVoice') }}</span>
+        <input
+          :value="service.speechVoice ?? ''"
+          data-testid="service-speech-voice"
+          type="text"
+          :placeholder="speechVoicePlaceholder"
+          class="min-h-11 w-full rounded-lg border border-border px-3"
+          @input="onSpeechVoice"
+        />
+        <span class="mt-1 block text-xs text-fg-muted">{{ $t('settings.speechVoiceHint') }}</span>
       </label>
 
       <label class="block">

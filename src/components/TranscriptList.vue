@@ -9,11 +9,12 @@ defineProps<{ turns: Turn[] }>()
 <template>
   <div class="space-y-3">
     <template v-for="turn in turns" :key="turn.id">
-      <TurnBubble :text="turn.partnerText" side="partner" />
+      <!-- Chronologische Reihenfolge: Antwort + Feedback, dann die Partnerzeile (FR-011). -->
       <div v-if="turn.learnerText" class="flex flex-col gap-2">
         <TurnBubble :text="turn.learnerText" side="learner" />
         <FeedbackPanel :turn="turn" :show-explain="false" />
       </div>
+      <TurnBubble :text="turn.partnerText" side="partner" />
     </template>
   </div>
 </template>

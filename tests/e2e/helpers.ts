@@ -19,6 +19,7 @@ export async function configureService(
   await page.getByTestId('service-chat-model').fill('mock-chat')
   if (opts.speech) {
     await page.getByTestId('service-speech-model').fill('mock-speech')
+    await page.getByTestId('service-speech-voice').fill('alloy')
   }
   if (opts.image) {
     await page.getByTestId('service-image-model').fill('mock-image')

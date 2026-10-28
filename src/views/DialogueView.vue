@@ -14,7 +14,7 @@ const route = useRoute()
 const sessionState = useSession()
 const draft = ref('')
 const illustrations = ref<Illustration[]>([])
-const speechHints = ref<Record<string, string>>({})
+const speechHints = ref<Record<string, string | null>>({})
 
 const sessionId = computed(() => String(route.params.id ?? ''))
 const session = computed<Session | null>(() => sessionState.session.value)
@@ -66,8 +66,12 @@ function onExplain(turn: Turn) {
 
 async function onPlay(turn: Turn) {
   const result = await sessionState.playTurn(turn)
-  if (!result.ok && result.message === 'speechUnavailable') {
-    speechHints.value[turn.id] = 'speechUnavailable'
+  if (!result.ok) {
+    // Keep the provider's message when available so a rejected voice/model is understandable.
+    speechHints.value[turn.id] =
+      result.message === 'speechUnavailable' ? 'speechUnavailable' : result.message
+  } else {
+    delete speechHints.value[turn.id]
   }
 }
 
@@ -136,31 +140,8 @@ const statusHint = computed(() => (offline.value ? 'network' : null) ?? errorKin
 
       <div class="space-y-3">
         <template v-for="turn in turns" :key="turn.id">
-          <div class="flex items-start gap-2">
-            <TurnBubble :text="turn.partnerText" side="partner" />
-            <SpeechButton
-              class="shrink-0"
-              :label="$t('settings.speech')"
-              :hint="speechHint(turn.id) ? $t('errors.speechUnavailable') : null"
-              @play="onPlay(turn)"
-            />
-            <p
-              v-if="speechHint(turn.id)"
-              class="max-w-28 text-xs leading-snug text-fg-muted pt-3"
-              data-testid="speech-hint"
-            >
-              {{ $t('errors.speechUnavailable') }}
-            </p>
-          </div>
-
-          <div v-if="turn.illustrationId" class="flex justify-end">
-            <IllustrationPanel
-              class="w-40"
-              :illustration="illustrations.find((i) => i.id === turn.illustrationId) ?? null"
-              :alt="turn.partnerText"
-            />
-          </div>
-
+          <!-- Chronologische Reihenfolge pro Turn (FR-011): die Lernenden-Antwort samt Feedback
+               kommt zuerst, danach die neue Partnerzeile, die diese Antwort hervorrief. -->
           <div v-if="turn.learnerText" class="flex flex-col gap-2">
             <TurnBubble :text="turn.learnerText" side="learner" />
             <FeedbackPanel
@@ -169,6 +150,41 @@ const statusHint = computed(() => (offline.value ? 'network' : null) ?? errorKin
               :show-explain="true"
               :explain-disabled="readOnly"
               @explain="onExplain(turn)"
+            />
+          </div>
+
+          <div class="flex items-start gap-2">
+            <TurnBubble :text="turn.partnerText" side="partner" />
+            <SpeechButton
+              class="shrink-0"
+              :label="$t('settings.speech')"
+              :hint="
+                speechHint(turn.id)
+                  ? speechHint(turn.id) === 'speechUnavailable'
+                    ? $t('errors.speechUnavailable')
+                    : speechHint(turn.id)
+                  : null
+              "
+              @play="onPlay(turn)"
+            />
+            <p
+              v-if="speechHint(turn.id)"
+              class="max-w-28 text-xs leading-snug text-fg-muted pt-3"
+              data-testid="speech-hint"
+            >
+              {{
+                speechHint(turn.id) === 'speechUnavailable'
+                  ? $t('errors.speechUnavailable')
+                  : speechHint(turn.id)
+              }}
+            </p>
+          </div>
+
+          <div v-if="turn.illustrationId" class="flex justify-end">
+            <IllustrationPanel
+              class="w-40"
+              :illustration="illustrations.find((i) => i.id === turn.illustrationId) ?? null"
+              :alt="turn.partnerText"
             />
           </div>
         </template>

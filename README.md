@@ -44,14 +44,15 @@ pnpm dev
 
 Open <http://localhost:5173> and go to **Settings → AI service**:
 
-| Field           | Value                        |
-| --------------- | ---------------------------- |
-| Service address | `http://localhost:8787/v1`   |
-| API key         | `test` (the mock ignores it) |
-| Auth style      | `Bearer`                     |
-| Chat model      | `mock-chat`                  |
-| Speech model    | `mock-speech` (optional)     |
-| Image model     | `mock-image` (optional)      |
+| Field           | Value                               |
+| --------------- | ----------------------------------- |
+| Service address | `http://localhost:8787/v1`          |
+| API key         | `test` (the mock ignores it)        |
+| Auth style      | `Bearer`                            |
+| Chat model      | `mock-chat`                         |
+| Speech model    | `mock-speech` (optional)            |
+| Voice (TTS)     | `alloy` — model-specific (optional) |
+| Image model     | `mock-image` (optional)             |
 
 Press **Test the connection**. Then start a conversation from **＋ New conversation**.
 

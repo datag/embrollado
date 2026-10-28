@@ -49,7 +49,9 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     schemaPlacement: 'nested',
     jsonMode: 'json_schema',
     defaultVoice: 'alloy',
-    audioResponseFormat: 'pcm',
+    // mp3 (not the API's own default "pcm"): raw 16-bit PCM cannot be played by a browser
+    // <audio> element, so an explicit playable format is requested.
+    audioResponseFormat: 'mp3',
     imagesPath: '/images',
     sendRealKey: true,
     corsHint: null,

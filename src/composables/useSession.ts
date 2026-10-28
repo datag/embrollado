@@ -1,4 +1,4 @@
-import { ref, type Ref } from 'vue'
+import { ref, shallowRef, type Ref } from 'vue'
 import type { Session, Turn, Illustration, AudioEntry } from '@/domain/types'
 import {
   createSession,
@@ -70,7 +70,10 @@ function feedbackLanguage(): string {
 
 export function useSession(): UseSessionReturn {
   const session = ref<Session | null>(null)
-  const turns = ref<Turn[]>([])
+  // shallowRef: the stored Turn objects stay plain (a deep reactive proxy cannot be written to
+  // IndexedDB — structured clone rejects proxies). The list is reassigned on every change, which
+  // keeps the UI reactive.
+  const turns = shallowRef<Turn[]>([])
   const phase = ref<TurnPhase>('idle')
   const partnerProgress = ref('')
   const error = ref<SessionError | null>(null)
@@ -169,7 +172,7 @@ export function useSession(): UseSessionReturn {
     turns.value = await getTurns(s.id)
     lastHandle = opening
     phase.value = 'waiting-answer'
-    await generateIllustration(s, opening, 'start')
+    await generateIllustration(s)
   }
 
   async function sendAnswer(input: string) {
@@ -220,29 +223,25 @@ export function useSession(): UseSessionReturn {
       turns.value = await getTurns(s.id)
       lastHandle = turn
       phase.value = 'waiting-answer'
-      await generateIllustration(s, turn, 'key')
+      // Manuell nachbestellte Bilder gibt es nur für den Start der Konversation — nicht für jeden
+      // Turn (owner-Anforderung). Illustrationen bleiben für importierte Sessions lesbar.
     } catch (err) {
       phase.value = 'failed'
       handleError(err)
     }
   }
 
-  /** An illustration for the start / key / end moments (T086, FR-028). */
-  async function generateIllustration(s: Session, turn: Turn, moment: 'start' | 'key' | 'end') {
+  /**
+   * An illustration for the start of the session (owner: one picture per conversation, not per
+   * turn). Exported conversations with pictures stay readable per turn in the transcript.
+   */
+  async function generateIllustration(s: Session) {
     const { settings } = useSettings()
     if (!settings.illustrationsEnabled || !imagesAvailable.value) return
     const { service } = useServiceConfig()
     if (!service.imageModel) return
 
-    const keyMoments = s.situation.keyMoments?.length ? s.situation.keyMoments : null
-    let momentDescription = s.situation.name
-    if (moment === 'start') momentDescription = `at the start of ${s.situation.name}`
-    else if (moment === 'key')
-      momentDescription = keyMoments
-        ? keyMoments[Math.min(keyMoments.length - 1, turn.position - 2)]
-        : 'at a key moment in the conversation'
-    else momentDescription = `at the very end of ${s.situation.name}`
-
+    const momentDescription = `at the start of ${s.situation.name}`
     const prompt = buildIllustrationPrompt(s.situation, momentDescription)
     let res
     try {
@@ -257,8 +256,10 @@ export function useSession(): UseSessionReturn {
     const illustration: Illustration = {
       id: crypto.randomUUID(),
       sessionId: s.id,
-      turnId: turn.id,
-      moment,
+      // A situation picture, not attached to a turn: it is shown in the start panel only, so a
+      // per-turn image never duplicates it.
+      turnId: null,
+      moment: 'start',
       prompt,
       mimeType: res.mimeType,
       bytes: new Blob([res.bytes as BlobPart], { type: res.mimeType }),
@@ -269,8 +270,6 @@ export function useSession(): UseSessionReturn {
     try {
       const saved = await saveIllustration(illustration)
       if (saved.ok) {
-        turn.illustrationId = illustration.id
-        await updateTurn(turn)
         turns.value = await getTurns(s.id)
       }
     } catch {
@@ -323,7 +322,7 @@ export function useSession(): UseSessionReturn {
       speechAvailable.value = false
       return { ok: false, message: 'speechUnavailable' }
     }
-    const voice = profileById(service.providerProfile).defaultVoice
+    const voice = service.speechVoice?.trim() || profileById(service.providerProfile).defaultVoice
     try {
       // Reuse an identical line from the cache (FR-050).
       let audio: AudioEntry | undefined = turn.audioId
@@ -352,6 +351,7 @@ export function useSession(): UseSessionReturn {
         audio = entry
         turn.audioId = entry.id
         await updateTurn(turn)
+        if (session.value) turns.value = await getTurns(session.value.id)
       }
       const url = URL.createObjectURL(audio.bytes)
       try {
@@ -403,12 +403,6 @@ export function useSession(): UseSessionReturn {
   async function endSession() {
     const s = session.value
     if (!s) return
-    try {
-      const last = lastHandle
-      if (last) await generateIllustration(s, last, 'end')
-    } catch {
-      /* illustrations are best-effort */
-    }
     await endSessionStore(s.id)
     session.value = (await getSession(s.id)) ?? null
     phase.value = 'waiting-answer'

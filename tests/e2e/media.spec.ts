@@ -26,6 +26,8 @@ test.describe('speech and illustrations', () => {
     // Playback is a local blob; the speech request goes to the configured service.
     await page.getByTestId('speech-button').first().click()
     await expect.poll(() => speechRequests.length, { timeout: 15_000 }).toBeGreaterThan(0)
+    // Playback succeeded: no error hint is rendered next to the button.
+    await expect.poll(() => page.getByTestId('speech-hint').count(), { timeout: 15_000 }).toBe(0)
   })
 
   test('degrades gracefully on a service without these capabilities', async ({ page }) => {

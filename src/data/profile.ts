@@ -20,6 +20,7 @@ export const DEFAULT_SERVICE: ServiceConfig = {
   authMode: 'bearer',
   chatModel: 'gpt-4o-mini',
   speechModel: null,
+  speechVoice: null,
   imageModel: null,
   providerProfile: 'openai',
 }

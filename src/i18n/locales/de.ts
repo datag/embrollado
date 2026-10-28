@@ -124,6 +124,9 @@ export default {
     chatModel: 'Chat-Modell',
     speechModel: 'Sprachmodell',
     speechModelHint: 'Leer deaktiviert die Wiedergabe-Taste',
+    speechVoice: 'Stimme (TTS)',
+    speechVoiceHint:
+      'Modellabhängig — prüfe bei deinem Dienst die gültigen Stimmen. Leer nutzt die Standardstimme.',
     imageModel: 'Bildmodell',
     imageModelHint: 'Leer deaktiviert die Illustrationen',
     fetchModels: 'Modelle abrufen',

@@ -139,6 +139,8 @@ export interface ServiceConfig {
   authMode: AuthMode
   chatModel: string
   speechModel: string | null
+  /** The TTS voice for the configured speech model (model-specific); null = provider default. */
+  speechVoice: string | null
   imageModel: string | null
   providerProfile: string
 }

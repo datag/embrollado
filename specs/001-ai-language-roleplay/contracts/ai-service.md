@@ -10,24 +10,25 @@ accepts, and how failures are surfaced.
 
 ## 1. Configuration the learner provides
 
-| Setting | Example | Notes |
-|---|---|---|
-| `baseUrl` | `https://api.openai.com/v1` | Absolute http(s) URL; no trailing `/v1` is added automatically |
-| `apiKey` | `sk-…` | Stored locally only; never logged, never exported |
-| `authMode` | `bearer` | `bearer` (default), `x-api-key`, `api-key` |
-| `chatModel` | `gpt-4o-mini` | Required |
-| `speechModel` | `gpt-4o-mini-tts` | Optional; absent ⇒ the speech button is hidden |
-| `imageModel` | `gpt-image-1-mini` | Optional; absent ⇒ no illustrations |
+| Setting       | Example                     | Notes                                                          |
+| ------------- | --------------------------- | -------------------------------------------------------------- |
+| `baseUrl`     | `https://api.openai.com/v1` | Absolute http(s) URL; no trailing `/v1` is added automatically |
+| `apiKey`      | `sk-…`                      | Stored locally only; never logged, never exported              |
+| `authMode`    | `bearer`                    | `bearer` (default), `x-api-key`, `api-key`                     |
+| `chatModel`   | `gpt-4o-mini`               | Required                                                       |
+| `speechModel` | `gpt-4o-mini-tts`           | Optional; absent ⇒ the speech button is hidden                 |
+| `speechVoice` | `alloy`                     | Optional; model-specific, empty ⇒ profile default              |
+| `imageModel`  | `gpt-image-1-mini`          | Optional; absent ⇒ no illustrations                            |
 
 ## 2. Endpoints the app uses
 
-| Purpose | Path | Method | Notes |
-|---|---|---|---|
-| Chat (a turn) | `{baseUrl}/chat/completions` | POST | The only mandatory call |
-| Chat, streamed | `{baseUrl}/chat/completions` with `stream: true` | POST | Same body plus `stream`/`stream_options` |
-| Models | `{baseUrl}/models` | GET | Optional — offered as a hint in Settings; never required |
-| Speech | `{baseUrl}/audio/speech` | POST | Optional capability |
-| Images | `{baseUrl}/images/generations` | POST | Optional capability; **OpenRouter uses `/images`** (see §7) |
+| Purpose        | Path                                             | Method | Notes                                                       |
+| -------------- | ------------------------------------------------ | ------ | ----------------------------------------------------------- |
+| Chat (a turn)  | `{baseUrl}/chat/completions`                     | POST   | The only mandatory call                                     |
+| Chat, streamed | `{baseUrl}/chat/completions` with `stream: true` | POST   | Same body plus `stream`/`stream_options`                    |
+| Models         | `{baseUrl}/models`                               | GET    | Optional — offered as a hint in Settings; never required    |
+| Speech         | `{baseUrl}/audio/speech`                         | POST   | Optional capability                                         |
+| Images         | `{baseUrl}/images/generations`                   | POST   | Optional capability; **OpenRouter uses `/images`** (see §7) |
 
 `baseUrl` already contains the provider's version prefix (`/v1`, `/api/v1`). Azure-style endpoints
 are modelled with a URL template that appends `?api-version=…` to every path.
@@ -74,7 +75,11 @@ refusal as a readable message and never renders it as feedback.
 {
   "id": "chatcmpl-…",
   "choices": [
-    { "index": 0, "message": { "role": "assistant", "content": "<the JSON turn>" }, "finish_reason": "stop" }
+    {
+      "index": 0,
+      "message": { "role": "assistant", "content": "<the JSON turn>" },
+      "finish_reason": "stop"
+    }
   ],
   "usage": { "prompt_tokens": 81, "completion_tokens": 11, "total_tokens": 92 }
 }
@@ -102,22 +107,33 @@ The app normalises every failure into one internal kind:
 
 ```ts
 type AiErrorKind =
-  | 'auth' | 'permission' | 'quota' | 'rate_limit' | 'bad_request'
-  | 'not_found' | 'overloaded' | 'provider' | 'content_filter' | 'refusal'
-  | 'timeout' | 'network' | 'cors' | 'unknown';
+  | 'auth'
+  | 'permission'
+  | 'quota'
+  | 'rate_limit'
+  | 'bad_request'
+  | 'not_found'
+  | 'overloaded'
+  | 'provider'
+  | 'content_filter'
+  | 'refusal'
+  | 'timeout'
+  | 'network'
+  | 'cors'
+  | 'unknown'
 ```
 
-| Situation | Detection | Learner-facing outcome |
-|---|---|---|
-| OpenAI shape `{ error: { message, type, param, code } }` | `error.type` | mapped by `type` |
-| OpenRouter shape `{ error: { code, message, metadata } }` | `error.code` (a number) + `error.metadata.error_type` | mapped by `error_type` |
-| Error body with **HTTP 200** | body has `error` and no `choices` | treated as an error (OpenRouter does this) |
-| HTTP 401 / 403 | status | "the service rejected the key" → link to Settings |
-| HTTP 402 | status | "the account has no credit left" (OpenRouter only) |
-| HTTP 429 | status | "the service is rate limiting" → retry later, text kept |
-| HTTP 5xx | status | "the service is unavailable" → retry |
-| `fetch` rejects with `TypeError` | no response object | **cross-origin or offline** — the app shows the provider-specific hint from §7 |
-| Non-JSON body | parse fails | "the service answered in an unexpected format" |
+| Situation                                                 | Detection                                             | Learner-facing outcome                                                         |
+| --------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------ |
+| OpenAI shape `{ error: { message, type, param, code } }`  | `error.type`                                          | mapped by `type`                                                               |
+| OpenRouter shape `{ error: { code, message, metadata } }` | `error.code` (a number) + `error.metadata.error_type` | mapped by `error_type`                                                         |
+| Error body with **HTTP 200**                              | body has `error` and no `choices`                     | treated as an error (OpenRouter does this)                                     |
+| HTTP 401 / 403                                            | status                                                | "the service rejected the key" → link to Settings                              |
+| HTTP 402                                                  | status                                                | "the account has no credit left" (OpenRouter only)                             |
+| HTTP 429                                                  | status                                                | "the service is rate limiting" → retry later, text kept                        |
+| HTTP 5xx                                                  | status                                                | "the service is unavailable" → retry                                           |
+| `fetch` rejects with `TypeError`                          | no response object                                    | **cross-origin or offline** — the app shows the provider-specific hint from §7 |
+| Non-JSON body                                             | parse fails                                           | "the service answered in an unexpected format"                                 |
 
 **Backoff**: `Retry-After` is not readable cross-origin (neither OpenAI nor OpenRouter expose it),
 so the app uses its own schedule: wait 2 s, 4 s, 8 s, at most 3 attempts, only for `rate_limit`,
@@ -131,15 +147,15 @@ diagnostic before it reaches the UI or the console (FR-022).
 The app ships profiles for the common endpoints. The profile is selected from the base URL and can
 be changed manually.
 
-| Profile | Base URL | Auth | Schema placement | JSON mode | Audio format | Images path |
-|---|---|---|---|---|---|---|
-| `openai` | `https://api.openai.com/v1` | `bearer` | nested | `json_schema` | `mp3` | `/images/generations` |
-| `openrouter` | `https://openrouter.ai/api/v1` | `bearer` | nested | `json_schema` | `pcm` | `/images` |
-| `ollama` | `http://localhost:11434/v1` | `bearer` (any value) | nested | `json_schema` | `wav` | — |
-| `llamacpp` | `http://localhost:9931/v1` | `bearer` | **sibling** (send both) | `json_schema` | — | — |
-| `vllm` | `http://localhost:8000/v1` | `bearer` | nested | `json_schema` | — | — |
-| `lmstudio` | `http://localhost:1234/v1` | `bearer` | nested | `json_schema` | — | — |
-| `custom` | anything else | selectable | selectable | selectable | selectable | selectable |
+| Profile      | Base URL                       | Auth                 | Schema placement        | JSON mode     | Audio format                                                          | Images path           |
+| ------------ | ------------------------------ | -------------------- | ----------------------- | ------------- | --------------------------------------------------------------------- | --------------------- |
+| `openai`     | `https://api.openai.com/v1`    | `bearer`             | nested                  | `json_schema` | `mp3`                                                                 | `/images/generations` |
+| `openrouter` | `https://openrouter.ai/api/v1` | `bearer`             | nested                  | `json_schema` | `mp3` (API default is raw `pcm`, not playable in a browser `<audio>`) | `/images`             |
+| `ollama`     | `http://localhost:11434/v1`    | `bearer` (any value) | nested                  | `json_schema` | `wav`                                                                 | —                     |
+| `llamacpp`   | `http://localhost:9931/v1`     | `bearer`             | **sibling** (send both) | `json_schema` | —                                                                     | —                     |
+| `vllm`       | `http://localhost:8000/v1`     | `bearer`             | nested                  | `json_schema` | —                                                                     | —                     |
+| `lmstudio`   | `http://localhost:1234/v1`     | `bearer`             | nested                  | `json_schema` | —                                                                     | —                     |
+| `custom`     | anything else                  | selectable           | selectable              | selectable    | selectable                                                            | selectable            |
 
 Notes carried by a profile:
 
@@ -156,13 +172,13 @@ Notes carried by a profile:
 When the request fails with a `TypeError` (no status, no body), the app explains that the service
 did not allow the request from the browser and shows the matching hint:
 
-| Service | Hint |
-|---|---|
-| Ollama | `OLLAMA_ORIGINS="http://localhost:5173" ollama serve` (or `ollama origin add <origin>`) |
-| llama.cpp | `llama-server --cors-origins "http://localhost:5173"` |
-| vLLM | `vllm serve <model> --allowed-origins '["http://localhost:5173"]'` — **empty by default since v0.32** |
-| LM Studio | unknown — no documented flag (verified: no documentation found) |
-| OpenAI / OpenRouter | not applicable — both allow browser origins |
+| Service             | Hint                                                                                                  |
+| ------------------- | ----------------------------------------------------------------------------------------------------- |
+| Ollama              | `OLLAMA_ORIGINS="http://localhost:5173" ollama serve` (or `ollama origin add <origin>`)               |
+| llama.cpp           | `llama-server --cors-origins "http://localhost:5173"`                                                 |
+| vLLM                | `vllm serve <model> --allowed-origins '["http://localhost:5173"]'` — **empty by default since v0.32** |
+| LM Studio           | unknown — no documented flag (verified: no documentation found)                                       |
+| OpenAI / OpenRouter | not applicable — both allow browser origins                                                           |
 
 The app never suggests a proxy of our own: FR-038 forbids one.
 
@@ -198,14 +214,14 @@ POST {baseUrl}/images/generations
 
 ## 11. Capability detection
 
-| Capability | How it is determined | When |
-|---|---|---|
-| Chat | assumed; verified by the first successful request | first use |
-| Structured output | the first response parses as the expected shape | first use |
-| Streaming | the response is an SSE stream | first use |
-| Models list | `GET {baseUrl}/models` succeeds | on request in Settings |
-| Speech | `POST {baseUrl}/audio/speech` does not fail with 404/405 | on request in Settings |
-| Images | `POST {baseUrl}/images/generations` does not fail with 404/405 | on request in Settings |
+| Capability        | How it is determined                                           | When                   |
+| ----------------- | -------------------------------------------------------------- | ---------------------- |
+| Chat              | assumed; verified by the first successful request              | first use              |
+| Structured output | the first response parses as the expected shape                | first use              |
+| Streaming         | the response is an SSE stream                                  | first use              |
+| Models list       | `GET {baseUrl}/models` succeeds                                | on request in Settings |
+| Speech            | `POST {baseUrl}/audio/speech` does not fail with 404/405       | on request in Settings |
+| Images            | `POST {baseUrl}/images/generations` does not fail with 404/405 | on request in Settings |
 
 Detection never spends money: the speech and image probes are **not** sent automatically. The
 learner triggers a "test this service" action in Settings, and the result is remembered for the
