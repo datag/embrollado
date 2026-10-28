@@ -20,6 +20,7 @@ const sessionId = computed(() => String(route.params.id ?? ''))
 const session = computed<Session | null>(() => sessionState.session.value)
 const turns = computed<Turn[]>(() => sessionState.turns.value)
 const phase = computed(() => sessionState.phase.value)
+const explainingTurnId = computed(() => sessionState.explainingTurnId.value)
 const streaming = computed(
   () => phase.value === 'partner-streaming' || phase.value === 'generating',
 )
@@ -147,9 +148,11 @@ const statusHint = computed(() => (offline.value ? 'network' : null) ?? errorKin
             <FeedbackPanel
               :turn="turn"
               :prev-turn="idx > 0 ? turns[idx - 1] : undefined"
-              :explaining="phase === 'explaining'"
+              :explaining="explainingTurnId === turn.id"
               :show-explain="true"
-              :explain-disabled="readOnly"
+              :explain-disabled="
+                readOnly || (explainingTurnId !== null && explainingTurnId !== turn.id)
+              "
               @explain="onExplain(turn)"
             />
           </div>

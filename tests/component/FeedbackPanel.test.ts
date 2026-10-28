@@ -95,6 +95,24 @@ describe('feedback panel (T046, T052)', () => {
     expect(wrapper.text()).toContain('Good!')
   })
 
+  it("only the pressed turn's Explain button becomes busy (per-turn state)", () => {
+    const turn = makeTurn()
+    const idle = mountPanel(turn)
+    const button = (w: typeof idle) => w.find('button')
+    expect(button(idle).text()).toBe('Explain to me')
+    expect(button(idle).attributes('disabled')).toBeUndefined()
+
+    // This turn is being explained → busy ("Explaining…").
+    const busy = mountPanel(turn, { explaining: true })
+    expect(button(busy).text()).toBe('Explaining…')
+    expect(button(busy).attributes('disabled')).toBeDefined()
+
+    // Another turn is being explained → this turn's button is disabled but not busy.
+    const blocked = mountPanel(turn, { explainDisabled: true })
+    expect(button(blocked).text()).toBe('Explain to me')
+    expect(button(blocked).attributes('disabled')).toBeDefined()
+  })
+
   it('has a distinct coloured badge per tier', () => {
     const wrapper = mountPanel(
       makeTurn({ badge: { tier: 'perfect', labelKey: 'perfect.0', label: 'Perfect!' } }),

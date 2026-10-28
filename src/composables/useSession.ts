@@ -52,6 +52,8 @@ export interface UseSessionReturn {
   error: Ref<SessionError | null>
   speechAvailable: Ref<boolean>
   imagesAvailable: Ref<boolean>
+  /** The turn currently being explained — null when no explanation is running. */
+  explainingTurnId: Ref<string | null>
   load: (id: string) => Promise<void>
   start: (input: NewSessionInput) => Promise<string>
   sendAnswer: (text: string) => Promise<void>
@@ -81,6 +83,8 @@ export function useSession(): UseSessionReturn {
   const imagesAvailable = ref(true)
   /** The learner's answer awaiting the model's reply — kept across failures for retry (FR-025). */
   const pendingText = ref<string | null>(null)
+  /** Which turn's "Explain to me" is currently running — only that button is busy/active. */
+  const explainingTurnId = ref<string | null>(null)
   // Per-session AI chat history: the system prompt + the turns so far.
   const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = []
   let lastHandle: Turn | null = null
@@ -298,6 +302,7 @@ export function useSession(): UseSessionReturn {
     const s = session.value
     if (!s || turn.explain) return
     phase.value = 'explaining'
+    explainingTurnId.value = turn.id
     error.value = null
     try {
       const systemPrompt = await buildSystemPromptFor(s)
@@ -316,6 +321,7 @@ export function useSession(): UseSessionReturn {
     } catch (err) {
       handleError(err)
     } finally {
+      explainingTurnId.value = null
       if (phase.value === 'explaining') phase.value = 'waiting-answer'
     }
   }
@@ -438,6 +444,7 @@ export function useSession(): UseSessionReturn {
     error,
     speechAvailable,
     imagesAvailable,
+    explainingTurnId,
     load,
     start,
     sendAnswer,

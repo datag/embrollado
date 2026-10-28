@@ -47,13 +47,16 @@ export function buildSystemPrompt(input: PromptInput): string {
     LEVEL_RULES[input.level],
     `Speak the target language: ${input.targetLanguage}.`,
     `All explanatory feedback text (translation, explanation, interpretation, assumptions, ` +
-      `gaps, assessment, issues) MUST be written in: ${input.feedbackLanguage}. The corrected answer ` +
-      `MUST stay in the target language.`,
+      `gaps, assessment, issues) MUST be written in: ${input.feedbackLanguage} — the learner's ` +
+      `native language. The corrected answer MUST stay in the target language.`,
     learner,
     'Rules:',
     '- One utterance per turn, at most 300 characters.',
     '- Stay fully in character as the person described above; never break into a teaching/lesson voice.',
     '- Always answer with the JSON turn object described in the schema; never with prose outside it.',
+    '- The "explanation" field and all "Explain to me" content MUST be written in the ' +
+      `feedback language (${input.feedbackLanguage}), NEVER in the target language (except for a ` +
+      'quoted word or phrase, which may appear inside the explanation).',
     '- When the learner used "???" or a word from the native language as a gap, fill it with the most ' +
       'plausible replacement and explain in the "assumptions" field why that reading fits the context ' +
       '(max 5 assumptions).',
@@ -105,7 +108,10 @@ export function buildExplanationMessages(
       role: 'user',
       content:
         "Explain this turn: the meaning of the partner's phrase, the learner's error, or both. " +
-        'Answer with the embrollado_explanation JSON object. All text in the feedback language.',
+        'Answer with the embrollado_explanation JSON object. ' +
+        "ALL text MUST be written in the learner's native language (the feedback language declared " +
+        'in the system prompt), NEVER in the target language — quoted target-language words may ' +
+        'appear inside the explanation.',
     },
   ]
 }
