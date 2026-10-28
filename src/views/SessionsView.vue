@@ -2,7 +2,13 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Session, Turn } from '@/domain/types'
-import { listSessions, searchSessions, deleteSession, renameSession, getTurns } from '@/data/sessions'
+import {
+  listSessions,
+  searchSessions,
+  deleteSession,
+  renameSession,
+  getTurns,
+} from '@/data/sessions'
 import { LEVELS } from '@/domain/catalogue'
 import ShareMenu from '@/components/ShareMenu.vue'
 import TranscriptList from '@/components/TranscriptList.vue'
@@ -125,7 +131,11 @@ async function togglePreview(s: Session) {
             </span>
             <span class="block text-xs text-fg-muted">
               {{ formatDate(s.createdAt) }} ·
-              {{ s.turnCount === 1 ? $t('sessions.oneTurn') : $t('sessions.turns', { count: s.turnCount }) }}
+              {{
+                s.turnCount === 1
+                  ? $t('sessions.oneTurn')
+                  : $t('sessions.turns', { count: s.turnCount })
+              }}
             </span>
           </button>
           <span
@@ -151,19 +161,35 @@ async function togglePreview(s: Session) {
           >
             ✓
           </button>
-          <button type="button" class="min-h-11 rounded-lg border border-border px-3" @click="renamingId = null">
+          <button
+            type="button"
+            class="min-h-11 rounded-lg border border-border px-3"
+            @click="renamingId = null"
+          >
             ✕
           </button>
         </div>
 
         <div class="mt-1 flex flex-wrap gap-2">
-          <button type="button" class="min-h-11 rounded-lg border border-border px-3 text-sm" @click="openSession(s.id)">
+          <button
+            type="button"
+            class="min-h-11 rounded-lg border border-border px-3 text-sm"
+            @click="openSession(s.id)"
+          >
             {{ $t('sessions.open') }}
           </button>
-          <button type="button" class="min-h-11 rounded-lg border border-border px-3 text-sm" @click="startRename(s)">
+          <button
+            type="button"
+            class="min-h-11 rounded-lg border border-border px-3 text-sm"
+            @click="startRename(s)"
+          >
             {{ $t('sessions.rename') }}
           </button>
-          <button type="button" class="min-h-11 rounded-lg border border-border px-3 text-sm" @click="togglePreview(s)">
+          <button
+            type="button"
+            class="min-h-11 rounded-lg border border-border px-3 text-sm"
+            @click="togglePreview(s)"
+          >
             {{ previewId === s.id ? '✕' : '¶' }}
           </button>
           <button

@@ -20,15 +20,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <figure
-    v-if="illustration && objectUrl"
-    class="overflow-hidden rounded-xl border border-border"
-  >
-    <img
-      :src="objectUrl"
-      :alt="alt"
-      class="h-auto w-full object-cover"
-      loading="lazy"
-    />
+  <figure v-if="illustration && objectUrl" class="overflow-hidden rounded-xl border border-border">
+    <img :src="objectUrl" :alt="alt" class="h-auto w-full object-cover" loading="lazy" />
   </figure>
 </template>

@@ -1,0 +1,87 @@
+import { describe, expect, it } from 'vitest'
+import { mount } from '@vue/test-utils'
+import { i18n } from '@/i18n'
+import FeedbackPanel from '@/components/FeedbackPanel.vue'
+import type { Turn } from '@/domain/types'
+
+function makeTurn(overrides: Partial<Turn> = {}): Turn {
+  return {
+    id: 't1',
+    sessionId: 's1',
+    position: 2,
+    partnerText: '¿Dónde está el lavadero?',
+    partnerTextLanguage: 'es',
+    translation: 'Where is the washroom?',
+    explanation: 'A polite question.',
+    learnerText: 'Is the washroom next?',
+    correctedText: 'Is the washroom nearby?',
+    interpretation: 'You asked about the washroom.',
+    assumptions: [{ original: '???', filled: 'el lavadero', reason: 'It fits the context.' }],
+    badge: { tier: 'good', labelKey: 'good.1', label: 'Good!' },
+    issues: [{ category: 'grammar', detail: 'Word order.', suggestion: 'Use "nearby".' }],
+    explain: null,
+    illustrationId: null,
+    audioId: null,
+    createdAt: '2026-10-28T10:00:00.000Z',
+    feedbackLanguage: 'en',
+    ...overrides,
+  }
+}
+
+const mountPanel = (turn: Turn, props: Record<string, unknown> = {}) =>
+  mount(FeedbackPanel, {
+    props: { turn, showExplain: true, ...props },
+    global: { plugins: [i18n] },
+  })
+
+describe('feedback panel (T046, T052)', () => {
+  it('renders the six elements in the fixed order (FR-014)', () => {
+    const wrapper = mountPanel(makeTurn())
+    const headings = wrapper.findAll('h4').map((h) => h.text())
+    expect(headings).toEqual([
+      'Translation',
+      'Explanation',
+      'Your answer, corrected',
+      'What you said',
+      'Filled-in gaps',
+      'Assessment',
+      'Things to improve',
+    ])
+  })
+
+  it('shows the translated partner line', () => {
+    expect(mountPanel(makeTurn()).text()).toContain('Where is the washroom?')
+  })
+
+  it('shows the badge with its stored wording', () => {
+    const wrapper = mountPanel(makeTurn())
+    expect(wrapper.text()).toContain('Good!')
+  })
+
+  it('adds the explanation without hiding the existing feedback', async () => {
+    const turn = makeTurn()
+    const wrapper = mountPanel(turn)
+    const before = wrapper.text()
+    expect(before).toContain('Good!')
+    await wrapper.setProps({
+      turn: {
+        ...turn,
+        explain: { id: 'e1', turnId: turn.id, kind: 'both', content: 'Extra explanation.' },
+      },
+    })
+    const after = wrapper.text()
+    expect(after).toContain('Extra explanation.')
+    expect(after).toContain('Good!') // existing feedback stays visible (FR-010)
+    expect(after).toContain('Where is the washroom?')
+  })
+
+  it('has a distinct coloured badge per tier', () => {
+    const wrapper = mountPanel(
+      makeTurn({ badge: { tier: 'perfect', labelKey: 'perfect.0', label: 'Perfect!' } }),
+    )
+    const badgeEl = wrapper
+      .findAll('span')
+      .find((s) => s.classes().some((c) => c.startsWith('bg-badge-')))
+    expect(badgeEl?.classes()).toContain('bg-badge-perfect')
+  })
+})

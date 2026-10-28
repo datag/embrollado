@@ -101,5 +101,7 @@ const server = createServer(async (req, res) => {
 })
 
 server.listen(PORT, () => {
-  console.log(`embrollado static server on http://localhost:${PORT} (CSP from embrollado.config.json)`)
+  console.log(
+    `embrollado static server on http://localhost:${PORT} (CSP from embrollado.config.json)`,
+  )
 })

@@ -42,7 +42,10 @@ export interface ChatResult {
   unstreamed: boolean
 }
 
-export function authHeaders(service: ServiceConfig, profile: EndpointProfile): Record<string, string> {
+export function authHeaders(
+  service: ServiceConfig,
+  profile: EndpointProfile,
+): Record<string, string> {
   const key = profile.sendRealKey ? service.apiKey.trim() : 'ollama'
   if (service.authMode === 'x-api-key') return { 'x-api-key': key }
   if (service.authMode === 'api-key') return { 'api-key': key }
@@ -81,7 +84,11 @@ function bodyWithSchema(
         },
       ]
     } else {
-      body.response_format = buildResponseFormat(schema.name, schema.schema, profile.schemaPlacement)
+      body.response_format = buildResponseFormat(
+        schema.name,
+        schema.schema,
+        profile.schemaPlacement,
+      )
     }
   }
   return body
@@ -115,7 +122,11 @@ function parseCompletionObject(json: unknown): ParsedCompletion {
     return { content: '', finishReason, refusal }
   }
   if (finishReason === 'length') {
-    throw new AiError('provider', 'The service response was cut off (token limit reached); try again.', 200)
+    throw new AiError(
+      'provider',
+      'The service response was cut off (token limit reached); try again.',
+      200,
+    )
   }
   if (finishReason === 'content_filter') {
     return { content: '', finishReason, refusal: 'The service filtered this response.' }
@@ -147,16 +158,27 @@ export async function chatCompletion(opts: ChatCompletionOptions): Promise<ChatR
 
   for (let attempt = 0; attempt < attempts; attempt++) {
     const useFallback = attempt > 0
-    const body = bodyWithSchema(service, profile, opts.messages, opts.stream, opts.schema, useFallback)
+    const body = bodyWithSchema(
+      service,
+      profile,
+      opts.messages,
+      opts.stream,
+      opts.schema,
+      useFallback,
+    )
 
     try {
       if (opts.stream) {
-        let acc = ''
         const onDelta = opts.onDelta
-        const streamResult = await postStream(url, headers, body, (data) => {
-          acc += data
-          if (onDelta) onDelta(data)
-        }, opts.signal)
+        const streamResult = await postStream(
+          url,
+          headers,
+          body,
+          (data) => {
+            if (onDelta) onDelta(data)
+          },
+          opts.signal,
+        )
         if (!streamResult.unstreamed) {
           // Assemble content from the delta chunks.
           let content = ''
@@ -173,7 +195,8 @@ export async function chatCompletion(opts: ChatCompletionOptions): Promise<ChatR
             if (!choice) continue
             if (typeof choice.delta?.content === 'string') content += choice.delta.content
             else if (typeof choice.message?.content === 'string') content += choice.message.content
-            if (choice.delta?.refusal || choice.refusal) refusal = choice.delta?.refusal ?? choice.refusal ?? refusal
+            if (choice.delta?.refusal || choice.refusal)
+              refusal = choice.delta?.refusal ?? choice.refusal ?? refusal
           }
           return {
             content,
@@ -239,8 +262,9 @@ export function parseLooseJson(text: string): unknown {
   const trimmed = text.trim()
   const candidates = [
     trimmed,
-    ...(trimmed.match(/```(?:json)?\s*([\s\S]*?)```/g)?.map((m) => m.replace(/^```(?:json)?\s*/g, '').replace(/```$/, '')) ??
-      []),
+    ...(trimmed
+      .match(/```(?:json)?\s*([\s\S]*?)```/g)
+      ?.map((m) => m.replace(/^```(?:json)?\s*/g, '').replace(/```$/, '')) ?? []),
   ]
   for (const candidate of candidates) {
     if (!candidate || candidate[0] !== '{') continue
@@ -289,7 +313,10 @@ export async function requestExplanation(
   onDelta?: (text: string) => void,
   signal?: AbortSignal,
 ): Promise<{ content: string; kind: string }> {
-  const schema = { name: 'embrollado_explanation', schema: EXPLANATION_SCHEMA as unknown as SchemaObject }
+  const schema = {
+    name: 'embrollado_explanation',
+    schema: EXPLANATION_SCHEMA as unknown as SchemaObject,
+  }
   const result = await chatCompletion({
     service,
     messages,
@@ -328,7 +355,10 @@ export async function testConnection(service: ServiceConfig): Promise<Connection
         { role: 'system', content: 'You are a connectivity probe. Answer with the JSON schema.' },
         { role: 'user', content: 'Reply with the JSON object {"reply": "ok"}.' },
       ],
-      schema: { name: 'embrollado_connection', schema: CONNECTION_SCHEMA as unknown as SchemaObject },
+      schema: {
+        name: 'embrollado_connection',
+        schema: CONNECTION_SCHEMA as unknown as SchemaObject,
+      },
       stream: false,
       maxRetries: 1,
     })
@@ -367,8 +397,7 @@ export async function listModels(service: ServiceConfig): Promise<string[]> {
 /* Speech (T081)                                                       */
 /* ------------------------------------------------------------------ */
 export type CapabilityResult =
-  | { ok: true; blob: Blob; mimeType: string }
-  | { ok: false; unsupported: boolean; message: string }
+  { ok: true; blob: Blob; mimeType: string } | { ok: false; unsupported: boolean; message: string }
 
 export async function requestSpeech(
   service: ServiceConfig,
@@ -391,10 +420,17 @@ export async function requestSpeech(
     const blob = await response.blob()
     return { ok: true, blob, mimeType: blob.type || 'audio/mp3' }
   } catch (err) {
-    if (err instanceof AiError && (err.kind === 'not_found' || err.status === 404 || err.status === 405)) {
+    if (
+      err instanceof AiError &&
+      (err.kind === 'not_found' || err.status === 404 || err.status === 405)
+    ) {
       return { ok: false, unsupported: true, message: 'This service cannot produce speech.' }
     }
-    return { ok: false, unsupported: false, message: err instanceof Error ? err.message : String(err) }
+    return {
+      ok: false,
+      unsupported: false,
+      message: err instanceof Error ? err.message : String(err),
+    }
   }
 }
 
@@ -418,10 +454,7 @@ export type ImageResult =
   | { ok: true; bytes: Uint8Array; mimeType: string }
   | { ok: false; unsupported: boolean; message: string }
 
-export async function requestImage(
-  service: ServiceConfig,
-  prompt: string,
-): Promise<ImageResult> {
+export async function requestImage(service: ServiceConfig, prompt: string): Promise<ImageResult> {
   const profile = profileById(service.providerProfile)
   if (!profile.imagesPath || !service.imageModel) {
     return { ok: false, unsupported: true, message: 'This service cannot generate images.' }
@@ -452,9 +485,16 @@ export async function requestImage(
     }
     return { ok: false, unsupported: false, message: 'The picture service returned no image.' }
   } catch (err) {
-    if (err instanceof AiError && (err.kind === 'not_found' || err.status === 404 || err.status === 405)) {
+    if (
+      err instanceof AiError &&
+      (err.kind === 'not_found' || err.status === 404 || err.status === 405)
+    ) {
       return { ok: false, unsupported: true, message: 'This service cannot generate images.' }
     }
-    return { ok: false, unsupported: false, message: err instanceof Error ? err.message : String(err) }
+    return {
+      ok: false,
+      unsupported: false,
+      message: err instanceof Error ? err.message : String(err),
+    }
   }
 }

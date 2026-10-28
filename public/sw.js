@@ -35,7 +35,7 @@ self.addEventListener('install', (event) => {
         const html = await root.text()
         const assets = [...html.matchAll(/(?:src|href)="([^"]+)"/g)]
           .map((m) => m[1])
-          .filter((p) => p.startsWith('./assets/'))
+          .filter((p) => p.includes('/assets/'))
         for (const a of assets) {
           const url = new URL(a, self.registration.scope)
           const res = await fetch(url)

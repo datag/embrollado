@@ -147,7 +147,9 @@ export async function normalizeResponseError(response: Response): Promise<AiErro
     body = null
   }
   if (body?.error) {
-    return new AiError(bodyToKind(body.error), messageFromBody(body.error), status)
+    // HTTP 401/403 always mean the key was rejected, regardless of the body's type field.
+    const kind = status === 401 || status === 403 ? 'auth' : bodyToKind(body.error)
+    return new AiError(kind, messageFromBody(body.error), status)
   }
   const kind = statusToKind(status)
   const hint =
@@ -156,7 +158,9 @@ export async function normalizeResponseError(response: Response): Promise<AiErro
       : status === 429
         ? 'The service is rate limiting, try again in a moment.'
         : ''
-  const message = bodyText ? redact(bodyText.slice(0, 200)) : hint || `The service answered with HTTP ${status}.`
+  const message = bodyText
+    ? redact(bodyText.slice(0, 200))
+    : hint || `The service answered with HTTP ${status}.`
   return new AiError(kind, message || hint, status)
 }
 

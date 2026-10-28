@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 
 /**
  * Injects a `<meta http-equiv="Content-Security-Policy">` into the built index.html when the
- * build is run with `--csp=preset` or `CSP_MODE=preset`.
+ * build is run with `CSP_MODE=preset` (Vite's strict CLI rejects custom options).
  *
  * GitHub Pages cannot set response headers, so a policy can only be injected into the HTML there.
  * The `preset` policy allows only the app's own origin plus api.openai.com and openrouter.ai.
@@ -16,7 +16,9 @@ function cspMetaPlugin() {
   return {
     name: 'embrollado-csp-meta',
     configResolved(config: { mode: string }) {
-      mode = (config.mode as 'production') === 'production' ? process.env.CSP_MODE ?? 'none' : 'none'
+      // Vite's strict CLI rejects unknown options, so CSP mode comes from the CSP_MODE
+      // environment variable (set by the gh-pages workflow via `vars.CSP_MODE`).
+      mode = config.mode === 'production' ? (process.env.CSP_MODE ?? 'none') : 'none'
     },
     transformIndexHtml(html: string, ctx: { server?: unknown }) {
       if (ctx.server || mode !== 'preset') return html

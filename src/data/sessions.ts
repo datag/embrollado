@@ -46,9 +46,13 @@ export async function createSession(input: NewSessionInput): Promise<Session> {
   return session
 }
 
-export function sessionToRef(
-  s: { id: string; name: string; setting: string; origin: string; keyMoments?: string[] },
-): SituationRef {
+export function sessionToRef(s: {
+  id: string
+  name: string
+  setting: string
+  origin: string
+  keyMoments?: string[]
+}): SituationRef {
   return {
     id: s.id,
     name: s.name,
@@ -108,9 +112,11 @@ export async function renameSession(id: string, title: string): Promise<void> {
   await db.put(STORE.sessions, session)
 }
 
-export async function updateSession(input: Partial<Pick<Session, 'title' | 'level' | 'state' | 'learnerName'>> & {
-  id: string
-}): Promise<void> {
+export async function updateSession(
+  input: Partial<Pick<Session, 'title' | 'level' | 'state' | 'learnerName'>> & {
+    id: string
+  },
+): Promise<void> {
   const db = await getDB()
   const session = await db.get(STORE.sessions, input.id)
   if (!session) return
@@ -158,25 +164,6 @@ export async function updateTurn(turn: Turn): Promise<void> {
   await db.put(STORE.turns, turn)
 }
 
-/** One-shot cursor iteration over an index inside an existing transaction. */
-async function iterateAndDelete(
-  cursorRequestFactory: () => IDBRequest,
-): Promise<void> {
-  await new Promise<void>((resolve, reject) => {
-    const req = cursorRequestFactory()
-    req.onsuccess = () => {
-      const cursor = req.result as IDBCursor | null
-      if (cursor) {
-        cursor.delete()
-        cursor.continue()
-      } else {
-        resolve()
-      }
-    }
-    req.onerror = () => reject(req.error)
-  })
-}
-
 /** Delete a session with its turns, illustrations and audio in one transaction. */
 export async function deleteSession(id: string): Promise<void> {
   const db = await getDB()
@@ -185,14 +172,23 @@ export async function deleteSession(id: string): Promise<void> {
     'readwrite',
   )
   const range = IDBKeyRange.only(id)
-  const turnIndex = tx.objectStore(STORE.turns).index(INDEX.turnsBySession)
-  const illuIndex = tx.objectStore(STORE.illustrations).index(INDEX.illustrationsBySession)
-  const audioIndex = tx.objectStore(STORE.audio).index(INDEX.audioBySession)
-  await Promise.all([
-    iterateAndDelete(() => turnIndex.openCursor(range) as unknown as IDBRequest),
-    iterateAndDelete(() => illuIndex.openCursor(range) as unknown as IDBRequest),
-    iterateAndDelete(() => audioIndex.openCursor(range) as unknown as IDBRequest),
-  ])
+  // Collect every child key via the by-session indexes, then delete them in the same transaction.
+  const turnKeys = (await tx
+    .objectStore(STORE.turns)
+    .index(INDEX.turnsBySession)
+    .getAllKeys(range)) as string[]
+  const illuKeys = (await tx
+    .objectStore(STORE.illustrations)
+    .index(INDEX.illustrationsBySession)
+    .getAllKeys(range)) as string[]
+  const audioKeys = (await tx
+    .objectStore(STORE.audio)
+    .index(INDEX.audioBySession)
+    .getAllKeys(range)) as string[]
+
+  for (const key of turnKeys) await tx.objectStore(STORE.turns).delete(key)
+  for (const key of illuKeys) await tx.objectStore(STORE.illustrations).delete(key)
+  for (const key of audioKeys) await tx.objectStore(STORE.audio).delete(key)
   await tx.objectStore(STORE.sessions).delete(id)
   await tx.done
 }

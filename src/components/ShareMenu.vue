@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, toRaw } from 'vue'
 import {
   createExportBlob,
   exportDownloadName,
@@ -23,14 +23,18 @@ const importState = ref<{
   count: number
   existingIds: string[]
 } | null>(null)
-const message = ref<{ kind: 'ok' | 'error'; key: string; params?: Record<string, unknown> } | null>(null)
+const message = ref<{ kind: 'ok' | 'error'; key: string; params?: Record<string, unknown> } | null>(
+  null,
+)
 
 const canShareFiles =
   typeof navigator !== 'undefined' &&
   'canShare' in navigator &&
   (() => {
     try {
-      return navigator.canShare({ files: [new File(['x'], 'x.json', { type: 'application/json' })] })
+      return navigator.canShare({
+        files: [new File(['x'], 'x.json', { type: 'application/json' })],
+      })
     } catch {
       return false
     }
@@ -106,7 +110,9 @@ async function confirmImport() {
   if (!importState.value) return
   importing.value = true
   try {
-    await importSessions(importState.value.doc)
+    // `importState` is a deep ref, so its doc is a reactive proxy — IndexedDB cannot structured
+    // clone a proxy, so write the raw object.
+    await importSessions(toRaw(importState.value.doc))
     message.value = { kind: 'ok', key: 'importDone', params: { count: importState.value.count } }
     emit('imported')
   } catch {
@@ -115,6 +121,11 @@ async function confirmImport() {
     importing.value = false
     importState.value = null
   }
+}
+
+async function cancelImport() {
+  importState.value = null
+  emit('cancelled')
 }
 </script>
 
@@ -128,10 +139,18 @@ async function confirmImport() {
       >
         {{ $t('exportImport.download') }}
       </button>
-      <button type="button" class="min-h-11 rounded-lg border border-border px-3" @click="download(true)">
+      <button
+        type="button"
+        class="min-h-11 rounded-lg border border-border px-3"
+        @click="download(true)"
+      >
         {{ $t('exportImport.exportWithPictures') }}
       </button>
-      <button type="button" class="min-h-11 rounded-lg border border-border px-3" @click="openFilePicker">
+      <button
+        type="button"
+        class="min-h-11 rounded-lg border border-border px-3"
+        @click="openFilePicker"
+      >
         {{ $t('exportImport.import') }}
       </button>
       <button
@@ -144,7 +163,13 @@ async function confirmImport() {
       </button>
     </div>
 
-    <input ref="fileInput" type="file" accept="application/json,.json" class="hidden" @change="pickFile" />
+    <input
+      ref="fileInput"
+      type="file"
+      accept="application/json,.json"
+      class="hidden"
+      @change="pickFile"
+    />
 
     <p v-if="message" class="text-sm" :class="message.kind === 'ok' ? 'text-ok' : 'text-error'">
       {{ $t(`exportImport.${message.key}`, message.params ?? {}) }}
@@ -182,11 +207,7 @@ async function confirmImport() {
           >
             {{ $t('exportImport.confirmImport') }}
           </button>
-          <button
-            type="button"
-            class="min-h-11 rounded-lg border border-border px-4"
-            @click="importState = null; emit('cancelled')"
-          >
+          <button type="button" class="min-h-11 rounded-lg border border-border px-4" @click="cancelImport">
             {{ $t('exportImport.cancel') }}
           </button>
         </div>

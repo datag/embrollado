@@ -119,8 +119,8 @@ export const SITUATIONS: Situation[] = [
   ),
   sit(
     'house-party',
-    'A friend\'s house party',
-    'At a friend\'s house party you get talking to someone who seems to know everyone in the room.',
+    "A friend's house party",
+    "At a friend's house party you get talking to someone who seems to know everyone in the room.",
     ['the introduction', 'the small talk', 'the parting'],
     ['builtin:marc'],
   ),

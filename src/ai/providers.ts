@@ -66,7 +66,8 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     imagesPath: null,
     // Ollama ignores the key but requires a non-empty one — send a placeholder, not the real key.
     sendRealKey: false,
-    corsHint: 'OLLAMA_ORIGINS="http://localhost:5173" ollama serve  (or: ollama origin add <origin>)',
+    corsHint:
+      'OLLAMA_ORIGINS="http://localhost:5173" ollama serve  (or: ollama origin add <origin>)',
   },
   llamacpp: {
     id: 'llamacpp',
@@ -119,7 +120,7 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     audioResponseFormat: 'mp3',
     imagesPath: '/images/generations',
     sendRealKey: true,
-    corsHint: 'Allow the app origin in your server\'s CORS configuration.',
+    corsHint: "Allow the app origin in your server's CORS configuration.",
   },
 }
 

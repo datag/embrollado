@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSession } from '@/composables/useSession'
 import type { Illustration, Session, Turn } from '@/domain/types'
@@ -24,9 +24,7 @@ const streaming = computed(
   () => phase.value === 'partner-streaming' || phase.value === 'generating',
 )
 const readOnly = computed(() => session.value?.state === 'ended')
-const canSend = computed(
-  () => !readOnly.value && draft.value.trim().length > 0 && !streaming.value,
-)
+const canSend = computed(() => !readOnly.value && draft.value.trim().length > 0 && !streaming.value)
 const levelName = computed(() => {
   const level = LEVELS.find((l) => l.id === session.value?.level)
   return level ? level.name : (session.value?.level ?? '')
@@ -45,6 +43,14 @@ onMounted(async () => {
   await sessionState.load(sessionId.value)
   await loadIllustrations()
 })
+
+// New turns may bring a freshly generated illustration — fetch it when the turn list changes.
+watch(
+  () => turns.value,
+  () => {
+    loadIllustrations()
+  },
+)
 
 async function onSend() {
   const text = draft.value
@@ -66,7 +72,9 @@ async function onPlay(turn: Turn) {
 }
 
 function speechHint(turnId: string): string | null {
-  return speechHints.value[turnId] ?? (sessionState.speechAvailable.value ? null : 'speechUnavailable')
+  return (
+    speechHints.value[turnId] ?? (sessionState.speechAvailable.value ? null : 'speechUnavailable')
+  )
 }
 
 const errorKind = computed(() => sessionState.error.value?.kind ?? null)
@@ -84,8 +92,8 @@ const statusHint = computed(() => (offline.value ? 'network' : null) ?? errorKin
         <div>
           <h1 class="text-lg font-bold leading-tight">{{ session.title }}</h1>
           <p class="text-sm text-fg-muted">
-            {{ session.situation.name }} · {{ session.partner.name }} ·
-            {{ session.language }} · {{ levelName }}
+            {{ session.situation.name }} · {{ session.partner.name }} · {{ session.language }} ·
+            {{ levelName }}
           </p>
         </div>
         <button
@@ -99,7 +107,10 @@ const statusHint = computed(() => (offline.value ? 'network' : null) ?? errorKin
         </button>
       </header>
 
-      <p v-if="readOnly" class="rounded-lg border border-border bg-surface-raised px-3 py-2 text-sm">
+      <p
+        v-if="readOnly"
+        class="rounded-lg border border-border bg-surface-raised px-3 py-2 text-sm"
+      >
         {{ $t('dialogue.readOnly') }}
       </p>
 
@@ -118,11 +129,29 @@ const statusHint = computed(() => (offline.value ? 'network' : null) ?? errorKin
       </div>
 
       <!-- illustration for the start -->
-      <IllustrationPanel :illustration="startIllustration(session.id)" :alt="session.situation.name" />
+      <IllustrationPanel
+        :illustration="startIllustration(session.id)"
+        :alt="session.situation.name"
+      />
 
       <div class="space-y-3">
-        <template v-for="(turn, idx) in turns" :key="turn.id">
-          <TurnBubble :text="turn.partnerText" side="partner" />
+        <template v-for="turn in turns" :key="turn.id">
+          <div class="flex items-start gap-2">
+            <TurnBubble :text="turn.partnerText" side="partner" />
+            <SpeechButton
+              class="shrink-0"
+              :label="$t('settings.speech')"
+              :hint="speechHint(turn.id) ? $t('errors.speechUnavailable') : null"
+              @play="onPlay(turn)"
+            />
+            <p
+              v-if="speechHint(turn.id)"
+              class="max-w-28 text-xs leading-snug text-fg-muted pt-3"
+              data-testid="speech-hint"
+            >
+              {{ $t('errors.speechUnavailable') }}
+            </p>
+          </div>
 
           <div v-if="turn.illustrationId" class="flex justify-end">
             <IllustrationPanel
@@ -134,25 +163,13 @@ const statusHint = computed(() => (offline.value ? 'network' : null) ?? errorKin
 
           <div v-if="turn.learnerText" class="flex flex-col gap-2">
             <TurnBubble :text="turn.learnerText" side="learner" />
-            <div class="flex items-start gap-2">
-              <div class="flex flex-col items-center gap-1">
-                <SpeechButton
-                  :label="$t('settings.speech')"
-                  :hint="speechHint(turn.id) ? $t('errors.speechUnavailable') : null"
-                  @play="onPlay(turn)"
-                />
-                <span v-if="speechHint(turn.id)" class="max-w-24 text-center text-[10px] leading-tight text-fg-muted">
-                  {{ $t('errors.speechUnavailable') }}
-                </span>
-              </div>
-              <FeedbackPanel
-                :turn="turn"
-                :explaining="phase === 'explaining' && idx === turns.length - 1"
-                :show-explain="true"
-                :explain-disabled="readOnly"
-                @explain="onExplain(turn)"
-              />
-            </div>
+            <FeedbackPanel
+              :turn="turn"
+              :explaining="phase === 'explaining'"
+              :show-explain="true"
+              :explain-disabled="readOnly"
+              @explain="onExplain(turn)"
+            />
           </div>
         </template>
 
@@ -192,6 +209,7 @@ const statusHint = computed(() => (offline.value ? 'network' : null) ?? errorKin
           <textarea
             v-model="draft"
             rows="1"
+            data-testid="dialogue-input"
             class="min-h-11 max-h-32 flex-1 resize-y rounded-lg border border-border bg-surface-raised px-3 py-2.5"
             :placeholder="$t('dialogue.inputPlaceholder')"
             :disabled="streaming || phase === 'partner-streaming'"
@@ -199,6 +217,7 @@ const statusHint = computed(() => (offline.value ? 'network' : null) ?? errorKin
           />
           <button
             type="button"
+            data-testid="send"
             class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-fg disabled:opacity-50"
             :disabled="!canSend"
             :aria-label="$t('dialogue.send')"

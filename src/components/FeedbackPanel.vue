@@ -4,7 +4,7 @@ import QualityBadge from '@/components/QualityBadge.vue'
 import ExplainButton from '@/components/ExplainButton.vue'
 import { renderMarkdown } from '@/utils/markdown'
 
-const props = defineProps<{
+const _props = defineProps<{
   turn: Turn
   explaining?: boolean
   showExplain?: boolean
@@ -17,7 +17,10 @@ const heading = 'text-xs font-semibold uppercase tracking-wide text-fg-muted'
 </script>
 
 <template>
-  <div class="feedback-prose rounded-xl border border-border bg-surface-raised p-3" data-testid="feedback">
+  <div
+    class="feedback-prose rounded-xl border border-border bg-surface-raised p-3"
+    data-testid="feedback"
+  >
     <!-- Fixed order (settings-profile.md §3): translation → explanation → correction →
          interpretation → assumptions → badge → issues (T052). -->
     <section v-if="turn.translation" class="mb-2">

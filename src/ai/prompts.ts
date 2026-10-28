@@ -57,18 +57,21 @@ export function buildSystemPrompt(input: PromptInput): string {
     '- When the learner used "???" or a word from the native language as a gap, fill it with the most ' +
       'plausible replacement and explain in the "assumptions" field why that reading fits the context ' +
       '(max 5 assumptions).',
-    '- If the learner\'s text is already correct, set correctedText to null.',
+    "- If the learner's text is already correct, set correctedText to null.",
     '- Rate the learner\'s answer against the selected level. Perfect to very good: tier "perfect". ' +
       'Good: tier "good". Acceptable: tier "acceptable". Unsatisfying: tier "unsatisfactory".',
     '- The badge label wording comes from the app; choose tier and a labelKey from the translation ' +
       'files only (e.g. "good.1", "perfect.short").',
-    '- The partner\'s line must continue the role-play naturally and end the turn with a clear ' +
+    "- The partner's line must continue the role-play naturally and end the turn with a clear " +
       'prompt or question that invites the learner to answer.',
   ].join('\n')
 }
 
 /** The learner-facing message for one turn request. */
-export function buildTurnUserMessage(learnerAnswer: string | null): { role: 'user'; content: string } {
+export function buildTurnUserMessage(learnerAnswer: string | null): {
+  role: 'user'
+  content: string
+} {
   const content =
     learnerAnswer == null || learnerAnswer.trim() === ''
       ? 'The session is starting. Say the first line and open the situation.'
@@ -96,7 +99,7 @@ export function buildExplanationMessages(
     {
       role: 'user',
       content:
-        'Explain this turn: the meaning of the partner\'s phrase, the learner\'s error, or both. ' +
+        "Explain this turn: the meaning of the partner's phrase, the learner's error, or both. " +
         'Answer with the embrollado_explanation JSON object. All text in the feedback language.',
     },
   ]
@@ -113,7 +116,10 @@ export function buildConnectionUserMessage(): { role: 'user'; content: string } 
 }
 
 /** Illustration prompt (FR-028; turn-payload.md §6). */
-export function buildIllustrationPrompt(situation: SituationRef, momentDescription: string): string {
+export function buildIllustrationPrompt(
+  situation: SituationRef,
+  momentDescription: string,
+): string {
   return (
     `A warm, friendly illustration of ${situation.setting}, ${momentDescription}. ` +
     `Soft daylight, simple composition, no text.`

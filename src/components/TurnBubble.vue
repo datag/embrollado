@@ -11,9 +11,7 @@ defineProps<{
     <div
       class="inline-block max-w-full rounded-2xl px-4 py-2 text-left"
       :class="
-        side === 'partner'
-          ? 'bg-surface-raised border border-border'
-          : 'bg-accent text-accent-fg'
+        side === 'partner' ? 'bg-surface-raised border border-border' : 'bg-accent text-accent-fg'
       "
     >
       <p class="whitespace-pre-wrap break-words">

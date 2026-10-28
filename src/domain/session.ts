@@ -75,15 +75,18 @@ export function assembleFeedback(raw: unknown, ctx: AssembleContext): TurnFeedba
   const translation = typeof value.translation === 'string' ? value.translation : ''
   const explanation = typeof value.explanation === 'string' ? value.explanation : null
   const correctedText = typeof value.correctedText === 'string' ? value.correctedText : null
-  const interpretation =
-    typeof value.interpretation === 'string' ? value.interpretation : null
+  const interpretation = typeof value.interpretation === 'string' ? value.interpretation : null
   const assumptions = validateAssumptions(value.assumptions, learnerText)
   const issues = sanitizeIssues(value.issues)
 
   let badge: Badge | null = null
   let badgeIndex = ctx.previousBadgeIndex
   if (value.badge && typeof value.badge === 'object') {
-    const built = buildBadge(value.badge as { tier?: unknown; labelKey?: unknown }, ctx.locale, badgeIndex)
+    const built = buildBadge(
+      value.badge as { tier?: unknown; labelKey?: unknown },
+      ctx.locale,
+      badgeIndex,
+    )
     badge = built.badge
     badgeIndex = built.index
   }

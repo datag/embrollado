@@ -1,7 +1,8 @@
 export default {
   app: {
     name: 'Embrollado',
-    fileProtocol: 'This app must be served over http(s) — open it from a web server, not from a file.',
+    fileProtocol:
+      'This app must be served over http(s) — open it from a web server, not from a file.',
   },
   nav: {
     sessions: 'Sessions',
@@ -50,7 +51,8 @@ export default {
   },
   level: {
     beginner: 'Beginner — simple words and short sentences; a slow, forgiving conversation.',
-    intermediate: 'Intermediate — everyday vocabulary and natural sentences; room for the usual mistakes.',
+    intermediate:
+      'Intermediate — everyday vocabulary and natural sentences; room for the usual mistakes.',
     expert: 'Expert — idiomatic, fluent conversation, as with a native speaker.',
   },
   customForm: {
@@ -107,7 +109,8 @@ export default {
     title: 'Settings',
     aiService: 'AI service',
     baseUrl: 'Service address',
-    baseUrlHint: 'Must be an absolute http(s) URL, including the version prefix, e.g. https://api.openai.com/v1',
+    baseUrlHint:
+      'Must be an absolute http(s) URL, including the version prefix, e.g. https://api.openai.com/v1',
     apiKey: 'API key',
     apiKeyHint: 'Stored only on this device. Never exported or sent anywhere except your service.',
     reveal: 'Show key',
@@ -130,9 +133,11 @@ export default {
     name: 'Name',
     nameHint: 'Up to 60 characters; the partner may address you by it',
     details: 'About me',
-    detailsHint: 'Up to 500 characters — job, hobbies, family… the partner may weave it into the conversation',
+    detailsHint:
+      'Up to 500 characters — job, hobbies, family… the partner may weave it into the conversation',
     nativeLanguage: 'Feedback language',
-    nativeLanguageHint: 'The language of all feedback and explanations; "same as interface" falls back to the interface language.',
+    nativeLanguageHint:
+      'The language of all feedback and explanations; "same as interface" falls back to the interface language.',
     sameAsInterface: 'Same as the interface',
     interfaceLanguage: 'Interface language',
     theme: 'Theme',
@@ -164,7 +169,8 @@ export default {
     importWarningTitle: 'Import will replace conversations',
     importWarning:
       'This device has {count} conversation{plural}. Importing replaces them with the ones in the file — including any with the same identifier.',
-    importReplaces: '{count} conversations on this device have the same identifier and will be overwritten.',
+    importReplaces:
+      '{count} conversations on this device have the same identifier and will be overwritten.',
     confirmImport: 'Replace and import',
     cancel: 'Cancel',
     importing: 'Importing…',
@@ -199,7 +205,8 @@ export default {
     cors: 'The service did not allow the request from the browser.',
     corsHint: 'Hint: {hint}',
     unknown: 'An unexpected error occurred.',
-    offline: 'You are offline — the dialogue needs the service. Reading, exporting and settings still work.',
+    offline:
+      'You are offline — the dialogue needs the service. Reading, exporting and settings still work.',
     unexpectedFormat: 'The service answered in an unexpected format.',
     storageFull: 'The device storage is full — cached audio is no longer being saved.',
     speechUnavailable: 'This service cannot produce speech.',
@@ -207,7 +214,8 @@ export default {
   },
   about: {
     title: 'About',
-    purpose: 'Embrollado is a browser-only practice app for foreign languages. You hold a realistic role-play conversation with an AI partner; everything stays on your device.',
+    purpose:
+      'Embrollado is a browser-only practice app for foreign languages. You hold a realistic role-play conversation with an AI partner; everything stays on your device.',
     privacyTitle: 'Privacy',
     privacy:
       'Your conversations, pictures and cached audio live only in this browser. The only outbound traffic is to the AI service you configure, which receives the conversation you are actively having, the situation and partner setup, and — if you entered them — your name and details. The API key is sent only to that service.',
@@ -216,10 +224,8 @@ export default {
     licenceTitle: 'Licence',
     licence: 'Licensed under the MIT License. See LICENSE.',
     fontTitle: 'Fonts',
-    font:
-      'Atkinson Hyperlegible Next (variable), designed by the Braille Institute of America, licensed under the SIL Open Font License 1.1. The bundled file is a subset — see src/assets/fonts/LICENSES/NOTICE.md for the disclosure.',
+    font: 'Atkinson Hyperlegible Next (variable), designed by the Braille Institute of America, licensed under the SIL Open Font License 1.1. The bundled file is a subset — see src/assets/fonts/LICENSES/NOTICE.md for the disclosure.',
     dataTitle: 'Your data',
-    data:
-      'Conversations, illustrations and cached audio live in IndexedDB; a small settings document and your service configuration live in localStorage. Use Export/Import to move or back them up.',
+    data: 'Conversations, illustrations and cached audio live in IndexedDB; a small settings document and your service configuration live in localStorage. Use Export/Import to move or back them up.',
   },
 } as const

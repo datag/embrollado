@@ -16,6 +16,7 @@ import {
   buildExplanationMessages,
   buildIllustrationPrompt,
 } from '@/ai/prompts'
+import { TURN_SCHEMA } from '@/ai/schema'
 import {
   chatCompletion,
   growingStringValue,
@@ -36,12 +37,7 @@ import { saveIllustration, saveAudio, getAudioForTurn, findAudioByText } from '@
  */
 
 export type TurnPhase =
-  | 'idle'
-  | 'partner-streaming'
-  | 'waiting-answer'
-  | 'generating'
-  | 'explaining'
-  | 'failed'
+  'idle' | 'partner-streaming' | 'waiting-answer' | 'generating' | 'explaining' | 'failed'
 
 export interface SessionError {
   kind: string
@@ -128,13 +124,17 @@ export function useSession(): UseSessionReturn {
     onDelta: (data: string) => void,
   ): Promise<Record<string, unknown>> {
     const { service } = useServiceConfig()
-    if (!service.chatModel) throw { kind: 'not-configured', message: 'serviceNotConfigured' } as SessionError
+    if (!service.chatModel)
+      throw { kind: 'not-configured', message: 'serviceNotConfigured' } as SessionError
     if (messages.length === 0) return {}
     const userMessage = buildTurnUserMessage(learnerText)
     const result = await chatCompletion({
       service,
       messages: [...messages, userMessage],
-      schema: { name: 'embrollado_turn', schema: {} },
+      schema: {
+        name: 'embrollado_turn',
+        schema: TURN_SCHEMA as unknown as Record<string, unknown>,
+      },
       stream: true,
       onDelta,
     })
@@ -199,12 +199,11 @@ export function useSession(): UseSessionReturn {
       const turn: Turn = {
         id: crypto.randomUUID(),
         sessionId: s.id,
-        position: s.turnCount + 1,
+        position: turns.value.length + 1, // 1-based, consecutive after the stored turns (T038)
         partnerText: typeof parsed.partnerText === 'string' ? parsed.partnerText : '',
         partnerTextLanguage: s.language,
         translation: feedback.translation,
-        explanation:
-          typeof parsed.explanation === 'string' ? parsed.explanation : null,
+        explanation: typeof parsed.explanation === 'string' ? parsed.explanation : null,
         learnerText: text,
         correctedText: feedback.correctedText,
         interpretation: feedback.interpretation,
@@ -229,11 +228,7 @@ export function useSession(): UseSessionReturn {
   }
 
   /** An illustration for the start / key / end moments (T086, FR-028). */
-  async function generateIllustration(
-    s: Session,
-    turn: Turn,
-    moment: 'start' | 'key' | 'end',
-  ) {
+  async function generateIllustration(s: Session, turn: Turn, moment: 'start' | 'key' | 'end') {
     const { settings } = useSettings()
     if (!settings.illustrationsEnabled || !imagesAvailable.value) return
     const { service } = useServiceConfig()
@@ -415,7 +410,7 @@ export function useSession(): UseSessionReturn {
       /* illustrations are best-effort */
     }
     await endSessionStore(s.id)
-    session.value = await getSession(s.id) ?? null
+    session.value = (await getSession(s.id)) ?? null
     phase.value = 'waiting-answer'
   }
 

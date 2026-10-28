@@ -132,6 +132,7 @@ function lowSpaceComputed(): boolean {
         <span class="mb-1 block text-sm">{{ $t('settings.baseUrl') }}</span>
         <input
           :value="service.baseUrl"
+          data-testid="service-base-url"
           type="url"
           inputmode="url"
           class="min-h-11 w-full rounded-lg border border-border px-3"
@@ -145,6 +146,7 @@ function lowSpaceComputed(): boolean {
           <span class="mb-1 block text-sm">{{ $t('settings.apiKey') }}</span>
           <input
             :value="service.apiKey"
+            data-testid="service-api-key"
             :type="showKey ? 'text' : 'password'"
             autocomplete="off"
             class="min-h-11 w-full rounded-lg border border-border px-3"
@@ -164,7 +166,12 @@ function lowSpaceComputed(): boolean {
       <div class="grid gap-3 sm:grid-cols-2">
         <label class="block">
           <span class="mb-1 block text-sm">{{ $t('settings.authMode') }}</span>
-          <select :value="service.authMode" class="min-h-11 w-full rounded-lg border border-border px-3" @change="onAuthMode">
+          <select
+            :value="service.authMode"
+            data-testid="service-auth-mode"
+            class="min-h-11 w-full rounded-lg border border-border px-3"
+            @change="onAuthMode"
+          >
             <option value="bearer">{{ $t('settings.authBearer') }}</option>
             <option value="x-api-key">{{ $t('settings.authXApiKey') }}</option>
             <option value="api-key">{{ $t('settings.authApiKey') }}</option>
@@ -172,7 +179,12 @@ function lowSpaceComputed(): boolean {
         </label>
         <label class="block">
           <span class="mb-1 block text-sm">{{ $t('settings.provider') }}</span>
-          <select :value="service.providerProfile" class="min-h-11 w-full rounded-lg border border-border px-3" @change="onProvider">
+          <select
+            :value="service.providerProfile"
+            data-testid="service-provider"
+            class="min-h-11 w-full rounded-lg border border-border px-3"
+            @change="onProvider"
+          >
             <option v-for="p in providerOptions" :key="p.id" :value="p.id">{{ p.label }}</option>
           </select>
         </label>
@@ -183,6 +195,7 @@ function lowSpaceComputed(): boolean {
         <div class="flex items-end gap-2">
           <input
             :value="service.chatModel"
+            data-testid="service-chat-model"
             type="text"
             class="min-h-11 w-full rounded-lg border border-border px-3"
             @input="onChatModel"
@@ -197,7 +210,10 @@ function lowSpaceComputed(): boolean {
           </button>
         </div>
       </label>
-      <ul v-if="modelList.length" class="max-h-32 overflow-auto rounded border border-border bg-surface px-2 text-sm">
+      <ul
+        v-if="modelList.length"
+        class="max-h-32 overflow-auto rounded border border-border bg-surface px-2 text-sm"
+      >
         <li v-for="m in modelList" :key="m">{{ m }}</li>
       </ul>
 
@@ -205,6 +221,7 @@ function lowSpaceComputed(): boolean {
         <span class="mb-1 block text-sm">{{ $t('settings.speechModel') }}</span>
         <input
           :value="service.speechModel ?? ''"
+          data-testid="service-speech-model"
           type="text"
           :placeholder="$t('settings.speechModelHint')"
           class="min-h-11 w-full rounded-lg border border-border px-3"
@@ -217,6 +234,7 @@ function lowSpaceComputed(): boolean {
         <span class="mb-1 block text-sm">{{ $t('settings.imageModel') }}</span>
         <input
           :value="service.imageModel ?? ''"
+          data-testid="service-image-model"
           type="text"
           :placeholder="$t('settings.imageModelHint')"
           class="min-h-11 w-full rounded-lg border border-border px-3"
@@ -228,6 +246,7 @@ function lowSpaceComputed(): boolean {
       <div>
         <button
           type="button"
+          data-testid="test-connection"
           class="min-h-11 rounded-lg bg-accent px-4 font-medium text-accent-fg disabled:opacity-50"
           :disabled="testing"
           @click="runTest"
@@ -260,14 +279,18 @@ function lowSpaceComputed(): boolean {
             <option value="">{{ $t('settings.sameAsInterface') }}</option>
             <option v-for="l in LANGUAGES" :key="l.code" :value="l.code">{{ l.nameEn }}</option>
           </select>
-          <span class="mt-1 block text-xs text-fg-muted">{{ $t('settings.nativeLanguageHint') }}</span>
+          <span class="mt-1 block text-xs text-fg-muted">{{
+            $t('settings.nativeLanguageHint')
+          }}</span>
         </label>
         <label class="block">
           <span class="mb-1 block text-sm">{{ $t('settings.interfaceLanguage') }}</span>
           <select
             :value="settings.interfaceLanguage"
             class="min-h-11 w-full rounded-lg border border-border px-3"
-            @change="onSaveSettings({ interfaceLanguage: ($event.target as HTMLSelectElement).value })"
+            @change="
+              onSaveSettings({ interfaceLanguage: ($event.target as HTMLSelectElement).value })
+            "
           >
             <option value="en">English</option>
             <option value="de">Deutsch</option>
@@ -293,9 +316,18 @@ function lowSpaceComputed(): boolean {
             min="0"
             max="200"
             class="min-h-11 w-full rounded-lg border border-border px-3"
-            @change="update({ cachedSpeechLines: Math.max(0, Math.min(200, Number(($event.target as HTMLInputElement).value) || 0)) })"
+            @change="
+              update({
+                cachedSpeechLines: Math.max(
+                  0,
+                  Math.min(200, Number(($event.target as HTMLInputElement).value) || 0),
+                ),
+              })
+            "
           />
-          <span class="mt-1 block text-xs text-fg-muted">{{ $t('settings.cachedSpeechLinesHint') }}</span>
+          <span class="mt-1 block text-xs text-fg-muted">{{
+            $t('settings.cachedSpeechLinesHint')
+          }}</span>
         </label>
       </div>
 
@@ -325,7 +357,12 @@ function lowSpaceComputed(): boolean {
     <article class="space-y-3 rounded-xl border border-border bg-surface-raised p-3">
       <h2 class="font-semibold">{{ $t('settings.storage') }}</h2>
       <p v-if="hasEstimate" class="text-sm">
-        {{ $t('settings.storageUsed', { used: formatBytes(estimate.usage), quota: formatBytes(estimate.quota) }) }}
+        {{
+          $t('settings.storageUsed', {
+            used: formatBytes(estimate.usage),
+            quota: formatBytes(estimate.quota),
+          })
+        }}
       </p>
       <p v-else class="text-sm text-fg-muted">{{ $t('settings.storageUnknown') }}</p>
       <p v-if="lowSpaceComputed()" class="text-sm text-error">{{ $t('settings.lowSpace') }}</p>
@@ -337,8 +374,12 @@ function lowSpaceComputed(): boolean {
       >
         {{ $t('settings.makePersistent') }}
       </button>
-      <p v-if="persistentState === 'granted'" class="text-sm text-ok">{{ $t('settings.persistentGranted') }}</p>
-      <p v-else-if="persistentState === 'denied'" class="text-sm text-error">{{ $t('settings.persistentDenied') }}</p>
+      <p v-if="persistentState === 'granted'" class="text-sm text-ok">
+        {{ $t('settings.persistentGranted') }}
+      </p>
+      <p v-else-if="persistentState === 'denied'" class="text-sm text-error">
+        {{ $t('settings.persistentDenied') }}
+      </p>
 
       <ShareMenu />
     </article>

@@ -37,11 +37,13 @@ function sendStream(res, content) {
     'cache-control': 'no-cache',
     connection: 'keep-alive',
   })
-  const words = content.partnerText.split(/\s+/)
-  let acc = ''
-  let i = 0
+  // The model streams the strict JSON turn document; the app renders `partnerText` progressively
+  // from the accumulated JSON string (partnerText is the document's first property).
+  const full = JSON.stringify(content)
+  let offset = 0
+  const slice = 12
   const timer = setInterval(() => {
-    if (i >= words.length) {
+    if (offset >= full.length) {
       clearInterval(timer)
       const final = {
         id: 'chatcmpl-mock',
@@ -60,15 +62,15 @@ function sendStream(res, content) {
       res.end()
       return
     }
-    acc += (i === 0 ? '' : ' ') + words[i]
-    i += 1
+    const piece = full.slice(offset, offset + slice)
+    offset += slice
     const chunk = {
       id: 'chatcmpl-mock',
       object: 'chat.completion.chunk',
-      choices: [{ index: 0, delta: { content: words[i - 1] === '' ? '' : (acc.split(' ').at(-1)) }, finish_reason: null }],
+      choices: [{ index: 0, delta: { content: piece }, finish_reason: null }],
     }
     res.write(`data: ${JSON.stringify(chunk)}\n\n`)
-  }, 40)
+  }, 25)
   // Safety net so a stuck client never holds the process forever.
   setTimeout(() => {
     clearInterval(timer)
@@ -134,7 +136,8 @@ const server = http.createServer((req, res) => {
               index: 0,
               message: {
                 role: 'assistant',
-                content: '{"kind":"both","content":"This phrase is informal and idiomatic; a more neutral form is used when addressing strangers."}',
+                content:
+                  '{"kind":"both","content":"This phrase is informal and idiomatic; a more neutral form is used when addressing strangers."}',
               },
               finish_reason: 'stop',
             },

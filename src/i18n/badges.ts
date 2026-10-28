@@ -22,7 +22,10 @@ export const BADGE_VARIANTS: Record<string, Record<BadgeTier, string[]>> = {
 }
 
 /** Parse a labelKey like `good.1` into a tier + variant index, or null. */
-export function parseLabelKey(labelKey: string, tier: BadgeTier): { tier: BadgeTier; index: number } | null {
+export function parseLabelKey(
+  labelKey: string,
+  tier: BadgeTier,
+): { tier: BadgeTier; index: number } | null {
   const parts = labelKey.split('.')
   if (parts.length !== 2) return null
   const [maybeTier, maybeIndex] = parts

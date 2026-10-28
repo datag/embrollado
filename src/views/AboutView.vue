@@ -37,9 +37,7 @@ const fontInfo = {
 
     <article class="rounded-xl border border-border bg-surface-raised p-3">
       <h2 class="mb-1 font-semibold">{{ $t('about.fontTitle') }}</h2>
-      <p class="text-sm">
-        {{ fontInfo.family }} — {{ fontInfo.author }} — {{ fontInfo.licence }}
-      </p>
+      <p class="text-sm">{{ fontInfo.family }} — {{ fontInfo.author }} — {{ fontInfo.licence }}</p>
       <p class="mt-1 text-sm text-fg-muted">{{ $t('about.font') }}</p>
       <p class="mt-1 text-xs text-fg-muted">{{ fontInfo.notice }}</p>
     </article>

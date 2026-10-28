@@ -10,14 +10,14 @@ Content-Security-Policy header.
 
 ## 1. Two deployments
 
-| | **GitHub Pages** (convenience) | **Self-hosted** (constitution-compliant) |
-|---|---|---|
-| Hosting | `https://<owner>.github.io/<repo>/` | Any static host, or the bundled helper server |
-| Base path | `/<repo>/` (or `/` for a user site) | `/` (or whatever the host uses) |
-| Strict CSP | **Not possible** — Pages sets no response headers | Yes, via `tools/serve.mjs` or a host snippet |
-| `connect-src` | Not restricted (see §4) | Own origin + the learner's configured API origin only |
-| Offline app shell | Yes, via the service worker | Yes |
-| Setup | Enable Pages → "GitHub Actions" in the repository settings | One command or one host snippet |
+|                   | **GitHub Pages** (convenience)                             | **Self-hosted** (constitution-compliant)              |
+| ----------------- | ---------------------------------------------------------- | ----------------------------------------------------- |
+| Hosting           | `https://<owner>.github.io/<repo>/`                        | Any static host, or the bundled helper server         |
+| Base path         | `/<repo>/` (or `/` for a user site)                        | `/` (or whatever the host uses)                       |
+| Strict CSP        | **Not possible** — Pages sets no response headers          | Yes, via `tools/serve.mjs` or a host snippet          |
+| `connect-src`     | Not restricted (see §4)                                    | Own origin + the learner's configured API origin only |
+| Offline app shell | Yes, via the service worker                                | Yes                                                   |
+| Setup             | Enable Pages → "GitHub Actions" in the repository settings | One command or one host snippet                       |
 
 The **primary** deployment is the self-hosted one, because it is the only one that can honour the
 constitution's CSP rule for a runtime-configured API origin. GitHub Pages is the zero-setup
@@ -29,7 +29,7 @@ option for people who want to try the app immediately.
 pnpm install --frozen-lockfile
 pnpm build                                  # base path "/" (local / self-hosted at the root)
 pnpm build --base=/embrollado/              # base path "/embrollado/" (project Pages site)
-pnpm build --base=/embrollado/ --csp=preset # additionally inject a meta CSP (see §4)
+CSP_MODE=preset pnpm build --base=/embrollado/  # additionally inject a meta CSP (see §4)
 ```
 
 `--base` sets Vite's `base`; every asset URL, the router base and the service-worker scope follow
@@ -114,9 +114,9 @@ tests and end-to-end tests. A red gate stops the deployment.
 
 ## 7. Cache behaviour of the hosts
 
-| Host | Behaviour |
-|---|---|
-| GitHub Pages | Caches with `max-age=600`; hashed asset names make this safe |
+| Host                          | Behaviour                                                                                     |
+| ----------------------------- | --------------------------------------------------------------------------------------------- |
+| GitHub Pages                  | Caches with `max-age=600`; hashed asset names make this safe                                  |
 | Any host with `Cache-Control` | The README recommends `immutable` for `/assets/*` and `no-cache` for `index.html` and `sw.js` |
 
 The service worker caches the app shell itself, so the host's caching policy mostly matters for
@@ -124,13 +124,13 @@ the first visit.
 
 ## 8. What the app must handle at runtime
 
-| Situation | Behaviour |
-|---|---|
-| The host serves the app under a base path | All URLs are relative to `import.meta.env.BASE_URL`; nothing is hard-coded |
+| Situation                                         | Behaviour                                                                                       |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| The host serves the app under a base path         | All URLs are relative to `import.meta.env.BASE_URL`; nothing is hard-coded                      |
 | The browser blocks a request by the page's policy | The app reports that the configured API origin is not allowed by the page's policy and names it |
-| A new version is deployed while the app is open | The new service worker activates on the next visit; the current session is untouched |
-| The app is opened offline | The cached app shell loads; only the AI features report the missing connection |
-| The learner opens the app from a `file://` path | Not supported — storage behaviour is undefined there; the app shows a short notice |
+| A new version is deployed while the app is open   | The new service worker activates on the next visit; the current session is untouched            |
+| The app is opened offline                         | The cached app shell loads; only the AI features report the missing connection                  |
+| The learner opens the app from a `file://` path   | Not supported — storage behaviour is undefined there; the app shows a short notice              |
 
 ## 9. Not supported
 

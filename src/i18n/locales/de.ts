@@ -1,7 +1,8 @@
 export default {
   app: {
     name: 'Embrollado',
-    fileProtocol: 'Diese App muss über http(s) ausgeliefert werden — öffne sie über einen Webserver, nicht aus einer Datei.',
+    fileProtocol:
+      'Diese App muss über http(s) ausgeliefert werden — öffne sie über einen Webserver, nicht aus einer Datei.',
   },
   nav: {
     sessions: 'Gespräche',
@@ -50,7 +51,8 @@ export default {
   },
   level: {
     beginner: 'Anfänger — einfache Wörter und kurze Sätze; ein langsames, geduldiges Gespräch.',
-    intermediate: 'Fortgeschritten — alltäglicher Wortschatz und natürliche Sätze; Platz für die üblichen Fehler.',
+    intermediate:
+      'Fortgeschritten — alltäglicher Wortschatz und natürliche Sätze; Platz für die üblichen Fehler.',
     expert: 'Experte — idiomatisches, fließendes Gespräch wie mit einem Muttersprachler.',
   },
   customForm: {
@@ -132,8 +134,7 @@ export default {
     name: 'Name',
     nameHint: 'Bis zu 60 Zeichen; der Partner kann dich damit ansprechen',
     details: 'Über mich',
-    detailsHint:
-      'Bis zu 500 Zeichen — Beruf, Hobbys, Familie… der Partner kann es einweben',
+    detailsHint: 'Bis zu 500 Zeichen — Beruf, Hobbys, Familie… der Partner kann es einweben',
     nativeLanguage: 'Feedback-Sprache',
     nativeLanguageHint:
       'Die Sprache allen Feedbacks und aller Erklärungen; „wie Oberfläche“ fällt auf die Oberflächensprache zurück.',
@@ -168,7 +169,8 @@ export default {
     importWarningTitle: 'Import ersetzt Gespräche',
     importWarning:
       'Auf diesem Gerät gibt es {count} Gespräch{plural}. Der Import ersetzt sie durch die in der Datei — auch solche mit derselben Kennung.',
-    importReplaces: '{count} Gespräche auf diesem Gerät haben dieselbe Kennung und werden überschrieben.',
+    importReplaces:
+      '{count} Gespräche auf diesem Gerät haben dieselbe Kennung und werden überschrieben.',
     confirmImport: 'Ersetzen und importieren',
     cancel: 'Abbrechen',
     importing: 'Wird importiert…',
@@ -224,10 +226,8 @@ export default {
     licenceTitle: 'Lizenz',
     licence: 'Lizenziert unter der MIT-Lizenz. Siehe LICENSE.',
     fontTitle: 'Schriftarten',
-    font:
-      'Atkinson Hyperlegible Next (variable), entworfen vom Braille Institute of America, lizenziert unter der SIL Open Font License 1.1. Die gebündelte Datei ist ein Subset — siehe src/assets/fonts/LICENSES/NOTICE.md.',
+    font: 'Atkinson Hyperlegible Next (variable), entworfen vom Braille Institute of America, lizenziert unter der SIL Open Font License 1.1. Die gebündelte Datei ist ein Subset — siehe src/assets/fonts/LICENSES/NOTICE.md.',
     dataTitle: 'Deine Daten',
-    data:
-      'Gespräche, Illustrationen und zwischengespeichertes Audio liegen in IndexedDB; ein kleines Einstellungsdokument und deine Dienst-Konfiguration in localStorage. Nutze Export/Import, um sie zu sichern oder zu übertragen.',
+    data: 'Gespräche, Illustrationen und zwischengespeichertes Audio liegen in IndexedDB; ein kleines Einstellungsdokument und deine Dienst-Konfiguration in localStorage. Nutze Export/Import, um sie zu sichern oder zu übertragen.',
   },
 } as const

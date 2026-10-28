@@ -9,7 +9,9 @@ import { readSettings } from '@/data/settings'
  */
 
 /** Wrap a binary write with one retry after pruning the speech cache on quota errors. */
-async function withQuotaRetry(put: () => Promise<unknown>): Promise<{ ok: boolean; message: string | null }> {
+async function withQuotaRetry(
+  put: () => Promise<unknown>,
+): Promise<{ ok: boolean; message: string | null }> {
   try {
     await put()
     return { ok: true, message: null }
@@ -49,7 +51,9 @@ export async function getIllustrationsBySession(sessionId: string): Promise<Illu
 }
 
 /** Save an audio cache entry (with one prune-retry on quota). */
-export async function saveAudio(entry: AudioEntry): Promise<{ ok: boolean; message: string | null }> {
+export async function saveAudio(
+  entry: AudioEntry,
+): Promise<{ ok: boolean; message: string | null }> {
   const db = await getDB()
   return withQuotaRetry(() => db.put(STORE.audio, entry))
 }
@@ -83,7 +87,9 @@ export async function listAudio(): Promise<AudioEntry[]> {
  * Prune the speech cache: keep only the newest `cachedSpeechLines` entries per session,
  * dropping the oldest first (data-model §6, FR-050).
  */
-export async function pruneSpeechCache(keepPerSession = readSettings().cachedSpeechLines): Promise<void> {
+export async function pruneSpeechCache(
+  keepPerSession = readSettings().cachedSpeechLines,
+): Promise<void> {
   const db = await getDB()
   const all = await listAudio()
   const bySession = new Map<string, AudioEntry[]>()

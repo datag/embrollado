@@ -24,9 +24,7 @@ const textLimit = 400
 
 const nameTooLong = computed(() => name.value.length > nameLimit)
 const textTooLong = computed(() => text.value.length > textLimit)
-const ageOutOfRange = computed(
-  () => age.value !== null && (age.value < 0 || age.value > 120),
-)
+const ageOutOfRange = computed(() => age.value !== null && (age.value < 0 || age.value > 120))
 const canSave = computed(
   () =>
     name.value.trim().length > 0 &&
@@ -141,7 +139,12 @@ function save() {
     </label>
 
     <div class="mb-3 flex items-center gap-2">
-      <input v-model="saveTemplate" id="save-template" type="checkbox" class="h-5 w-5 accent-[color:var(--color-accent)]" />
+      <input
+        id="save-template"
+        v-model="saveTemplate"
+        type="checkbox"
+        class="h-5 w-5 accent-[color:var(--color-accent)]"
+      />
       <label for="save-template" class="text-sm">{{ $t('customForm.saveTemplate') }}</label>
     </div>
 

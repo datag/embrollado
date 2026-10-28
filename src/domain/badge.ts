@@ -44,8 +44,7 @@ export function buildBadge(
   const variants = variantsFor(tier, locale)
 
   let index: number
-  const parsed =
-    typeof input.labelKey === 'string' ? parseLabelKey(input.labelKey, tier) : null
+  const parsed = typeof input.labelKey === 'string' ? parseLabelKey(input.labelKey, tier) : null
   if (parsed && parsed.index >= 0 && parsed.index < variants.length) {
     index = parsed.index
   } else {

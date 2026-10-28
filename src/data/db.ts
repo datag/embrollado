@@ -100,6 +100,15 @@ export function getDB(): Promise<IDBPDatabase<EmbroDB>> {
   return _db
 }
 
+/** Close and drop the cached connection (used by tests to reset the database). */
+export async function closeDB(): Promise<void> {
+  if (_db) {
+    const db = await _db.catch(() => undefined)
+    if (db) db.close()
+    _db = null
+  }
+}
+
 /** true when the error is a storage-quota failure (Safari reports `QuotaExceededError`). */
 export function isQuotaError(err: unknown): boolean {
   return (

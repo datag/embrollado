@@ -3,9 +3,8 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { partnerById, situationById } from '@/domain/catalogue'
 import type { Level, Persona, Situation } from '@/domain/types'
-import { personaToRef, sessionToRef } from '@/data/sessions'
+import { personaToRef, sessionToRef, createSession } from '@/data/sessions'
 import { readTemplates, addPersonaTemplate, addSituationTemplate } from '@/data/profile'
-import { useSession } from '@/composables/useSession'
 import LanguagePicker from '@/components/LanguagePicker.vue'
 import LevelPicker from '@/components/LevelPicker.vue'
 import SituationPicker from '@/components/SituationPicker.vue'
@@ -13,13 +12,15 @@ import PartnerPicker from '@/components/PartnerPicker.vue'
 import CustomEntryForm from '@/components/CustomEntryForm.vue'
 
 const router = useRouter()
-const { start } = useSession()
 
 const language = ref('en')
 const level = ref<Level>('intermediate')
 const situationId = ref<string | null>(null)
 const partnerId = ref<string | null>(null)
-const templates = ref<{ personas: Persona[]; situations: Situation[] }>({ personas: [], situations: [] })
+const templates = ref<{ personas: Persona[]; situations: Situation[] }>({
+  personas: [],
+  situations: [],
+})
 const customKind = ref<'none' | 'partner' | 'situation'>('none')
 const sessionOnly = ref<{ personas: Map<string, Persona>; situations: Map<string, Situation> }>({
   personas: new Map(),
@@ -62,14 +63,15 @@ async function begin() {
   if (!sit || !par || !situationId.value || !partnerId.value) return
   starting.value = true
   try {
-    const id = await start({
+    // Create the session record only — the Dialogue view opens it and streams the first line.
+    const session = await createSession({
       language: language.value,
       level: level.value,
       situation: sit,
       partner: par,
       learnerName: null,
     })
-    router.push(`/session/${id}`)
+    router.push(`/session/${session.id}`)
   } finally {
     starting.value = false
   }

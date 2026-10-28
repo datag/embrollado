@@ -18,7 +18,9 @@ const onFileProtocol = computed(
     <footer class="mx-auto w-full max-w-2xl px-4 pb-6 text-center text-xs text-fg-muted">
       <span>{{ $t('app.name') }}</span>
       <span class="mx-1">·</span>
-      <RouterLink to="/about" class="underline underline-offset-2">{{ $t('nav.about') }}</RouterLink>
+      <RouterLink to="/about" class="underline underline-offset-2">{{
+        $t('nav.about')
+      }}</RouterLink>
     </footer>
     <div
       v-if="onFileProtocol"
