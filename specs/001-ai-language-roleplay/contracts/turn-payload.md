@@ -46,6 +46,9 @@ badge) and FR-040…FR-043 (the four-tier badge).
 | `badge`          | yes                | —        | The four-tier rating (FR-040)                                                        |
 | `issues`         | yes (may be empty) | native   | Concrete things to improve                                                           |
 
+`partnerText` and `translation` are produced by the **same** model call — the app renders the
+translation muted under the line it belongs to without a second request (FR-057).
+
 ## 2. JSON schema
 
 Sent as `response_format.json_schema` with `strict: true`. Every property is listed in `required`

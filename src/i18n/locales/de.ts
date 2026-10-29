@@ -84,9 +84,10 @@ export default {
     generating: 'Der Partner antwortet…',
     partnerLeft: 'Das Gespräch ist beendet.',
     connectHint: 'Beendet — du kannst das Protokoll lesen und exportieren.',
+    showTranslation: 'Übersetzung zeigen',
+    hideTranslation: 'Übersetzung verbergen',
   },
   feedback: {
-    translation: 'Übersetzung',
     explanation: 'Erklärung',
     correction: 'Deine Antwort, korrigiert',
     interpretation: 'Was du gesagt hast',

@@ -6,6 +6,21 @@ import { buildBadge } from '@/domain/badge'
  * the raw parsed turn JSON before anything is persisted or rendered.
  */
 
+/**
+ * Whether a partner line's translation may be shown (FR-057). An explicit decision (the learner's
+ * toggle or the auto-reveal when an answer is sent) always wins; without one, an answered line —
+ * or every line of an ended session — is shown by default, so a re-read after a reload is not
+ * degraded. The currently open, unanswered line stays hidden (the "cheat" is per line).
+ */
+export function translationVisible(
+  override: boolean | null,
+  answered: boolean,
+  sessionEnded: boolean,
+): boolean {
+  if (override !== null) return override
+  return sessionEnded || answered
+}
+
 export interface TurnFeedback {
   translation: string
   explanation: string | null

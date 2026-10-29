@@ -9,8 +9,9 @@ defineProps<{ turns: Turn[] }>()
 <template>
   <div class="space-y-3">
     <template v-for="(turn, idx) in turns" :key="turn.id">
-      <!-- Chronologische Reihenfolge: Antwort + Feedback (Übersetzung der beantworteten Zeile),
-           dann die Partnerzeile (FR-011). -->
+      <!-- Chronologische Reihenfolge: Antwort + Feedback (Erklärung der beantworteten Zeile),
+           dann die Partnerzeile (FR-011). Die Übersetzung steht in einer schreibgeschützten
+           Vorschau immer sichtbar unter der Zeile (FR-057). -->
       <div v-if="turn.learnerText" class="flex flex-col gap-2">
         <TurnBubble :text="turn.learnerText" side="learner" />
         <FeedbackPanel
@@ -19,7 +20,12 @@ defineProps<{ turns: Turn[] }>()
           :show-explain="false"
         />
       </div>
-      <TurnBubble v-if="turn.partnerText" :text="turn.partnerText" side="partner" />
+      <TurnBubble
+        v-if="turn.partnerText"
+        :text="turn.partnerText"
+        side="partner"
+        :translation="turn.translation"
+      />
     </template>
   </div>
 </template>

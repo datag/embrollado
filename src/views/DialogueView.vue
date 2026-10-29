@@ -8,6 +8,7 @@ import { getIllustrationsBySession } from '@/data/media'
 import TurnBubble from '@/components/TurnBubble.vue'
 import FeedbackPanel from '@/components/FeedbackPanel.vue'
 import SpeechButton from '@/components/SpeechButton.vue'
+import TranslationToggle from '@/components/TranslationToggle.vue'
 import IllustrationPanel from '@/components/IllustrationPanel.vue'
 
 const route = useRoute()
@@ -63,6 +64,10 @@ async function onSend() {
 
 function onExplain(turn: Turn) {
   sessionState.explainTurn(turn)
+}
+
+function onToggleTranslation(turnId: string) {
+  sessionState.toggleTranslation(turnId)
 }
 
 async function onPlay(turn: Turn) {
@@ -158,30 +163,43 @@ const statusHint = computed(() => (offline.value ? 'network' : null) ?? errorKin
           </div>
 
           <div v-if="turn.partnerText" class="flex items-start gap-2">
-            <TurnBubble :text="turn.partnerText" side="partner" />
-            <SpeechButton
-              class="shrink-0"
-              :label="$t('settings.speech')"
-              :hint="
-                speechHint(turn.id)
-                  ? speechHint(turn.id) === 'speechUnavailable'
+            <div class="min-w-0 flex-1">
+              <TurnBubble
+                :text="turn.partnerText"
+                side="partner"
+                :translation="sessionState.isTranslationVisible(turn.id) ? turn.translation : null"
+              />
+              <p
+                v-if="speechHint(turn.id)"
+                class="mt-1 max-w-28 text-xs leading-snug text-fg-muted"
+                data-testid="speech-hint"
+              >
+                {{
+                  speechHint(turn.id) === 'speechUnavailable'
                     ? $t('errors.speechUnavailable')
                     : speechHint(turn.id)
-                  : null
-              "
-              @play="onPlay(turn)"
-            />
-            <p
-              v-if="speechHint(turn.id)"
-              class="max-w-28 text-xs leading-snug text-fg-muted pt-3"
-              data-testid="speech-hint"
-            >
-              {{
-                speechHint(turn.id) === 'speechUnavailable'
-                  ? $t('errors.speechUnavailable')
-                  : speechHint(turn.id)
-              }}
-            </p>
+                }}
+              </p>
+            </div>
+            <div class="flex shrink-0 flex-col items-center gap-1.5">
+              <SpeechButton
+                class="shrink-0"
+                :label="$t('settings.speech')"
+                :hint="
+                  speechHint(turn.id)
+                    ? speechHint(turn.id) === 'speechUnavailable'
+                      ? $t('errors.speechUnavailable')
+                      : speechHint(turn.id)
+                    : null
+                "
+                @play="onPlay(turn)"
+              />
+              <TranslationToggle
+                v-if="!readOnly && turn.translation"
+                :visible="sessionState.isTranslationVisible(turn.id)"
+                @toggle="onToggleTranslation(turn.id)"
+              />
+            </div>
           </div>
 
           <div v-if="turn.illustrationId" class="flex justify-end">

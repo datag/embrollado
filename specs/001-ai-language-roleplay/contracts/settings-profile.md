@@ -79,9 +79,9 @@ Hash routing (`createWebHashHistory`) so the app works on any static host withou
 
 | Step | What the learner sees                                                                                                                                                                             | Requirement            |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
-| 1    | The partner's line appears — progressively while it is generated (FR-035)                                                                                                                         | FR-006                 |
+| 1    | The partner's line appears — progressively while it is generated (FR-035). Its translation sits muted directly under the line, hidden by default; a per-line toggle reveals or hides it, and once the learner answers the line the translation becomes visible immediately | FR-006, FR-057         |
 | 2    | The learner's input field with a send button of at least 44 × 44 px                                                                                                                               | FR-007                 |
-| 3    | One feedback block, always in this order: translation → explanation (optional) → correction → interpretation → assumptions → quality badge → issues. The "Explain to me" button sits on the block | FR-008, FR-014, FR-010 |
+| 3    | One feedback block, always in this order: explanation (optional) → correction → interpretation → assumptions → quality badge → issues. The "Explain to me" button sits on the block | FR-008, FR-014, FR-010 |
 | 4    | The partner's next line (or the cycle ends when the learner ends the session)                                                                                                                     | FR-011                 |
 
 Feedback block details:
@@ -90,6 +90,9 @@ Feedback block details:
   FR-042). The colour and the text must reach 4.5:1 contrast.
 - **Assumptions** are shown in a marked block: the learner's original text (`???`) next to the
   filled-in text and the reason (FR-009).
+- The partner line's **translation** is NOT part of the feedback block: it is rendered muted under
+  the line itself, hidden by default, revealable per line via a toggle, and revealed automatically
+  once the line has been answered (FR-057). A translation that was explicitly hidden stays hidden.
 - The **correction** is shown in the target language, everything else in the native language
   (FR-036).
 - "Explain to me" **adds** to the block; the existing feedback stays visible (FR-010).

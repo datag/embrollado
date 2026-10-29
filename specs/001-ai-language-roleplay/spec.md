@@ -79,11 +79,11 @@ No feedback features are required for this story to be considered complete.
 
 ### User Story 2 - Get feedback on my own answer (Priority: P1)
 
-After each answer, the learner sees a translation of the partner's preceding line, a corrected
-version of their own answer, an interpretation of what they actually said, the gaps that were
-filled with clearly labelled assumptions, and a quality badge that rates the answer. A single
-"Explain to me" action gives additional information about the semantics of the phrase or about the
-specific mistake.
+After each answer, the learner sees a corrected version of their own answer, an interpretation of
+what they actually said, the gaps that were filled with clearly labelled assumptions, and a quality
+badge that rates the answer. The translation of the partner's line sits muted under the line itself
+(FR-057). A single "Explain to me" action gives additional information about the semantics of the
+phrase or about the specific mistake.
 
 **Why this priority**: Feedback is the pedagogical core of the app. A conversation without feedback
 is just chatting, and without feedback the learner cannot learn from the situation.
@@ -95,8 +95,9 @@ information.
 **Acceptance Scenarios**:
 
 1. **Given** the partner asked a question, **When** the learner sends an answer, **Then** the app
-   shows the translation of the partner's question, the corrected learner answer, the interpretation
-   of the answer, any filled-in assumptions, and a quality badge for that turn.
+   shows the corrected learner answer, the interpretation of the answer, any filled-in assumptions,
+   and a quality badge for that turn, and the translation of the partner's question becomes visible
+   under the question itself (FR-057).
 2. **Given** the learner writes an unknown word as "???" or writes it in their native language,
    **When** the feedback is generated, **Then** the gap is filled with a contextually plausible
    assumption and that assumption is visibly marked as an assumption.
@@ -294,10 +295,10 @@ service without those capabilities and verify the graceful fallback.
   language that fits the chosen situation, partner and level.
 - **FR-007**: The learner MUST be able to type an answer in the target language and send it, and the
   send control MUST be reachable on a phone-sized screen.
-- **FR-008**: After each answer, the system MUST show, in one place: a translation of the partner's
-  preceding line, an optional explanation of that line, a corrected version of the learner's answer,
-  an interpretation of the learner's answer, the gaps that were filled with assumptions, and a
-  quality badge that rates the answer.
+- **FR-008**: After each answer, the system MUST show, in one place: an optional explanation of the
+  partner's preceding line, a corrected version of the learner's answer, an interpretation of the
+  learner's answer, the gaps that were filled with assumptions, and a quality badge that rates the
+  answer.
 - **FR-009**: Where the learner's answer contains an explicit gap marker (`???`) or a word given in
   the learner's native language, the system MUST fill the gap with a plausible, context-appropriate
   assumption and MUST visibly mark that text as an assumption.
@@ -311,7 +312,7 @@ service without those capabilities and verify the graceful fallback.
 - **FR-013**: The correction, the interpretation and the quality badge of the learner's answer MUST
   take the selected level into account.
 - **FR-014**: The system MUST present the feedback for a turn in a fixed, predictable order so that
-  the learner always knows where to look for the translation, the correction and the quality badge.
+  the learner always knows where to look for the correction and the quality badge.
 
 **Sessions and history**
 
@@ -380,6 +381,11 @@ service without those capabilities and verify the graceful fallback.
   filled-in assumptions, the quality badge and the output of the "Explain to me" action MUST be
   delivered in the learner's native language, while the corrected version of the learner's answer
   MUST remain in the target language.
+- **FR-057**: The translation of a partner line MUST arrive with the same request as the line itself
+  and MUST be shown muted directly under the line in the learner's native language. While the line
+  is still open it MUST be hidden by default; the learner MUST be able to reveal or hide it per
+  line with a toggle ("peek"), and once the learner has sent an answer to the line the translation
+  MUST become visible immediately so the learner can check their reading.
 - **FR-037**: The first release MUST include the AI-generated speech output and the AI-generated
   illustrations described in FR-026 to FR-030.
 

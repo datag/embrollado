@@ -1,4 +1,4 @@
-import { ref, shallowRef, type Ref } from 'vue'
+import { reactive, ref, shallowRef, type Ref } from 'vue'
 import type { Session, Turn, Illustration, AudioEntry } from '@/domain/types'
 import {
   createSession,
@@ -9,7 +9,7 @@ import {
   updateTurn,
   type NewSessionInput,
 } from '@/data/sessions'
-import { assembleFeedback, createOpeningTurn } from '@/domain/session'
+import { assembleFeedback, createOpeningTurn, translationVisible } from '@/domain/session'
 import {
   buildSystemPrompt,
   buildTurnUserMessage,
@@ -55,6 +55,10 @@ export interface UseSessionReturn {
   imagesAvailable: Ref<boolean>
   /** The turn currently being explained — null when no explanation is running. */
   explainingTurnId: Ref<string | null>
+  /** Whether the partner line's translation may be shown (FR-057). */
+  isTranslationVisible: (turnId: string) => boolean
+  /** Flip the per-line "cheat" visibility of the translation. */
+  toggleTranslation: (turnId: string) => void
   load: (id: string) => Promise<void>
   start: (input: NewSessionInput) => Promise<string>
   sendAnswer: (text: string) => Promise<void>
@@ -86,12 +90,34 @@ export function useSession(): UseSessionReturn {
   const pendingText = ref<string | null>(null)
   /** Which turn's "Explain to me" is currently running — only that button is busy/active. */
   const explainingTurnId = ref<string | null>(null)
+  /**
+   * Explicit per-line visibility decisions for the partner-line translation (FR-057). Only
+   * deviations from the derived default are stored: the learner's toggle, and the auto-reveal
+   * when an answer is sent. Answered lines also stay visible after a reload, derived from the
+   * stored turns.
+   */
+  const translationOverrides = reactive(new Map<string, boolean>())
   // Per-session AI chat history: the system prompt + the turns so far.
   const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = []
   let lastHandle: Turn | null = null
 
   function clearMessages() {
     messages.length = 0
+  }
+
+  /** A partner line is "answered" once a later turn carries a learner answer. */
+  function isAnswered(turnId: string): boolean {
+    const idx = turns.value.findIndex((t) => t.id === turnId)
+    return idx !== -1 && idx < turns.value.length - 1
+  }
+
+  function isTranslationVisible(turnId: string): boolean {
+    const override = translationOverrides.has(turnId) ? translationOverrides.get(turnId)! : null
+    return translationVisible(override, isAnswered(turnId), session.value?.state === 'ended')
+  }
+
+  function toggleTranslation(turnId: string) {
+    translationOverrides.set(turnId, !isTranslationVisible(turnId))
   }
 
   async function buildSystemPromptFor(sessionValue: Session): Promise<string> {
@@ -198,6 +224,9 @@ export function useSession(): UseSessionReturn {
     partnerProgress.value = ''
     error.value = null
     pendingText.value = text
+    // Unmittelbar die Übersetzung der beantworteten Zeile aufdecken (FR-057), damit der Lernende
+    // seine Annahme noch einmal prüfen kann — auch wenn der Request danach fehlschlägt.
+    if (lastHandle) translationOverrides.set(lastHandle.id, true)
 
     let acc = ''
     try {
@@ -444,6 +473,8 @@ export function useSession(): UseSessionReturn {
     speechAvailable,
     imagesAvailable,
     explainingTurnId,
+    isTranslationVisible,
+    toggleTranslation,
     load,
     start,
     sendAnswer,

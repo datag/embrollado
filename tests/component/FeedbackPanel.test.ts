@@ -35,11 +35,10 @@ const mountPanel = (turn: Turn, props: Record<string, unknown> = {}) =>
   })
 
 describe('feedback panel (T046, T052)', () => {
-  it('renders the six elements in the fixed order (FR-014)', () => {
+  it('renders the elements in the fixed order (FR-014)', () => {
     const wrapper = mountPanel(makeTurn())
     const headings = wrapper.findAll('h4').map((h) => h.text())
     expect(headings).toEqual([
-      'Translation',
       'Explanation',
       'Your answer, corrected',
       'What you said',
@@ -49,8 +48,8 @@ describe('feedback panel (T046, T052)', () => {
     ])
   })
 
-  it('shows the translated partner line', () => {
-    expect(mountPanel(makeTurn()).text()).toContain('Where is the washroom?')
+  it("does not duplicate the partner line's translation (it lives on the bubble, FR-057)", () => {
+    expect(mountPanel(makeTurn()).text()).not.toContain('Where is the washroom?')
   })
 
   it('shows the badge with its stored wording', () => {
@@ -72,12 +71,12 @@ describe('feedback panel (T046, T052)', () => {
     const after = wrapper.text()
     expect(after).toContain('Extra explanation.')
     expect(after).toContain('Good!') // existing feedback stays visible (FR-010)
-    expect(after).toContain('Where is the washroom?')
+    expect(after).toContain('A polite question.')
   })
 
-  it("shows the translation of the PREVIOUS partner line, not the current turn's", () => {
-    // The answered turn carries the translation of the partner's NEXT line…
-    const turn = makeTurn({ translation: 'Fresh bread is baking in the oven.' })
+  it("shows the explanation of the PREVIOUS partner line, not the current turn's", () => {
+    // The answered turn carries the explanation of the partner's NEXT line…
+    const turn = makeTurn({ explanation: 'The next line talks about bread.' })
     // …while the previous turn holds the line the learner actually responded to.
     const prev: Turn = {
       ...turn,
@@ -89,8 +88,8 @@ describe('feedback panel (T046, T052)', () => {
       learnerText: null,
     }
     const wrapper = mountPanel(turn, { prevTurn: prev })
-    expect(wrapper.text()).toContain('Where is the washroom?')
-    expect(wrapper.text()).not.toContain('Fresh bread is baking')
+    expect(wrapper.text()).toContain('A polite question.')
+    expect(wrapper.text()).not.toContain('The next line talks about bread.')
     // The assessment still comes from the answered turn (FR-040).
     expect(wrapper.text()).toContain('Good!')
   })

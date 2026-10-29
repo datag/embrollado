@@ -96,8 +96,8 @@ app reports a failure and offers to retry; `content_filter` ⇒ reported as a re
   array, and OpenRouter's final usage frame that carries a non-empty `choices`.
 - The **accumulated text is never parsed as JSON while the stream is running**. It is parsed once,
   after the stream ends.
-- Only the `partnerText` field is rendered progressively. The rest of the turn appears when the
-  stream completes (spec FR-035).
+- Only the `partnerText` field is rendered progressively. The rest of the turn — including the
+  line's own translation (FR-057) — appears when the stream completes (spec FR-035).
 - If the endpoint does not stream (it answers with a normal JSON body), the app renders the
   complete turn — the fallback is required by FR-035 and is not an error.
 

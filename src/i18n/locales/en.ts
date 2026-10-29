@@ -84,9 +84,10 @@ export default {
     generating: 'The partner is responding…',
     partnerLeft: 'The conversation ended.',
     connectHint: 'Ended — you can read and export the transcript.',
+    showTranslation: 'Show translation',
+    hideTranslation: 'Hide translation',
   },
   feedback: {
-    translation: 'Translation',
     explanation: 'Explanation',
     correction: 'Your answer, corrected',
     interpretation: 'What you said',

@@ -4,9 +4,10 @@
 everything stays on your device.**
 
 Embrollado is a browser-only single-page app. You choose a target language, a level, a situation
-and a partner, and then you talk: the partner replies in the target language, and after every
-answer you get a translation, a correction, an interpretation, filled-in gaps, a quality badge
-and concrete things to improve — with an **Explain to me** action on demand.
+and a partner, and then you talk: the partner replies in the target language with the translation
+sitting muted under each line — hidden until you peek or until you have answered — and after every
+answer you get a correction, an interpretation, filled-in gaps, a quality badge and concrete
+things to improve — with an **Explain to me** action on demand.
 
 There is no backend, no account and no tracking. Conversations, pictures and cached audio live in
 your browser (IndexedDB); a small settings document and your AI-service configuration live in
@@ -151,9 +152,9 @@ dialogue itself reports the missing connection.
 
 | Suite              | Covers                                                                                                                                                                                                       |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Unit (Vitest)      | badge tiers, catalogue, SSE parser, error normaliser, prompt builder, export envelope, migrations, settings, speech-cache pruning                                                                            |
-| Component (Vitest) | the setup pickers, the feedback block (fixed element order, explanation added without hiding feedback)                                                                                                       |
-| E2E (Playwright)   | the dialogue cycle against the local mock, session list (search/rename/delete), export/import round trip, offline reload, speech + illustrations, network isolation, and the mobile layout at 393/390/320 px |
+| Unit (Vitest)      | badge tiers, catalogue, SSE parser, error normaliser, prompt builder, export envelope, migrations, settings, speech-cache pruning, translation visibility (FR-057) |
+| Component (Vitest) | the setup pickers, the feedback block (fixed element order, explanation added without hiding feedback), the muted line translation and its toggle                                                                                   |
+| E2E (Playwright)   | the dialogue cycle against the local mock (incl. the hidden/revealed line translation), session list (search/rename/delete), export/import round trip, offline reload, speech + illustrations, network isolation, and the mobile layout at 393/390/320 px |
 
 The e2e suite asserts the constitution's hard promises directly: no horizontal scrolling at
 320 px, hit targets ≥ 44 px, zero third-party requests, zero CSP violations, and sessions

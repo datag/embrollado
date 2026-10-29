@@ -22,8 +22,10 @@ const emit = defineEmits<{ explain: [] }>()
 const md = (value: string | null | undefined) => (value ? renderMarkdown(value) : '')
 const heading = 'text-xs font-semibold uppercase tracking-wide text-fg-muted'
 
-/** The translation of the partner line the learner just answered. */
-const partnerTranslation = computed(() => _props.prevTurn?.translation ?? _props.turn.translation)
+/**
+ * The explanation of the partner line the learner just answered. The line's translation lives on
+ * the partner bubble itself (FR-057), so the feedback block starts with the explanation.
+ */
 const partnerExplanation = computed(() => _props.prevTurn?.explanation ?? _props.turn.explanation)
 </script>
 
@@ -32,14 +34,10 @@ const partnerExplanation = computed(() => _props.prevTurn?.explanation ?? _props
     class="feedback-prose rounded-xl border border-border bg-surface-raised p-3"
     data-testid="feedback"
   >
-    <!-- Fixed order (settings-profile.md §3): translation → explanation → correction →
-         interpretation → assumptions → badge → issues (T052). The translation/explanation are of
-         the partner line the learner just answered (prevTurn), not of the line this turn carries. -->
-    <section v-if="partnerTranslation" class="mb-2">
-      <h4 :class="heading">{{ $t('feedback.translation') }}</h4>
-      <p class="text-left">{{ partnerTranslation }}</p>
-    </section>
-
+    <!-- Fixed order (settings-profile.md §3): explanation → correction → interpretation →
+         assumptions → badge → issues (T052). The translation of the partner line sits on the
+         partner bubble (FR-057); the explanation is of the line the learner just answered
+         (prevTurn), not of the line this turn carries. -->
     <section v-if="partnerExplanation" class="mb-2">
       <h4 :class="heading">{{ $t('feedback.explanation') }}</h4>
       <div class="text-left" v-html="md(partnerExplanation)" />

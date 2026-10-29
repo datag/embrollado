@@ -250,6 +250,28 @@ and verify the graceful fallback.
 - [x] T092 Run the validation scenarios from `specs/001-ai-language-roleplay/quickstart.md` end to end
 - [x] T093 [P] Verify the GitHub Pages deployment in `.github/workflows/gh-pages.yml` and `README.md`: the base path, the hash routes, the service worker scope and the repository variable `CSP_MODE`
 
+## Phase 9: Translation at the Partner Line (FR-057)
+
+**Purpose**: Deliver the partner-line translation with the same request (already the case) and
+render it muted under the line — hidden by default, revealable per line, auto-revealed once the
+learner answers (FR-057).
+
+### Implementation
+
+- [x] T094 Implement the pure visibility rule in `src/domain/session.ts`: `translationVisible(override, answered, sessionEnded)` — an explicit decision wins, otherwise answered lines and every line of an ended session are visible
+- [x] T095 Wire the per-line visibility into `src/composables/useSession.ts`: a reactive `translationOverrides` map, `isTranslationVisible(turnId)` and `toggleTranslation(turnId)`, and the auto-reveal of the answered line at the start of `sendAnswer`
+- [x] T096 Extend `src/components/TurnBubble.vue` with an optional muted `translation` rendered under the text (partner side only)
+- [x] T097 Create the per-line toggle `src/components/TranslationToggle.vue` (eye button, `aria-pressed`, 44 × 44 px)
+- [x] T098 Wire the bubble and the toggle into `src/views/DialogueView.vue`; remove the translation section from `src/components/FeedbackPanel.vue`; show the translation muted in `src/components/TranscriptList.vue`
+- [x] T099 Add the i18n labels `dialogue.showTranslation` / `dialogue.hideTranslation` to `src/i18n/locales/en.ts` and `de.ts`; drop the unused `feedback.translation`
+
+### Tests for Phase 9
+
+- [x] T100 [P] Unit test `translationVisible` in `tests/unit/session-visibility.test.ts`
+- [x] T101 [P] Component test the bubble translation and the toggle in `tests/component/translation.test.ts`
+- [x] T102 Update `tests/component/FeedbackPanel.test.ts` for the new block order (explanation first, no translation)
+- [x] T103 Update `tests/e2e/dialogue.spec.ts`: translation hidden by default, toggle reveal/hide, auto-reveal of the answered line while the new line stays hidden
+
 ---
 
 ## Dependencies & Execution Order
