@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { LANGUAGES } from '@/domain/catalogue'
-import type { Persona, Situation } from '@/domain/types'
+import type { Gender, Persona, Situation } from '@/domain/types'
 
 const props = defineProps<{ kind: 'partner' | 'situation' }>()
 const emit = defineEmits<{
@@ -11,6 +11,7 @@ const emit = defineEmits<{
 
 const name = ref('')
 const age = ref<number | null>(null)
+const gender = ref<Gender | null>(null)
 const occupation = ref('')
 const text = ref('') // description (partner) or setting (situation)
 const language = ref('en')
@@ -43,6 +44,7 @@ function save() {
       id: crypto.randomUUID(),
       name: name.value.trim().slice(0, 60),
       age: age.value,
+      gender: gender.value,
       occupation: occupation.value.trim().slice(0, 60),
       description: text.value.trim().slice(0, 400),
       origin: 'learner',
@@ -103,6 +105,20 @@ function save() {
         class="min-h-11 w-full rounded-lg border border-border px-3"
         :class="ageOutOfRange ? 'border-error' : ''"
       />
+    </label>
+
+    <label v-if="isPartner" class="mb-2 block">
+      <span class="mb-1 block text-sm">{{ $t('customForm.gender') }}</span>
+      <select
+        v-model="gender"
+        class="min-h-11 w-full rounded-lg border border-border px-3"
+        data-testid="custom-gender"
+      >
+        <option value="">{{ $t('customForm.genderNone') }}</option>
+        <option value="female">{{ $t('customForm.genderFemale') }}</option>
+        <option value="male">{{ $t('customForm.genderMale') }}</option>
+        <option value="other">{{ $t('customForm.genderOther') }}</option>
+      </select>
     </label>
 
     <label v-if="isPartner" class="mb-2 block">

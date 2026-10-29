@@ -120,8 +120,18 @@ const server = http.createServer((req, res) => {
         /* ignore */
       }
       const stream = parsed.stream === true
+      // On-demand illustration requests carry the embrollado_scene schema: answer with a ready
+      // narration that the image endpoint renders verbatim.
+      const isScene = parsed.response_format?.json_schema?.name === 'embrollado_scene'
+      const payload = isScene
+        ? {
+            scene:
+              'A man in his late twenties in dark clothes hands a coin to a woman in her late ' +
+              'thirties in front of a small campsite washroom building at dusk.',
+          }
+        : TURN
       if (stream) {
-        sendStream(res, TURN)
+        sendStream(res, payload)
         return
       }
       const usage = { prompt_tokens: 10, completion_tokens: 8, total_tokens: 18 }
@@ -133,7 +143,7 @@ const server = http.createServer((req, res) => {
         choices: [
           {
             index: 0,
-            message: { role: 'assistant', content: JSON.stringify(TURN) },
+            message: { role: 'assistant', content: JSON.stringify(payload) },
             finish_reason: 'stop',
           },
         ],

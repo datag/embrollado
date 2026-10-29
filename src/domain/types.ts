@@ -12,6 +12,8 @@ export type Visibility = 'template' | 'session-only'
 export type AuthMode = 'bearer' | 'x-api-key' | 'api-key'
 export type ThemeOption = 'light' | 'dark' | 'auto'
 export type InterfaceLanguage = 'en' | 'de'
+/** The partner's apparent gender, used to describe them in generated pictures. */
+export type Gender = 'female' | 'male' | 'other'
 
 /** A situation and partner as they were described when the session started. */
 export interface SituationRef {
@@ -27,6 +29,11 @@ export interface PartnerRef {
   id: string
   name: string
   age: number | null
+  /**
+   * The partner's gender as chosen for the picture prompt. Optional on purpose: session snapshots
+   * created before this field existed stay type-valid and simply have no gender.
+   */
+  gender?: Gender | null
   occupation: string
   custom: boolean
   /** A snapshot of the partner's biography, used to keep role-play in character. */
@@ -92,6 +99,7 @@ export interface Persona {
   id: string
   name: string
   age: number | null
+  gender: Gender | null
   occupation: string
   description: string
   origin: Origin

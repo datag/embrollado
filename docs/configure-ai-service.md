@@ -14,7 +14,7 @@ Embrollado talks to any OpenAI-compatible service. Everything below happens in
 | **Chat model**       | The model used for every turn.                                                                                                                                                                                                                                                                      |
 | **Speech model**     | Optional — empty hides the playback button.                                                                                                                                                                                                                                                       |
 | **Voice (TTS)**      | Optional — the voice for your speech model. Voices are model-specific (OpenAI: `alloy`…; Gemini TTS: `Kore`, `Zephyr`, …; Mistral TTS: `en_paul_neutral`, …); empty uses the profile default. A voice your model does not know is the most common cause of an HTTP 400 ("Provider returned 400"). |
-| **Image model**      | Optional — empty disables the situation illustrations.                                                                                                                                                                                                                                            |
+| **Image model**      | Optional — empty hides the picture button beside the input box. The button only appears when the provider profile supports images (OpenAI/OpenRouter/Custom). Pressing it narrates the current moment with the chat model — situation, partner, your profile and the conversation so far — and then asks the image model to render it. |
 
 ## Provider notes
 

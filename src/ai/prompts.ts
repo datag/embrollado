@@ -1,4 +1,4 @@
-import type { Level, SituationRef, PartnerRef } from '@/domain/types'
+import type { Gender, Level, SituationRef, PartnerRef } from '@/domain/types'
 import { TURN_SCHEMA } from '@/ai/schema'
 
 /**
@@ -120,22 +120,105 @@ export function schemaInPrompt(schema: unknown): string {
   }
 }
 
+/* ------------------------------------------------------------------ */
+/* On-demand illustration (FR-028 as amended; turn-payload.md §5).     */
+/* ------------------------------------------------------------------ */
+
+export interface SceneContext {
+  partner: PartnerRef
+  situation: SituationRef
+  learnerName: string | null
+  learnerDetails: string | null
+  /** The complete correspondence so far — every partner line and every learner answer. */
+  dialogue: Array<{ partnerText: string; learnerText: string | null }>
+}
+
+/** A partner's gender as a plain English noun for the narration ("a woman", "a man"). */
+function genderNoun(g: Gender | null | undefined): string {
+  if (g === 'female') return 'a woman'
+  if (g === 'male') return 'a man'
+  if (g === 'other') return 'a person'
+  return ''
+}
+
+function describePartner(p: PartnerRef): string {
+  const parts: string[] = []
+  if (p.age != null) parts.push(`${p.age} years old`)
+  const gender = genderNoun(p.gender)
+  if (gender) parts.push(gender)
+  if (p.occupation) parts.push(p.occupation)
+  const head = `Partner: ${p.name}${parts.length ? ` — ${parts.join(', ')}` : ''}.`
+  return p.description ? `${head} ${p.description}` : head
+}
+
+/**
+ * The scene-narration context (turn-payload.md §5). The whole situation, the people and the
+ * conversation so far travel in ONE request — the request keeps the dialogue first, and the person
+ * behind the learner's screen (name + details from Settings) is part of the people present. The
+ * model answers with `{"scene": "…"}`, a short English description of the CURRENT moment that the
+ * image endpoint renders verbatim.
+ */
+export function buildSceneMessages(
+  ctx: SceneContext,
+): Array<{ role: 'system' | 'user'; content: string }> {
+  const learner =
+    ctx.learnerName || ctx.learnerDetails
+      ? `Learner: ${ctx.learnerName ?? 'the app user'}${ctx.learnerDetails ? ` — details: ${ctx.learnerDetails}` : ''}.`
+      : 'Learner: the app user has not shared personal details.'
+
+  const learnerSpeaker = ctx.learnerName ?? 'The learner'
+  const lines: string[] = []
+  for (const t of ctx.dialogue) {
+    if (t.learnerText) lines.push(`${learnerSpeaker}: ${t.learnerText}`)
+    if (t.partnerText) lines.push(`${ctx.partner.name}: ${t.partnerText}`)
+  }
+  const transcript = lines.length
+    ? lines.join('\n')
+    : `No conversation has happened yet — depict the two meeting for the first time at ${ctx.situation.name}.`
+
+  return [
+    {
+      role: 'system',
+      content:
+        'You are a visual director for a private illustration tool. Your job is to narrate the ' +
+        'CURRENT moment of a role-play conversation as plain input for an image-generation model. ' +
+        'Describe the situation first — where the scene happens and who is present — and only then ' +
+        'the concrete now: what the two people are doing at this exact moment and which objects are ' +
+        'exchanged or pointed at. Rules: the scene MUST depict the moment of the LAST exchange — ' +
+        'earlier lines are background context only, never show several moments at once; write plain ' +
+        'English in at most 60 words (image models read English best); describe only what is ' +
+        'visible — no speech bubbles, no dialogue text, no captions, no logos; keep it warm and ' +
+        'realistic, suitable for a language-practice app for adults.',
+    },
+    {
+      role: 'user',
+      content: [
+        `Situation: ${ctx.situation.name} — ${ctx.situation.setting}`,
+        ``,
+        describePartner(ctx.partner),
+        learner,
+        ``,
+        `Conversation so far:`,
+        transcript,
+        ``,
+        `Depict the current moment: the very last exchange above.`,
+      ].join('\n'),
+    },
+  ]
+}
+
+/** Illustration prompt (FR-028 as amended; turn-payload.md §5). The finished scene only. */
+export function buildIllustrationPrompt(scene: string): string {
+  return (
+    `A warm, friendly illustration of ${scene}. ` + `Soft daylight, simple composition, no text.`
+  )
+}
+
 export function buildConnectionUserMessage(): { role: 'user'; content: string } {
   return {
     role: 'user',
     content: 'Reply with the JSON object {"reply": "ok"}.',
   }
-}
-
-/** Illustration prompt (FR-028; turn-payload.md §6). */
-export function buildIllustrationPrompt(
-  situation: SituationRef,
-  momentDescription: string,
-): string {
-  return (
-    `A warm, friendly illustration of ${situation.setting}, ${momentDescription}. ` +
-    `Soft daylight, simple composition, no text.`
-  )
 }
 
 export { TURN_SCHEMA }

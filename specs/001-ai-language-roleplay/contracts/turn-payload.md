@@ -185,15 +185,45 @@ latest user message**, never an earlier answer, the partner's lines or a previou
 The learner profile is **sent to the model** and therefore leaves the device — it is part of the
 prompt. The privacy text in the app says so.
 
-## 5. Illustration prompts (FR-028)
+## 5. On-demand illustration prompts (FR-028 as amended)
 
-Separate from the turn, a short visual prompt is built from the situation and the moment:
+Pictures are generated only when the learner requests them (button beside the composer) and never
+automatically — an explicit user action is required by the constitution (Principle IV). One
+request produces the finished scene, a second renders it:
 
-```text
-A warm, friendly illustration of {situation.setting}, {moment description}.
-Soft daylight, simple composition, no text.
-```
+1. **Scene narration** — a small chat completion against the configured chat model. The whole
+   context travels in ONE request:
+
+   ```text
+   System: You are a visual director … narrate the CURRENT moment of the role-play … plain
+           English, at most 60 words, only what is visible — no speech bubbles, no text.
+
+   User:   Situation: {situation.name} — {situation.setting}
+           Partner: {name} — {age} years old, {gender}, {occupation}. {description}
+           Learner: {settings.name} — details: {settings.details}
+           Conversation so far:
+           {partner.name}: {last partner line}
+           {learner.name}: {last learner answer}
+           …
+   ```
+
+   The answer is the strict object `{"scene": "<current moment>"}` (`embrollado_scene` schema) —
+   e.g. *"A man in his late twenties hands a coin to a woman in her late thirties in front of a
+   small campsite washroom building at dusk."* The dialogue is part of the request context; stored
+   feedback (badge, issues, corrections) is never sent.
+
+2. **Picture** — the image endpoint renders exactly that narration:
+
+   ```text
+   A warm, friendly illustration of {scene}.
+   Soft daylight, simple composition, no text.
+   ```
 
 - The model is asked for a `webp` image where supported; the bytes are stored locally.
-- `moment` is `start`, `key` (one of the situation's `keyMoments`) or `end`.
-- A failure here never affects the turn (FR-030).
+- The picture is bound to the turn it was requested on (`Turn.illustrationId`,
+  `Illustration.turnId`) and shown inline in the dialogue; a second request replaces it. The
+  binding survives export/import (export v2 keeps stable turn ids).
+- The button is only offered when an image model is configured, the provider profile exposes an
+  images path, illustrations are enabled, and the endpoint has not already declined.
+- A failure of either request never affects the turn (FR-030): only a short hint is shown, and on
+  a provider rejection (`404`/`405`) the button disappears and the app continues without pictures.

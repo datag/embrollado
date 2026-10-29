@@ -3,10 +3,14 @@ import { configureService, expectPartnerLine, startConversation } from './helper
 
 /**
  * User Story 5 (T080): with a service that supports speech and images, a line can be played and
- * an illustration appears; the requests go to the speech/images endpoints.
+ * an illustration is generated ON DEMAND; the requests go to the speech/images endpoints.
+ *
+ * FR-028 as amended: no automatic illustration at session start — the picture button next to the
+ * input box is only offered when the service can produce images, and only a click triggers the
+ * two requests (scene narration → picture).
  */
 test.describe('speech and illustrations', () => {
-  test('generates a situation illustration and plays the partner line', async ({ page }) => {
+  test('generates a picture only on request and plays the partner line', async ({ page }) => {
     await configureService(page, { speech: true, image: true })
 
     const imageRequests: string[] = []
@@ -19,7 +23,11 @@ test.describe('speech and illustrations', () => {
     await startConversation(page)
     await expectPartnerLine(page, 'Hello! Nice to meet you.')
 
-    // The start illustration is generated automatically (FR-028) and stored locally.
+    // No automatic image call at session start (FR-028 as amended) — the button is the trigger.
+    await expect.poll(() => imageRequests.length).toBe(0)
+    await expect(page.getByTestId('illustration-button')).toBeVisible()
+
+    await page.getByTestId('illustration-button').click()
     await expect.poll(() => imageRequests.length, { timeout: 20_000 }).toBeGreaterThan(0)
     await expect(page.locator('figure img').first()).toBeVisible({ timeout: 15_000 })
 
@@ -28,6 +36,51 @@ test.describe('speech and illustrations', () => {
     await expect.poll(() => speechRequests.length, { timeout: 15_000 }).toBeGreaterThan(0)
     // Playback succeeded: no error hint is rendered next to the button.
     await expect.poll(() => page.getByTestId('speech-hint').count(), { timeout: 15_000 }).toBe(0)
+  })
+
+  test('replaces the picture on a second request instead of accumulating', async ({ page }) => {
+    await configureService(page, { image: true })
+    await startConversation(page)
+    await expectPartnerLine(page, 'Hello! Nice to meet you.')
+
+    const imageRequests: string[] = []
+    page.on('request', (req) => {
+      if (req.url().includes('/images/generations')) imageRequests.push(req.url())
+    })
+
+    await page.getByTestId('illustration-button').click()
+    await expect.poll(() => imageRequests.length, { timeout: 20_000 }).toBe(1)
+    await expect(page.locator('figure img')).toHaveCount(1)
+
+    await page.getByTestId('illustration-button').click()
+    await expect.poll(() => imageRequests.length, { timeout: 20_000 }).toBe(2)
+    // Still exactly one rendered picture — the old one was replaced, not duplicated.
+    await expect(page.locator('figure img')).toHaveCount(1)
+  })
+
+  test('without an image model the button is absent and the input takes full width', async ({
+    page,
+  }) => {
+    await configureService(page)
+    await startConversation(page)
+    await expectPartnerLine(page, 'Hello! Nice to meet you.')
+
+    await expect(page.getByTestId('illustration-button')).toHaveCount(0)
+    const imageRequests: string[] = []
+    page.on('request', (req) => {
+      if (req.url().includes('/images/generations')) imageRequests.push(req.url())
+    })
+    await expect(page.locator('figure img')).toHaveCount(0)
+    expect(imageRequests).toEqual([])
+  })
+
+  test('hides the button when the provider profile cannot produce images', async ({ page }) => {
+    // Ollama/llama.cpp/vLLM/LM Studio expose no images path — a configured image model alone must
+    // not produce a button that can only fail on every click.
+    await configureService(page, { image: true, profile: 'ollama' })
+    await startConversation(page)
+    await expectPartnerLine(page, 'Hello! Nice to meet you.')
+    await expect(page.getByTestId('illustration-button')).toHaveCount(0)
   })
 
   test('plays a pcm-only service (Gemini-TTS style) by converting pcm to wav', async ({ page }) => {
@@ -58,7 +111,8 @@ test.describe('speech and illustrations', () => {
     // No speech model configured → the playback button stays, nothing is requested.
     await page.getByTestId('speech-button').first().click()
     await expect(page.getByText('This service cannot produce speech.')).toBeVisible()
-    // No illustration appears (image model missing).
+    // No illustration button and no illustration appear (image model missing).
+    await expect(page.getByTestId('illustration-button')).toHaveCount(0)
     await expect(page.locator('figure img')).toHaveCount(0)
   })
 })

@@ -69,4 +69,37 @@ describe('export migrations (T058)', () => {
   it('keeps the migration table wired (at least the v1 step exists)', () => {
     expect(migrations).toBeTypeOf('object')
   })
+
+  it('backfills v1 turns with deterministic ids and an illustration binding (export v2)', () => {
+    const withTurns = {
+      ...v1Fixture(),
+      sessions: [
+        {
+          ...v1Fixture().sessions[0],
+          turns: [
+            {
+              position: 1,
+              partnerText: 'Hola.',
+              translation: 'Hi.',
+              explanation: null,
+              learnerText: null,
+              correctedText: null,
+              interpretation: null,
+              assumptions: [],
+              badge: null,
+              issues: [],
+              feedbackLanguage: 'en',
+              createdAt: '2026-10-28T09:00:00.000Z',
+            },
+          ],
+        },
+      ],
+    }
+    const doc = migrateExportDoc(withTurns)
+    const turn = doc.sessions[0].turns[0]
+    expect(turn.id).toBe(`${v1Fixture().sessions[0].id}:1`)
+    expect(turn.illustrationId).toBe(null)
+    // Pure: the same input yields the same output.
+    expect(migrateExportDoc(withTurns)).toEqual(doc)
+  })
 })

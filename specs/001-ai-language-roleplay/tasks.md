@@ -211,12 +211,12 @@ trace a full session and see that only the configured AI service is contacted.
 
 ## Phase 7: User Story 5 - Hear the partner and see the situation (Priority: P2)
 
-**Goal**: The learner can play back the partner's lines and sees an illustration of the situation
-at the start, at the key moments and at the end.
+**Goal**: The learner can play back the partner's lines and can request an illustration of the
+current moment of the conversation on demand.
 
 **Independent Test**: Start a session on a service that supports speech and images and verify that
-a line can be played and an illustration appears; repeat on a service without those capabilities
-and verify the graceful fallback.
+a line can be played and that a picture appears after the learner requests it; repeat on a service
+without those capabilities and verify the graceful fallback.
 
 ### Tests for User Story 5 ⚠️
 
@@ -233,6 +233,10 @@ and verify the graceful fallback.
 - [x] T084 [US5] Implement the illustration generation in `src/ai/aiService.ts`: `POST /v1/images/generations` requesting base64, the bytes stored locally and a failure that never interrupts the conversation
 - [x] T085 [P] [US5] Create the illustration panel `src/components/IllustrationPanel.vue` for the start, key and end moments
 - [x] T086 [US5] Wire the illustration moments into the turn cycle in `src/domain/session.ts`
+- [x] T087 [US5] On-demand illustrations (FR-028 as amended): remove the automatic picture at session start; add a `data-testid="illustration-button"` next to the composer shown only when an image model is configured, the provider profile exposes an images path, illustrations are enabled and the endpoint has not declined; the chat model narrates the current moment from the situation, partner (incl. gender), the learner's settings and the whole dialogue in ONE request (`embrollado_scene`), and the image endpoint renders only that narration
+- [x] T088 [US5] Extend the person model with an explicit gender: `Gender` in `src/domain/types.ts`, a gender selector in the custom-partner form, gender shown in the partner picker, and the built-in personas filled in `src/domain/catalogue.ts`
+- [x] T089 [US5] Keep the turn↔picture binding across export/import: export version 2 with stable turn ids (`ExportTurn.id`) and `illustrationId`, plus the deterministic backfill migration for v1 files
+- [x] T090 [US5] Cover the on-demand flow and its gating in tests: scene prompt builder (situation, gender, learner settings, full dialogue, English-only narration), `canGenerateImages`, e2e button visibility/click/replace/no-model degradation
 
 **Checkpoint**: At this point, all five user stories should work independently
 

@@ -90,6 +90,7 @@ FR-003, FR-044, FR-045, FR-046.
 | `id`          | string                         | Required; `builtin:<slug>` for the 5 predefined partners, UUID for learner-defined ones               |
 | `name`        | string                         | Required, ≤ 60 characters                                                                             |
 | `age`         | number \| null                 | Optional, 0…120                                                                                       |
+| `gender`      | `"female" \| "male" \| "other" \| null` | Optional — used to describe the person in generated pictures (FR-028)                        |
 | `occupation`  | string                         | Required, ≤ 60 characters                                                                             |
 | `description` | string                         | Required, ≤ 400 characters — the short biography the model plays                                      |
 | `origin`      | `"builtin" \| "learner"`       | Required                                                                                              |
@@ -106,7 +107,7 @@ FR-003, FR-044, FR-045, FR-046.
 | `id`                | string                         | Required; `builtin:<slug>` for the 12 predefined situations, UUID for learner-defined ones |
 | `name`              | string                         | Required, ≤ 80 characters                                                                  |
 | `setting`           | string                         | Required, ≤ 400 characters — where and what is happening                                   |
-| `keyMoments`        | string[]                       | Required; the moments at which an illustration is generated (FR-028)                       |
+| `keyMoments`        | string[]                       | Required; the situation's key moments — legacy illustration hooks (FR-028 as amended: pictures are on demand) |
 | `suggestedPartners` | string[]                       | Optional hints; not a restriction (FR-044)                                                 |
 | `origin`            | `"builtin" \| "learner"`       | Required                                                                                   |
 | `visibility`        | `"template" \| "session-only"` | Required                                                                                   |
@@ -152,13 +153,17 @@ FR-028, FR-029, FR-052.
 | ------------------ | --------------------------- | ---------------------------------------------------------------------------- |
 | `id`               | UUID string                 | Required                                                                     |
 | `sessionId`        | UUID string                 | Required, references a Session                                               |
-| `turnId`           | UUID \| null                | The turn the picture belongs to, `null` for the situation picture            |
-| `moment`           | `"start" \| "key" \| "end"` | Required                                                                     |
-| `prompt`           | string                      | Required, ≤ 1000 characters — the prompt sent to the model                   |
+| `turnId`           | UUID \| null                | The turn the picture was requested on; `null` only for legacy situation pictures |
+| `moment`           | `"start" \| "key" \| "end"` | Required — on-demand pictures use `"key"`                                     |
+| `prompt`           | string                      | Required, ≤ 1000 characters — the scene narration sent to the model           |
 | `mimeType`         | string                      | Required, e.g. `image/webp`                                                  |
 | `bytes`            | Blob                        | Required — stored locally, never fetched from a third-party address (FR-029) |
 | `width` / `height` | number                      | Required                                                                     |
 | `createdAt`        | ISO 8601 string             | Required                                                                     |
+
+On-demand pictures are bound to a turn and replace a previous picture of the same turn on a
+second request. `PartnerRef` (the snapshot copied into the session) carries the partner's `age`
+and `gender` so the narration knows who is in the scene.
 
 ### AudioEntry (speech cache)
 

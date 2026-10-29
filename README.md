@@ -7,7 +7,9 @@ Embrollado is a browser-only single-page app. You choose a target language, a le
 and a partner, and then you talk: the partner replies in the target language with the translation
 sitting muted under each line — hidden until you peek or until you have answered — and after every
 answer you get an explanation, a correction, an interpretation, filled-in gaps, a quality badge
-and concrete things to improve.
+and concrete things to improve. Whenever you want, you can have the partner's line read aloud and
+generate an illustration of the current moment of the conversation (a picture button next to the
+input box; the button only appears when an image model is configured).
 
 There is no backend, no account and no tracking. Conversations, pictures and cached audio live in
 your browser (IndexedDB); a small settings document and your AI-service configuration live in
@@ -84,7 +86,7 @@ Embrollado talks to any **OpenAI-compatible** endpoint. In **Settings → AI ser
 2. **API key** — stored locally only. It is never logged, never exported, and sent nowhere except
    your configured service.
 3. **Chat model** — required. **Speech/Image models** — optional; leaving them empty hides the
-   playback button and the illustrations.
+   playback button and the picture button.
 4. **Test the connection** — one minimal request. If your service blocks the browser (CORS),
    Embrollado shows the exact flag for that provider.
 

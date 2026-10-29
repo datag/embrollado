@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { buildSystemPrompt, buildTurnUserMessage, buildIllustrationPrompt } from '@/ai/prompts'
+import {
+  buildSystemPrompt,
+  buildTurnUserMessage,
+  buildSceneMessages,
+  buildIllustrationPrompt,
+} from '@/ai/prompts'
 import type { Level } from '@/domain/types'
 
 const base = {
@@ -102,9 +107,63 @@ describe('prompt builder (T045, T039)', () => {
     expect(prompt).toContain('has not shared personal details')
   })
 
-  it('builds an illustration prompt without text', () => {
-    const prompt = buildIllustrationPrompt(base.situation, 'at the start')
-    expect(prompt).toContain('washroom')
+  it('narrates the scene from the situation, the people and the whole dialogue in one request', () => {
+    const messages = buildSceneMessages({
+      partner: { ...base.partner, gender: 'female' },
+      situation: base.situation,
+      learnerName: 'Sam',
+      learnerDetails: '27, gothic music fan',
+      dialogue: [
+        { partnerText: 'Where do you have to pay for the shower?', learnerText: null },
+        { partnerText: 'All out. But here, take mine.', learnerText: 'Thanks a lot!' },
+      ],
+    })
+    expect(messages).toHaveLength(2)
+    const system = messages[0].content
+    const user = messages[1].content
+    // Situation first, then what was said — and the people, incl. the learner's settings.
+    expect(user).toContain('Situation:')
+    expect(user).toContain('At the campsite washroom')
+    expect(user).toContain('Nicole')
+    expect(user).toContain('a woman')
+    expect(user).toContain('Sam')
+    expect(user).toContain('27, gothic music fan')
+    // The complete correspondence is part of the request.
+    expect(user).toContain('Where do you have to pay for the shower?')
+    expect(user).toContain('take mine')
+    expect(user).toContain('Thanks a lot!')
+    // The current moment is the frame, the narration stays visible-only and English-only.
+    expect(system).toContain('CURRENT moment')
+    expect(system).toContain('no speech bubbles')
+    expect(system).toContain('no dialogue text')
+    expect(system).toContain('at most 60 words')
+    expect(system).toContain('English')
+    // The dialogue-only context never leaks stored feedback into the picture prompt.
+    expect(user).not.toContain('badge')
+    expect(user).not.toContain('correctedText')
+    expect(user).not.toContain('interpretation')
+  })
+
+  it('omits gender wording for snapshots without one and handles an empty transcript', () => {
+    const messages = buildSceneMessages({
+      partner: { ...base.partner, gender: null },
+      situation: base.situation,
+      learnerName: null,
+      learnerDetails: null,
+      dialogue: [],
+    })
+    const user = messages[1].content
+    expect(user).not.toContain('a woman')
+    expect(user).not.toContain('a man')
+    expect(user).toContain('has not shared personal details')
+    expect(user).toContain('meeting for the first time')
+  })
+
+  it('builds the image prompt from the finished scene only', () => {
+    const prompt = buildIllustrationPrompt(
+      'A man in his late twenties hands a coin to a woman in front of a washroom.',
+    )
+    expect(prompt).toContain('hands a coin')
     expect(prompt).toContain('no text')
   })
 })

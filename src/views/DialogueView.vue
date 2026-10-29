@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useSession } from '@/composables/useSession'
+import { useServiceConfig, useSettings } from '@/composables/useSettings'
+import { canGenerateImages as imagesPossible } from '@/ai/providers'
 import type { Illustration, Session, Turn } from '@/domain/types'
 import { LEVELS } from '@/domain/catalogue'
 import { getIllustrationsBySession } from '@/data/media'
@@ -12,6 +15,7 @@ import TranslationToggle from '@/components/TranslationToggle.vue'
 import IllustrationPanel from '@/components/IllustrationPanel.vue'
 
 const route = useRoute()
+const { t } = useI18n()
 const sessionState = useSession()
 const draft = ref('')
 const illustrations = ref<Illustration[]>([])
@@ -33,6 +37,40 @@ const levelName = computed(() => {
 
 function startIllustration(sessionId2: string) {
   return illustrations.value.find((i) => i.sessionId === sessionId2 && i.moment === 'start') ?? null
+}
+
+function turnIllustration(turn: Turn): Illustration | null {
+  return illustrations.value.find((i) => i.id === turn.illustrationId) ?? null
+}
+
+/**
+ * The generate-picture button is only offered when the configured service can produce images at
+ * all: an image model is set AND the provider profile exposes an images path AND the learner
+ * enabled illustrations AND the endpoint has not already declined. Without a model the input box
+ * takes the full width — no explanatory error is shown, that state is the normal one.
+ */
+const showIllustrationButton = computed(() => {
+  const { service } = useServiceConfig()
+  const { settings } = useSettings()
+  return imagesPossible(service, settings, sessionState.imagesAvailable.value)
+})
+
+const illustrationBusy = computed(() => sessionState.illustrationBusy.value)
+
+const illustrationHintText = computed(() => {
+  const hint = sessionState.illustrationHint.value
+  if (!hint) return null
+  // Keys that map to the shared error catalogue; anything else is the provider's own message.
+  return hint === 'imageUnavailable' || hint === 'unexpectedFormat' || hint === 'refusal'
+    ? t(`errors.${hint}`)
+    : hint
+})
+
+async function onIllustrate() {
+  if (illustrationBusy.value || streaming.value) return
+  await sessionState.generateIllustration()
+  await loadIllustrations()
+  void nextTick(() => scrollToBottom(true))
 }
 
 async function loadIllustrations() {
@@ -237,9 +275,9 @@ watch(
 
           <div v-if="turn.illustrationId" class="flex justify-end">
             <IllustrationPanel
-              class="w-40"
-              :illustration="illustrations.find((i) => i.id === turn.illustrationId) ?? null"
-              :alt="turn.partnerText"
+              class="w-56 max-w-full"
+              :illustration="turnIllustration(turn)"
+              :alt="turnIllustration(turn)?.prompt || $t('dialogue.illustrationAlt')"
             />
           </div>
         </template>
@@ -277,11 +315,40 @@ watch(
         class="sticky bottom-0 -mx-4 border-t border-border bg-surface/95 px-4 py-3 backdrop-blur"
       >
         <div class="flex items-end gap-2">
+          <button
+            v-if="showIllustrationButton"
+            type="button"
+            data-testid="illustration-button"
+            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border text-fg disabled:opacity-50"
+            :disabled="streaming || illustrationBusy"
+            :aria-label="
+              illustrationBusy ? $t('dialogue.illustrationBusy') : $t('dialogue.illustration')
+            "
+            :title="$t('dialogue.illustration')"
+            @click="onIllustrate"
+          >
+            <svg
+              v-if="!illustrationBusy"
+              viewBox="0 0 24 24"
+              class="h-5 w-5"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                d="M21 3H3a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zM10 13l2.5-3 2.5 3 2-2.5L20 16H6l2.5-3zM7 7.5A1.5 1.5 0 1 1 7 4.5 1.5 1.5 0 0 1 7 7.5z"
+              />
+            </svg>
+            <span
+              v-else
+              class="h-5 w-5 animate-pulse rounded-full bg-fg-muted"
+              aria-hidden="true"
+            />
+          </button>
           <textarea
             v-model="draft"
             rows="1"
             data-testid="dialogue-input"
-            class="min-h-11 max-h-32 flex-1 resize-y rounded-lg border border-border bg-surface-raised px-3 py-2.5"
+            class="min-h-11 max-h-32 min-w-0 flex-1 resize-y rounded-lg border border-border bg-surface-raised px-3 py-2.5"
             :placeholder="$t('dialogue.inputPlaceholder')"
             :disabled="streaming || phase === 'partner-streaming'"
             @keydown.enter.exact.prevent="onSend"
@@ -301,6 +368,13 @@ watch(
         </div>
         <p v-if="statusHint" class="mt-1 text-xs text-fg-muted">
           {{ $t(`errors.${statusHint}`) }}
+        </p>
+        <p
+          v-if="illustrationHintText"
+          class="mt-1 text-xs text-fg-muted"
+          data-testid="illustration-hint"
+        >
+          {{ illustrationHintText }}
         </p>
       </footer>
     </template>

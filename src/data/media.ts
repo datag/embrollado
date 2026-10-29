@@ -50,6 +50,12 @@ export async function getIllustrationsBySession(sessionId: string): Promise<Illu
   return db.getAllFromIndex(STORE.illustrations, INDEX.illustrationsBySession, sessionId)
 }
 
+/** Remove a stored illustration (an on-demand picture replaced by a re-generation). */
+export async function deleteIllustration(id: string): Promise<void> {
+  const db = await getDB()
+  await db.delete(STORE.illustrations, id)
+}
+
 /** Save an audio cache entry (with one prune-retry on quota). */
 export async function saveAudio(
   entry: AudioEntry,

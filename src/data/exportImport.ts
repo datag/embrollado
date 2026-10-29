@@ -14,7 +14,7 @@ import { getIllustrationsBySession } from '@/data/media'
  */
 
 export const EXPORT_FORMAT = 'embrollado.export'
-export const EXPORT_VERSION = 1
+export const EXPORT_VERSION = 2
 export const MAX_IMPORT_BYTES = 250 * 1024 * 1024
 
 export interface ExportSession {
@@ -34,6 +34,9 @@ export interface ExportSession {
 }
 
 export interface ExportTurn {
+  /** Stable turn id (export version 2+); on-demand pictures bind to it via Illustration.turnId. */
+  id?: string
+  illustrationId?: string | null
   position: number
   partnerText: string
   translation: string
@@ -67,6 +70,8 @@ export interface ExportDoc {
 
 function toExportTurn(turn: Turn): ExportTurn {
   return {
+    id: turn.id,
+    illustrationId: turn.illustrationId,
     position: turn.position,
     partnerText: turn.partnerText,
     translation: turn.translation,
@@ -165,7 +170,21 @@ export function exportDownloadName(now = new Date()): string {
 /* ------------------------------------------------------------------ */
 
 export const migrations: Record<number, (doc: ExportDoc) => ExportDoc> = {
-  // 1 → 2: add "learnerName" to every session — reserved for the next breaking change.
+  // 2: give every turn a stable id and carry the on-demand illustration binding, so pictures
+  // exported from a newer version still attach to their turn after a round trip. The id backfill
+  // is deterministic so the migration chain stays pure (running it twice yields the same output).
+  2: (doc) => ({
+    ...doc,
+    version: 2,
+    sessions: doc.sessions.map((s) => ({
+      ...s,
+      turns: s.turns.map((t) => ({
+        ...t,
+        id: typeof t.id === 'string' && t.id ? t.id : `${s.id}:${t.position}`,
+        illustrationId: t.illustrationId ?? null,
+      })),
+    })),
+  }),
 }
 
 export function migrateExportDoc(doc: ExportDoc): ExportDoc {
@@ -239,7 +258,9 @@ export interface ImportResult {
 function toStoredTurn(exportTurn: ExportTurn, sessionId: string, language: string): Turn {
   const now = new Date().toISOString()
   return {
-    id: crypto.randomUUID(),
+    // v2 exports carry stable turn ids so on-demand illustrations rejoined the right turn;
+    // migrated v1 turns get a deterministic composite id.
+    id: exportTurn.id ?? crypto.randomUUID(),
     sessionId,
     position: exportTurn.position,
     partnerText: exportTurn.partnerText,
@@ -252,7 +273,7 @@ function toStoredTurn(exportTurn: ExportTurn, sessionId: string, language: strin
     assumptions: exportTurn.assumptions,
     badge: exportTurn.badge,
     issues: exportTurn.issues,
-    illustrationId: null,
+    illustrationId: exportTurn.illustrationId ?? null,
     audioId: null,
     createdAt: exportTurn.createdAt || now,
     feedbackLanguage: exportTurn.feedbackLanguage,

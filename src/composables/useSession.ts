@@ -13,9 +13,10 @@ import { assembleFeedback, createOpeningTurn, translationVisible } from '@/domai
 import {
   buildSystemPrompt,
   buildTurnUserMessage,
+  buildSceneMessages,
   buildIllustrationPrompt,
 } from '@/ai/prompts'
-import { TURN_SCHEMA } from '@/ai/schema'
+import { SCENE_SCHEMA, TURN_SCHEMA } from '@/ai/schema'
 import {
   chatCompletion,
   growingStringValue,
@@ -25,7 +26,13 @@ import {
 } from '@/ai/aiService'
 import { profileById } from '@/ai/providers'
 import { useServiceConfig, useSettings } from '@/composables/useSettings'
-import { saveIllustration, saveAudio, getAudioForTurn, findAudioByText } from '@/data/media'
+import {
+  saveIllustration,
+  deleteIllustration,
+  saveAudio,
+  getAudioForTurn,
+  findAudioByText,
+} from '@/data/media'
 
 /**
  * The turn cycle (T041; FR-006…FR-014). One API call returns the partner's next line AND the
@@ -49,6 +56,16 @@ export interface UseSessionReturn {
   error: Ref<SessionError | null>
   speechAvailable: Ref<boolean>
   imagesAvailable: Ref<boolean>
+  /** True while an on-demand illustration is being generated (FR-028 as amended). */
+  illustrationBusy: Ref<boolean>
+  /**
+   * A learner-facing hint after a failed generation: either the key `imageUnavailable` or a
+   * provider's raw message. A failure never interrupts the dialogue (FR-030).
+   */
+  illustrationHint: Ref<string | null>
+  /** Generate an illustration of the CURRENT moment — situation, people and dialogue in one
+   * context; attaches the picture to the latest turn. Only run from an explicit user action. */
+  generateIllustration: () => Promise<void>
   /** Whether the partner line's translation may be shown (FR-057). */
   isTranslationVisible: (turnId: string) => boolean
   /** Flip the per-line "cheat" visibility of the translation. */
@@ -79,6 +96,8 @@ export function useSession(): UseSessionReturn {
   const error = ref<SessionError | null>(null)
   const speechAvailable = ref(true)
   const imagesAvailable = ref(true)
+  const illustrationBusy = ref(false)
+  const illustrationHint = ref<string | null>(null)
   /** The learner's answer awaiting the model's reply — kept across failures for retry (FR-025). */
   const pendingText = ref<string | null>(null)
   /**
@@ -100,7 +119,8 @@ export function useSession(): UseSessionReturn {
   function isAnswered(turnId: string): boolean {
     const idx = turns.value.findIndex((t) => t.id === turnId)
     return idx !== -1 && idx < turns.value.length - 1
-  }  function isTranslationVisible(turnId: string): boolean {
+  }
+  function isTranslationVisible(turnId: string): boolean {
     const override = translationOverrides.has(turnId) ? translationOverrides.get(turnId)! : null
     return translationVisible(override, isAnswered(turnId), session.value?.state === 'ended')
   }
@@ -223,7 +243,6 @@ export function useSession(): UseSessionReturn {
       turns.value = await getTurns(s.id)
       lastHandle = opening
       phase.value = 'waiting-answer'
-      await generateIllustration(s)
     } catch (err) {
       phase.value = 'failed'
       handleError(err)
@@ -296,48 +315,114 @@ export function useSession(): UseSessionReturn {
   }
 
   /**
-   * An illustration for the start of the session (owner: one picture per conversation, not per
-   * turn). Exported conversations with pictures stay readable per turn in the transcript.
+   * Generate an illustration of the CURRENT moment (FR-028 as amended). The scene is first
+   * narrated by the chat model — situation, people incl. the learner's profile and the whole
+   * dialogue travel together in ONE context request — and only the finished narration goes to the
+   * image endpoint, so the picture actually shows what is being talked about instead of a generic
+   * "people talking" frame. The picture is attached to the latest turn; a second click replaces it.
+   * A failure never interrupts the dialogue (FR-030); it only sets a short hint.
    */
-  async function generateIllustration(s: Session) {
+  async function generateIllustration() {
+    const s = session.value
+    if (!s) return
     const { settings } = useSettings()
     if (!settings.illustrationsEnabled || !imagesAvailable.value) return
     const { service } = useServiceConfig()
     if (!service.imageModel) return
+    const profile = profileById(service.providerProfile)
+    if (!profile.imagesPath) return
+    if (illustrationBusy.value) return
+    const anchor = turns.value[turns.value.length - 1]
+    if (!anchor) return
 
-    const momentDescription = `at the start of ${s.situation.name}`
-    const prompt = buildIllustrationPrompt(s.situation, momentDescription)
-    let res
+    illustrationBusy.value = true
+    illustrationHint.value = null
     try {
-      res = await requestImage(service, prompt)
-    } catch {
-      return // a failing image service never interrupts (FR-030)
-    }
-    if (!res.ok) {
-      if (res.unsupported) imagesAvailable.value = false
-      return
-    }
-    const illustration: Illustration = {
-      id: crypto.randomUUID(),
-      sessionId: s.id,
-      // A situation picture, not attached to a turn: it is shown in the start panel only, so a
-      // per-turn image never duplicates it.
-      turnId: null,
-      moment: 'start',
-      prompt,
-      mimeType: res.mimeType,
-      bytes: new Blob([res.bytes as BlobPart], { type: res.mimeType }),
-      width: 0,
-      height: 0,
-      createdAt: new Date().toISOString(),
-    }
-    try {
-      const saved = await saveIllustration(illustration)
-      if (saved.ok) {
-        turns.value = await getTurns(s.id)
+      // Step 1 — narrate the current moment from the full context (one chat request).
+      const sceneResult = await chatCompletion({
+        service,
+        messages: buildSceneMessages({
+          partner: s.partner,
+          situation: s.situation,
+          learnerName: settings.name || null,
+          learnerDetails: settings.details || null,
+          dialogue: turns.value.map((t) => ({
+            partnerText: t.partnerText,
+            learnerText: t.learnerText,
+          })),
+        }),
+        schema: {
+          name: 'embrollado_scene',
+          schema: SCENE_SCHEMA as unknown as Record<string, unknown>,
+        },
+        stream: false,
+      })
+      if (sceneResult.refusal) {
+        illustrationHint.value = sceneResult.refusal
+        return
+      }
+      const parsed = (parseLooseJson(sceneResult.content) ?? {}) as { scene?: unknown }
+      const scene =
+        typeof parsed.scene === 'string' && parsed.scene.trim() ? parsed.scene.trim() : null
+      if (!scene) {
+        illustrationHint.value = 'unexpectedFormat'
+        return
+      }
+
+      // Step 2 — render exactly that scene.
+      let res
+      try {
+        res = await requestImage(service, buildIllustrationPrompt(scene))
+      } catch {
+        illustrationHint.value = 'imageUnavailable'
+        return
+      }
+      if (!res.ok) {
+        if (res.unsupported) {
+          imagesAvailable.value = false
+          illustrationHint.value = 'imageUnavailable'
+        } else {
+          illustrationHint.value = res.message
+        }
+        return
+      }
+
+      const illustration: Illustration = {
+        id: crypto.randomUUID(),
+        sessionId: s.id,
+        // An on-demand picture of the current moment, bound to the latest turn so it renders
+        // inline in the dialogue (FR-028 as amended).
+        turnId: anchor.id,
+        moment: 'key',
+        prompt: scene,
+        mimeType: res.mimeType,
+        bytes: new Blob([res.bytes as BlobPart], { type: res.mimeType }),
+        width: 0,
+        height: 0,
+        createdAt: new Date().toISOString(),
+      }
+      // A re-generation replaces the previous picture of the same turn instead of accumulating.
+      if (anchor.illustrationId) {
+        try {
+          await deleteIllustration(anchor.illustrationId)
+        } catch {
+          /* a stale reference never blocks the new image */
+        }
+      }
+      try {
+        const saved = await saveIllustration(illustration)
+        if (saved.ok) {
+          anchor.illustrationId = illustration.id
+          await updateTurn(anchor)
+          turns.value = await getTurns(s.id)
+        }
+      } catch {
+        /* storage failure is surfaced via the UI, never thrown */
       }
     } catch {
-      /* storage failure is surfaced to the learner via the UI, never thrown */
+      illustrationHint.value = 'imageUnavailable'
+    } finally {
+      illustrationBusy.value = false
     }
   }
 
@@ -449,6 +534,9 @@ export function useSession(): UseSessionReturn {
     error,
     speechAvailable,
     imagesAvailable,
+    illustrationBusy,
+    illustrationHint,
+    generateIllustration,
     isTranslationVisible,
     toggleTranslation,
     load,

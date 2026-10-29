@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { PARTNERS } from '@/domain/catalogue'
-import type { Persona } from '@/domain/types'
+import type { Gender, Persona } from '@/domain/types'
 
 const props = defineProps<{
   modelValue: string | null
@@ -9,6 +10,7 @@ const props = defineProps<{
   searchLabel: string
 }>()
 const emit = defineEmits<{ 'update:modelValue': [string | null]; pickCustom: [] }>()
+const { t } = useI18n()
 
 const query = ref('')
 const value = computed({
@@ -33,8 +35,15 @@ const filtered = computed(() => {
   )
 })
 
+function genderLabel(g: Gender | null): string {
+  if (g === 'female') return t('customForm.genderFemale')
+  if (g === 'male') return t('customForm.genderMale')
+  if (g === 'other') return t('customForm.genderOther')
+  return ''
+}
+
 function describe(p: Persona): string {
-  const parts = [p.age != null ? String(p.age) : '']
+  const parts = [p.age != null ? String(p.age) : '', genderLabel(p.gender)]
   if (p.occupation) parts.push(p.occupation)
   return parts.filter(Boolean).join(', ')
 }

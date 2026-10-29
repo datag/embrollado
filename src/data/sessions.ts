@@ -1,4 +1,4 @@
-import type { Level, PartnerRef, Session, SituationRef, Turn } from '@/domain/types'
+import type { Level, PartnerRef, Persona, Session, SituationRef, Turn } from '@/domain/types'
 import { getDB, STORE, INDEX } from '@/data/db'
 import { isQuotaError } from '@/data/db'
 
@@ -66,6 +66,7 @@ export function personaToRef(p: {
   id: string
   name: string
   age: number | null
+  gender?: Persona['gender']
   occupation: string
   origin: string
   description: string
@@ -74,6 +75,8 @@ export function personaToRef(p: {
     id: p.id,
     name: p.name,
     age: p.age,
+    // Old snapshots / templates without the field keep a gender-less ref (gender stays optional).
+    gender: p.gender ?? null,
     occupation: p.occupation,
     custom: p.origin === 'learner',
     description: p.description,

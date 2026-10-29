@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { createSession, saveTurn, listSessions } from '@/data/sessions'
+import { createSession, saveTurn, listSessions, getTurns } from '@/data/sessions'
 import {
   createExportBlob,
   exportDownloadName,
   EXPORT_FORMAT,
+  EXPORT_VERSION,
   validateImportText,
   importSessions,
   type ExportDoc,
@@ -25,6 +26,7 @@ async function seedSession(): Promise<Session> {
       id: 'builtin:nicole',
       name: 'Nicole',
       age: 38,
+      gender: 'female',
       occupation: 'confectioner',
       custom: false,
       description: 'A confectioner.',
@@ -32,6 +34,9 @@ async function seedSession(): Promise<Session> {
     learnerName: null,
   })
   const opening = createOpeningTurn(session, 'Hola, ¿qué tal?', 'Hi, how are you?', null, 'en')
+  // An on-demand picture bound to this turn — the round trip must keep both the turn id and
+  // the illustration binding stable (export v2).
+  opening.illustrationId = 'illustration:1'
   await saveTurn(opening)
   return session
 }
@@ -43,7 +48,7 @@ describe('export envelope (T057, T064)', () => {
     const doc = JSON.parse(await blob.text()) as ExportDoc
     expect(doc.format).toBe(EXPORT_FORMAT)
     expect(Number.isInteger(doc.version)).toBe(true)
-    expect(doc.version).toBe(1)
+    expect(doc.version).toBe(EXPORT_VERSION)
     expect(doc.app.name).toBe('embrollado')
   })
 
@@ -66,6 +71,26 @@ describe('export envelope (T057, T064)', () => {
     expect(exported.turns).toHaveLength(1)
     expect(exported.turns[0].position).toBe(1)
     expect(exported.turns[0].partnerText).toBe('Hola, ¿qué tal?')
+  })
+
+  it('keeps the turn id and the on-demand illustration binding stable across a round trip', async () => {
+    await seedSession()
+    const blob = await createExportBlob()
+    const doc = JSON.parse(await blob.text()) as ExportDoc
+    const firstTurnId = doc.sessions[0].turns[0].id
+
+    await importSessions(doc)
+    const restored = (await listSessions())[0]
+    const turns = await getTurns(restored.id)
+    expect(turns).toHaveLength(1)
+    expect(turns[0].id).toBe(firstTurnId)
+    expect(turns[0].illustrationId).toBe('illustration:1')
+
+    // Re-exporting keeps the same ids — the picture binding survives repeated round trips.
+    const again = await createExportBlob()
+    const second = JSON.parse(await again.text()) as ExportDoc
+    expect(second.sessions[0].turns[0].id).toBe(firstTurnId)
+    expect(second.sessions[0].turns[0].illustrationId).toBe('illustration:1')
   })
 
   it('names the file Windows-safe without colons', () => {

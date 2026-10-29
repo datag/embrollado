@@ -71,6 +71,20 @@ export const CONNECTION_SCHEMA = {
   },
 } as const
 
+/**
+ * The on-demand illustration schema (FR-028 as amended; turn-payload.md §5). The chat model
+ * narrates the CURRENT moment of the conversation as a single `scene` line that is then handed to
+ * the image endpoint — the picture request itself stays a plain prompt.
+ */
+export const SCENE_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['scene'],
+  properties: {
+    scene: { type: 'string' },
+  },
+} as const
+
 export type SchemaObject = Record<string, unknown>
 
 /** Build the `response_format` value for a profile (D13: schema placement differs). */
