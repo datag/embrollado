@@ -96,8 +96,6 @@ export default {
     badge: 'Assessment',
     issues: 'Things to improve',
     noIssues: 'Nothing specific to improve.',
-    explain: 'Explain to me',
-    explaining: 'Explaining…',
     marks: 'markdown',
   },
   quality: {

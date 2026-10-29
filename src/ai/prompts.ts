@@ -1,5 +1,5 @@
 import type { Level, SituationRef, PartnerRef } from '@/domain/types'
-import { TURN_SCHEMA, EXPLANATION_SCHEMA } from '@/ai/schema'
+import { TURN_SCHEMA } from '@/ai/schema'
 
 /**
  * System-prompt assembly (T039; turn-payload.md §4). The learner profile is part of the prompt
@@ -103,46 +103,6 @@ export function schemaInPrompt(schema: unknown): string {
     return ''
   }
 }
-
-/** Context for "Explain to me" — the learner's answer plus the partner line it responded to. */
-export interface ExplanationContext {
-  partnerLine: { text: string; translation: string | null } | null
-  learnerAnswer: string | null
-  correctedText: string | null
-  interpretation: string | null
-  issues: Array<{ category: string; detail: string }>
-}
-
-/**
- * "Explain to me" message set (turn-payload.md §5). The request explains THE LEARNER's answer —
- * never the partner's next line, which is not part of this context at all.
- */
-export function buildExplanationMessages(
-  systemPrompt: string,
-  context: ExplanationContext,
-): Array<{ role: 'system' | 'user'; content: string }> {
-  return [
-    { role: 'system', content: systemPrompt },
-    {
-      role: 'user',
-      content: `The learner answered this partner line:\n${JSON.stringify(context)}\n`,
-    },
-    {
-      role: 'user',
-      content:
-        "Explain the LEARNER's answer above — what they meant, how correct it was, and the most " +
-        'useful thing to improve. Base your explanation only on the shown learner answer, the ' +
-        'correction, the interpretation and the issues; ignore any other context. ' +
-        'Answer with the embrollado_explanation JSON object. ' +
-        "ALL text MUST be written in the learner's native language (the feedback language declared " +
-        'in the system prompt), NEVER in the target language — quoted target-language words may ' +
-        'appear inside the explanation.',
-    },
-  ]
-}
-
-/** The explanation schema text, embedded in the prompt on the json_object fallback. */
-export const EXPLANATION_SCHEMA_TEXT = schemaInPrompt(EXPLANATION_SCHEMA as unknown as unknown)
 
 export function buildConnectionUserMessage(): { role: 'user'; content: string } {
   return {

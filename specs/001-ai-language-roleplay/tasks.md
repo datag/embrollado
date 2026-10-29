@@ -287,6 +287,10 @@ learner answers (FR-057).
 
 - [x] T109 Repoint the `explanation` field at the learner's answer: in `src/ai/prompts.ts` the explanation must clarify the learner's answer in the LATEST user message (added to the feedback-target rule); `src/components/FeedbackPanel.vue` reads the explanation from `turn.explanation` and drops the `prevTurn` prop (removed from `src/views/DialogueView.vue` and `src/components/TranscriptList.vue`); update the component test, the mock's explanation, and the `explanation` wording in `spec.md` (FR-008, FR-036), `contracts/turn-payload.md`, `data-model.md` and `settings-profile.md`
 
+### Remove the redundant "Explain to me" (FR-010 dropped)
+
+- [x] T110 Remove the "Explain to me" button and its function: delete `src/components/ExplainButton.vue` and the `explain` path through `useSession` (`explainingTurnId`, `explainTurn`, the `explaining` phase), `aiService.requestExplanation`, `buildExplanationMessages`/`ExplanationContext`/`EXPLANATION_SCHEMA_TEXT` in `prompts.ts`, `EXPLANATION_SCHEMA` in `schema.ts`, the `Explanation` type and `Turn.explain` in `types.ts` (+ the export/import mapping and the mock's `embrollado_explanation` branch); drop the Explain sections from `FeedbackPanel` and the tests; mark FR-010 and SC-006 as removed in `spec.md` and clean up `turn-payload.md`, `data-model.md`, `settings-profile.md`, `storage-export.md`, `quickstart.md`, `README.md` and `docs/configure-ai-service.md`
+
 ---
 
 ## Dependencies & Execution Order

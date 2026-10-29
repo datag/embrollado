@@ -96,8 +96,6 @@ export default {
     badge: 'Bewertung',
     issues: 'Was du verbessern kannst',
     noIssues: 'Nichts Bestimmtes zu verbessern.',
-    explain: 'Erklär mir das',
-    explaining: 'Wird erklärt…',
     marks: 'markdown',
   },
   quality: {

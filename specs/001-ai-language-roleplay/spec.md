@@ -79,18 +79,16 @@ No feedback features are required for this story to be considered complete.
 
 ### User Story 2 - Get feedback on my own answer (Priority: P1)
 
-After each answer, the learner sees a corrected version of their own answer, an interpretation of
-what they actually said, the gaps that were filled with clearly labelled assumptions, and a quality
-badge that rates the answer. The translation of the partner's line sits muted under the line itself
-(FR-057). A single "Explain to me" action gives additional information about the semantics of the
-phrase or about the specific mistake.
+After each answer, the learner sees a corrected version of their own answer, an explanation and an
+interpretation of what they actually said, the gaps that were filled with clearly labelled
+assumptions, and a quality badge that rates the answer. The translation of the partner's line sits
+muted under the line itself (FR-057).
 
 **Why this priority**: Feedback is the pedagogical core of the app. A conversation without feedback
 is just chatting, and without feedback the learner cannot learn from the situation.
 
 **Independent Test**: Send one answer containing a deliberate mistake and an unknown word, and
-verify that all five feedback elements appear and that the "Explain to me" action returns further
-information.
+verify that all feedback elements appear.
 
 **Acceptance Scenarios**:
 
@@ -101,10 +99,7 @@ information.
 2. **Given** the learner writes an unknown word as "???" or writes it in their native language,
    **When** the feedback is generated, **Then** the gap is filled with a contextually plausible
    assumption and that assumption is visibly marked as an assumption.
-3. **Given** a completed turn with feedback, **When** the learner activates "Explain to me",
-   **Then** additional information about the meaning of the phrase or about the specific error is
-   shown without losing the existing feedback.
-4. **Given** a turn that is already correct, **When** the feedback is generated, **Then** the
+3. **Given** a turn that is already correct, **When** the feedback is generated, **Then** the
    correction confirms the answer and the quality badge shows the top tier, without inventing
    errors.
 5. **Given** the learner writes a completely empty answer, **When** they attempt to send it,
@@ -301,9 +296,9 @@ service without those capabilities and verify the graceful fallback.
 - **FR-009**: Where the learner's answer contains an explicit gap marker (`???`) or a word given in
   the learner's native language, the system MUST fill the gap with a plausible, context-appropriate
   assumption and MUST visibly mark that text as an assumption.
-- **FR-010**: The system MUST provide an "Explain to me" action on every turn that returns further
-  information about the semantics of the phrase, the error, or both, and MUST keep the existing
-  feedback visible while doing so.
+- **FR-010**: *(removed in this iteration — owner decision. The `explanation` field already covers
+  the learner's answer per turn, so the on-demand "Explain to me" action has been removed along
+  with its button and its separate request.)*
 - **FR-011**: The partner MUST react to the learner's answer and continue the conversation, and the
   cycle MUST repeat until the learner ends the session.
 - **FR-012**: The partner's language MUST stay in the target language and MUST respect the selected
@@ -377,9 +372,9 @@ service without those capabilities and verify the graceful fallback.
   If the service cannot deliver the line in parts, the app MUST fall back to showing the complete
   turn at once, without duplicated or incomplete text.
 - **FR-036**: The translation of the partner's line, the explanation of the learner's answer, the
-  interpretation, the filled-in assumptions, the quality badge and the output of the "Explain to
-  me" action MUST be delivered in the learner's native language, while the corrected version of
-  the learner's answer MUST remain in the target language.
+  interpretation, the filled-in assumptions and the quality badge MUST be delivered in the
+  learner's native language, while the corrected version of the learner's answer MUST remain in
+  the target language.
 - **FR-057**: The translation of a partner line MUST arrive with the same request as the line itself
   and MUST be shown muted directly under the line in the learner's native language. While the line
   is still open it MUST be hidden by default; the learner MUST be able to reveal or hide it per
@@ -470,9 +465,9 @@ service without those capabilities and verify the graceful fallback.
   partner, a snapshot of the situation and partner as they were described when the session started,
   creation and last activity date, number of exchanges, state (active or ended).
 - **Turn**: One cycle step of a session. Attributes: position in the session, partner line, the
-  learner's answer, translation of the partner line, explanation of that line, corrected learner
-  answer, interpretation of the learner's answer, filled-in assumptions with their markers, quality
-  badge, and the additional explanation retrieved via "Explain to me".
+  learner's answer, translation of the partner line, explanation of the learner's answer, corrected
+  learner answer, interpretation of the learner's answer, filled-in assumptions with their markers,
+  and quality badge.
 - **Quality badge**: The rating shown for a learner's answer. Attributes: tier (perfect or very
   good, good, acceptable, or unsatisfactory), the tier's colour, and the label wording shown to the
   learner. The label wordings are variants held in the translation files, for example "Very good!",
@@ -507,8 +502,7 @@ service without those capabilities and verify the graceful fallback.
   at least 95% of turns under normal network conditions.
 - **SC-005**: Every session opened after a device restart shows the full transcript including all
   feedback, in 100% of cases.
-- **SC-006**: At least 85% of test users state that the "Explain to me" action told them what to
-  improve, without needing a further explanation.
+- **SC-006**: *(removed with FR-010 — the "Explain to me" action no longer exists.)*
 - **SC-007**: In a full practice session, a network trace shows no request to any destination other
   than the configured AI service, and every request reaches that address directly, without any
   intermediary.

@@ -13,16 +13,13 @@ import { assembleFeedback, createOpeningTurn, translationVisible } from '@/domai
 import {
   buildSystemPrompt,
   buildTurnUserMessage,
-  buildExplanationMessages,
   buildIllustrationPrompt,
-  type ExplanationContext,
 } from '@/ai/prompts'
 import { TURN_SCHEMA } from '@/ai/schema'
 import {
   chatCompletion,
   growingStringValue,
   parseLooseJson,
-  requestExplanation,
   requestImage,
   requestSpeech,
 } from '@/ai/aiService'
@@ -37,8 +34,7 @@ import { saveIllustration, saveAudio, getAudioForTurn, findAudioByText } from '@
  * when the stream completes (FR-035, D15).
  */
 
-export type TurnPhase =
-  'idle' | 'partner-streaming' | 'waiting-answer' | 'generating' | 'explaining' | 'failed'
+export type TurnPhase = 'idle' | 'partner-streaming' | 'waiting-answer' | 'generating' | 'failed'
 
 export interface SessionError {
   kind: string
@@ -53,8 +49,6 @@ export interface UseSessionReturn {
   error: Ref<SessionError | null>
   speechAvailable: Ref<boolean>
   imagesAvailable: Ref<boolean>
-  /** The turn currently being explained — null when no explanation is running. */
-  explainingTurnId: Ref<string | null>
   /** Whether the partner line's translation may be shown (FR-057). */
   isTranslationVisible: (turnId: string) => boolean
   /** Flip the per-line "cheat" visibility of the translation. */
@@ -63,7 +57,6 @@ export interface UseSessionReturn {
   start: (input: NewSessionInput) => Promise<string>
   sendAnswer: (text: string) => Promise<void>
   endSession: () => Promise<void>
-  explainTurn: (turn: Turn) => Promise<void>
   playTurn: (turn: Turn) => Promise<{ ok: boolean; message: string | null }>
   retry: () => Promise<void>
 }
@@ -88,8 +81,6 @@ export function useSession(): UseSessionReturn {
   const imagesAvailable = ref(true)
   /** The learner's answer awaiting the model's reply — kept across failures for retry (FR-025). */
   const pendingText = ref<string | null>(null)
-  /** Which turn's "Explain to me" is currently running — only that button is busy/active. */
-  const explainingTurnId = ref<string | null>(null)
   /**
    * Explicit per-line visibility decisions for the partner-line translation (FR-057). Only
    * deviations from the derived default are stored: the learner's toggle, and the auto-reveal
@@ -286,7 +277,6 @@ export function useSession(): UseSessionReturn {
         assumptions: feedback.assumptions,
         badge: feedback.badge,
         issues: feedback.issues,
-        explain: null,
         illustrationId: null,
         audioId: null,
         createdAt: now,
@@ -348,45 +338,6 @@ export function useSession(): UseSessionReturn {
       }
     } catch {
       /* storage failure is surfaced to the learner via the UI, never thrown */
-    }
-  }
-
-  async function explainTurn(turn: Turn) {
-    const s = session.value
-    if (!s || turn.explain) return
-    phase.value = 'explaining'
-    explainingTurnId.value = turn.id
-    error.value = null
-    try {
-      const systemPrompt = await buildSystemPromptFor(s)
-      // The partner line this answer responds to — the context for the explanation.
-      const idx = turns.value.findIndex((t) => t.id === turn.id)
-      const prev = idx > 0 ? turns.value[idx - 1] : undefined
-      const context: ExplanationContext = {
-        partnerLine: prev
-          ? { text: prev.partnerText, translation: prev.translation || null }
-          : null,
-        learnerAnswer: turn.learnerText,
-        correctedText: turn.correctedText,
-        interpretation: turn.interpretation,
-        issues: turn.issues.map((i) => ({ category: i.category, detail: i.detail })),
-      }
-      const requestMessages = buildExplanationMessages(systemPrompt, context)
-      const { service } = useServiceConfig()
-      const result = await requestExplanation(service, requestMessages)
-      turn.explain = {
-        id: crypto.randomUUID(),
-        turnId: turn.id,
-        kind: result.kind as 'semantics' | 'error' | 'both',
-        content: result.content,
-      }
-      await updateTurn(turn)
-      turns.value = await getTurns(s.id)
-    } catch (err) {
-      handleError(err)
-    } finally {
-      explainingTurnId.value = null
-      if (phase.value === 'explaining') phase.value = 'waiting-answer'
     }
   }
 
@@ -498,14 +449,12 @@ export function useSession(): UseSessionReturn {
     error,
     speechAvailable,
     imagesAvailable,
-    explainingTurnId,
     isTranslationVisible,
     toggleTranslation,
     load,
     start,
     sendAnswer,
     endSession,
-    explainTurn,
     playTurn,
     retry,
   }

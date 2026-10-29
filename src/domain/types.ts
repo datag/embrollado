@@ -6,7 +6,6 @@ export type Level = 'beginner' | 'intermediate' | 'expert'
 export type SessionState = 'active' | 'ended'
 export type BadgeTier = 'perfect' | 'good' | 'acceptable' | 'unsatisfactory'
 export type IssueCategory = 'grammar' | 'vocabulary' | 'usage' | 'completeness'
-export type ExplanationKind = 'semantics' | 'error' | 'both'
 export type IllustrationMoment = 'start' | 'key' | 'end'
 export type Origin = 'builtin' | 'learner'
 export type Visibility = 'template' | 'session-only'
@@ -68,13 +67,6 @@ export interface Issue {
   suggestion: string | null
 }
 
-export interface Explanation {
-  id: string
-  turnId: string
-  kind: ExplanationKind
-  content: string
-}
-
 export interface Turn {
   id: string
   sessionId: string
@@ -89,7 +81,6 @@ export interface Turn {
   assumptions: Assumption[]
   badge: Badge | null
   issues: Issue[]
-  explain: Explanation | null
   illustrationId: string | null
   audioId: string | null
   createdAt: string

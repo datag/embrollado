@@ -62,8 +62,8 @@ Hash routing (`createWebHashHistory`) so the app works on any static host withou
 - Both fields are optional; with neither filled the partner simply addresses the learner generically.
 - The interface language switch applies immediately to every screen and every message (FR-033).
 - The native language applies to the feedback only: translation, explanation, interpretation,
-  assumptions, assessment, the badge label and "Explain to me" (FR-036). The corrected answer stays
-  in the target language.
+  assumptions, assessment and the badge label (FR-036). The corrected answer stays in the target
+  language.
 
 ### 2.3 Storage
 
@@ -81,7 +81,7 @@ Hash routing (`createWebHashHistory`) so the app works on any static host withou
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
 | 1    | The partner's line appears — progressively while it is generated (FR-035). Its translation sits muted directly under the line, hidden by default; a per-line toggle reveals or hides it, and once the learner answers the line the translation becomes visible immediately | FR-006, FR-057         |
 | 2    | The learner's input field with a send button of at least 44 × 44 px                                                                                                                               | FR-007                 |
-| 3    | One feedback block, always in this order: explanation (optional) → correction → interpretation → assumptions → quality badge → issues. Every field concerns the learner's own latest answer — the explanation clarifies it, the correction fixes it, the interpretation translates it. The "Explain to me" button sits on the block | FR-008, FR-014, FR-010 |
+| 3    | One feedback block, always in this order: explanation (optional) → correction → interpretation → assumptions → quality badge → issues. Every field concerns the learner's own latest answer — the explanation clarifies it, the correction fixes it, the interpretation translates it | FR-008, FR-014 |
 | 4    | The partner's next line (or the cycle ends when the learner ends the session)                                                                                                                     | FR-011                 |
 
 Feedback block details:
@@ -95,7 +95,6 @@ Feedback block details:
   once the line has been answered (FR-057). A translation that was explicitly hidden stays hidden.
 - The **correction** is shown in the target language, everything else in the native language
   (FR-036).
-- "Explain to me" **adds** to the block; the existing feedback stays visible (FR-010).
 
 States the dialogue view must render: empty (no session yet), waiting for the first line,
 streaming, complete, failed (with the learner's text kept and a retry), offline, and

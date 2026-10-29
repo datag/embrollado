@@ -76,7 +76,6 @@ One cycle step of a session. FR-006…FR-014, FR-040…FR-043.
 | `assumptions`         | `Assumption[]`        | The gaps that were filled (FR-009)                                      |
 | `badge`               | `Badge \| null`       | The four-tier rating (FR-040)                                           |
 | `issues`              | `Issue[]`             | Concrete things to improve, derived from the model's issue list         |
-| `explain`             | `Explanation \| null` | The output of "Explain to me" (FR-010)                                  |
 | `illustrationId`      | UUID \| null          | FK → Illustration                                                       |
 | `audioId`             | UUID \| null          | FK → the cached AudioEntry for this line                                |
 | `createdAt`           | ISO 8601 string       | Required                                                                |
@@ -223,7 +222,6 @@ Session 1 ──── n Illustration        (illustration.sessionId → session
 Session 1 ──── n AudioEntry          (audio.sessionId → session.id, cascade delete)
 Turn    1 ──── 0..1 Illustration     (turn.illustrationId)
 Turn    1 ──── 0..1 AudioEntry       (turn.audioId)
-Turn    1 ──── 0..1 Explanation      (turn.explain)
 Turn    1 ──── n Assumption          (embedded)
 Turn    1 ──── 0..1 Badge            (embedded)
 Turn    1 ──── n Issue               (embedded)
@@ -293,11 +291,6 @@ sessions (edge case in the spec).
                                            ┌──────────────┐
                                            │ feedback     │
                                            │ complete     │
-                                           └──────┬───────┘
-                                                  │ "Explain to me"
-                                                  ▼
-                                           ┌──────────────┐
-                                           │ explained    │
                                            └──────────────┘
 ```
 

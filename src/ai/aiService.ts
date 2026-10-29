@@ -9,7 +9,6 @@ import {
   buildResponseFormat,
   FALLBACK_RESPONSE_FORMAT,
   CONNECTION_SCHEMA,
-  EXPLANATION_SCHEMA,
   type SchemaObject,
 } from '@/ai/schema'
 import { schemaInPrompt } from '@/ai/prompts'
@@ -303,38 +302,6 @@ export function parseLooseJson(text: string): unknown {
     }
   }
   return null
-}
-
-/* ------------------------------------------------------------------ */
-/* "Explain to me" (T054)                                              */
-/* ------------------------------------------------------------------ */
-export async function requestExplanation(
-  service: ServiceConfig,
-  messages: ChatMessage[],
-  onDelta?: (text: string) => void,
-  signal?: AbortSignal,
-): Promise<{ content: string; kind: string }> {
-  const schema = {
-    name: 'embrollado_explanation',
-    schema: EXPLANATION_SCHEMA as unknown as SchemaObject,
-  }
-  const result = await chatCompletion({
-    service,
-    messages,
-    schema,
-    stream: true,
-    onDelta,
-    signal,
-  })
-  if (result.refusal) throw new AiError('refusal', result.refusal, null)
-  const parsed = (parseLooseJson(result.content) ?? {}) as { kind?: string; content?: string }
-  return {
-    kind:
-      parsed.kind === 'semantics' || parsed.kind === 'error' || parsed.kind === 'both'
-        ? parsed.kind
-        : 'both',
-    content: parsed.content ?? result.content,
-  }
 }
 
 /* ------------------------------------------------------------------ */

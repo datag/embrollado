@@ -1,16 +1,11 @@
 <script setup lang="ts">
 import type { Turn } from '@/domain/types'
 import QualityBadge from '@/components/QualityBadge.vue'
-import ExplainButton from '@/components/ExplainButton.vue'
 import { renderMarkdown } from '@/utils/markdown'
 
-const _props = defineProps<{
+defineProps<{
   turn: Turn
-  explaining?: boolean
-  showExplain?: boolean
-  explainDisabled?: boolean
 }>()
-const emit = defineEmits<{ explain: [] }>()
 
 const md = (value: string | null | undefined) => (value ? renderMarkdown(value) : '')
 const heading = 'text-xs font-semibold uppercase tracking-wide text-fg-muted'
@@ -65,15 +60,6 @@ const heading = 'text-xs font-semibold uppercase tracking-wide text-fg-muted'
           <span v-if="issue.suggestion" class="text-fg-muted">({{ issue.suggestion }})</span>
         </li>
       </ul>
-    </section>
-
-    <section v-if="turn.explain" class="mb-2">
-      <h4 :class="heading">{{ $t('feedback.explain') }}</h4>
-      <div class="text-left" v-html="md(turn.explain.content)" />
-    </section>
-
-    <section v-if="showExplain && !turn.explain" class="mt-2">
-      <ExplainButton :busy="explaining" :disabled="explainDisabled" @click="emit('explain')" />
     </section>
   </div>
 </template>

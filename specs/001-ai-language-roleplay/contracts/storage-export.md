@@ -97,7 +97,6 @@ A single JSON file, UTF-8, named `embrollado-export-YYYY-MM-DD-HHmm.json`.
           "assumptions": [{ "original": "???", "filled": "…", "reason": "…" }],
           "badge": { "tier": "good", "label": "Good!" },
           "issues": [{ "category": "grammar", "detail": "…", "suggestion": null }],
-          "explain": { "kind": "both", "content": "…" },
           "feedbackLanguage": "en",
           "createdAt": "…"
         }

@@ -173,53 +173,7 @@ latest user message**, never an earlier answer, the partner's lines or a previou
 The learner profile is **sent to the model** and therefore leaves the device — it is part of the
 prompt. The privacy text in the app says so.
 
-## 5. "Explain to me" (FR-010)
-
-A second, separate request with the same turn in context:
-
-```json
-{
-  "model": "…",
-  "messages": [
-    { "role": "system", "content": "<the same system prompt>" },
-    {
-      "role": "user",
-      "content": "<the learner's answer + the partner line it responded to, as JSON>"
-    },
-    {
-      "role": "user",
-      "content": "Explain the LEARNER's answer — what they meant, how correct it was, and the most useful thing to improve."
-    }
-  ],
-  "response_format": {
-    "type": "json_schema",
-    "json_schema": {
-      "name": "embrollado_explanation",
-      "strict": true,
-      "schema": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["kind", "content"],
-        "properties": {
-          "kind": { "type": "string", "enum": ["semantics", "error", "both"] },
-          "content": { "type": "string" }
-        }
-      }
-    }
-  }
-}
-```
-
-- The request explains **the learner's answer**, not the partner's next line: the context JSON
-  carries the partner line the learner responded to, the learner's own answer, the corrected
-  text, the interpretation and the issues.
-
-- The response is stored on the turn (`turn.explain`) and shown **in addition to** the existing
-  feedback, which stays visible (FR-010).
-- The explanation is written in the native language.
-- The request is made only when the learner presses the button — never automatically (FR-023).
-
-## 6. Illustration prompts (FR-028)
+## 5. Illustration prompts (FR-028)
 
 Separate from the turn, a short visual prompt is built from the situation and the moment:
 

@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import {
   buildSystemPrompt,
   buildTurnUserMessage,
-  buildExplanationMessages,
   buildIllustrationPrompt,
 } from '@/ai/prompts'
 import type { Level } from '@/domain/types'
@@ -85,24 +84,6 @@ describe('prompt builder (T045, T039)', () => {
   it('builds a generic prompt when the learner gives no name', () => {
     const prompt = buildSystemPrompt({ ...base, learnerName: null, learnerDetails: null })
     expect(prompt).toContain('has not shared personal details')
-  })
-
-  it("builds the explanation messages focused on the learner's answer", () => {
-    const messages = buildExplanationMessages('system', {
-      partnerLine: { text: '¿Dónde está el lavadero?', translation: 'Where is the washroom?' },
-      learnerAnswer: 'Is the washroom near???',
-      correctedText: 'Is the washroom nearby?',
-      interpretation: 'You asked about the washroom.',
-      issues: [],
-    })
-    expect(messages.map((m) => m.role)).toEqual(['system', 'user', 'user'])
-    // The context carries the learner's answer and the line it responded to —
-    // never the partner's NEXT line.
-    expect(messages[1].content).toContain('Is the washroom near???')
-    expect(messages[1].content).toContain('Where is the washroom?')
-    expect(messages[2].content).toContain("the LEARNER's answer")
-    expect(messages[2].content).toContain('NEVER in the target language')
-    expect(messages[2].content).not.toContain("partner's next line")
   })
 
   it('builds an illustration prompt without text', () => {

@@ -141,7 +141,6 @@ export function createOpeningTurn(
     assumptions: [],
     badge: null,
     issues: [],
-    explain: null,
     illustrationId: null,
     audioId: null,
     createdAt: now,

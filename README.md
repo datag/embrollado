@@ -6,8 +6,8 @@ everything stays on your device.**
 Embrollado is a browser-only single-page app. You choose a target language, a level, a situation
 and a partner, and then you talk: the partner replies in the target language with the translation
 sitting muted under each line — hidden until you peek or until you have answered — and after every
-answer you get a correction, an interpretation, filled-in gaps, a quality badge and concrete
-things to improve — with an **Explain to me** action on demand.
+answer you get an explanation, a correction, an interpretation, filled-in gaps, a quality badge
+and concrete things to improve.
 
 There is no backend, no account and no tracking. Conversations, pictures and cached audio live in
 your browser (IndexedDB); a small settings document and your AI-service configuration live in

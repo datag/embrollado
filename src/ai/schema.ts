@@ -61,17 +61,6 @@ export const TURN_SCHEMA = {
   },
 } as const
 
-/** The "Explain to me" schema (turn-payload.md §5). */
-export const EXPLANATION_SCHEMA = {
-  type: 'object',
-  additionalProperties: false,
-  required: ['kind', 'content'],
-  properties: {
-    kind: { type: 'string', enum: ['semantics', 'error', 'both'] },
-    content: { type: 'string' },
-  },
-} as const
-
 /** The test-connection schema — a one-word completion for "Test the connection" (T073). */
 export const CONNECTION_SCHEMA = {
   type: 'object',

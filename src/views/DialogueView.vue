@@ -21,7 +21,6 @@ const sessionId = computed(() => String(route.params.id ?? ''))
 const session = computed<Session | null>(() => sessionState.session.value)
 const turns = computed<Turn[]>(() => sessionState.turns.value)
 const phase = computed(() => sessionState.phase.value)
-const explainingTurnId = computed(() => sessionState.explainingTurnId.value)
 const streaming = computed(
   () => phase.value === 'partner-streaming' || phase.value === 'generating',
 )
@@ -60,10 +59,6 @@ async function onSend() {
   draft.value = ''
   await sessionState.sendAnswer(text)
   await loadIllustrations()
-}
-
-function onExplain(turn: Turn) {
-  sessionState.explainTurn(turn)
 }
 
 function onToggleTranslation(turnId: string) {
@@ -150,15 +145,7 @@ const statusHint = computed(() => (offline.value ? 'network' : null) ?? errorKin
                kommt zuerst, danach die neue Partnerzeile, die diese Antwort hervorrief. -->
           <div v-if="turn.learnerText" class="flex flex-col gap-2">
             <TurnBubble :text="turn.learnerText" side="learner" />
-            <FeedbackPanel
-              :turn="turn"
-              :explaining="explainingTurnId === turn.id"
-              :show-explain="true"
-              :explain-disabled="
-                readOnly || (explainingTurnId !== null && explainingTurnId !== turn.id)
-              "
-              @explain="onExplain(turn)"
-            />
+            <FeedbackPanel :turn="turn" />
           </div>
 
           <div v-if="turn.partnerText" class="flex items-start gap-2">

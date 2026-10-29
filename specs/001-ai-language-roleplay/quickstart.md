@@ -61,14 +61,13 @@ machine.
 | # | Action | Expected outcome |
 |---|---|---|
 | 1 | **Setup** → pick English, level *intermediate*, the camping-site washroom, partner *Nicole, 38, confectioner* → **Start** | Nicole's first line appears in English and streams in word by word |
-| 2 | Answer: "Is the washroom next to the showers???" | One feedback block: translation, correction, interpretation, the `???` filled in as a labelled assumption, a coloured badge, and the issue list |
-| 3 | Press **Explain to me** | The explanation is added to the same block; the earlier feedback stays visible |
-| 4 | Press the badge's playback button | The line is spoken; the audio is cached |
-| 5 | Answer several more turns | The picture for the situation appears; the badge wording changes between turns while the tier stays |
-| 6 | **Sessions** → open the session, then reload the page | The full transcript with all feedback is still there |
-| 7 | **Settings** → switch to *Dark* and to *Deutsch* | The whole interface changes; the feedback language stays as configured |
-| 8 | **Sessions** → *Export* | `embrollado-export-<date>.json` is downloaded; it contains the conversations and no API key |
-| 9 | **Settings** → *Import* that file | A warning names how many conversations will be replaced; after confirming, the same conversations are there |
+| 2 | Answer: "Is the washroom next to the showers???" | One feedback block: explanation, correction, interpretation, the `???` filled in as a labelled assumption, a coloured badge, and the issue list |
+| 3 | Press the badge's playback button | The line is spoken; the audio is cached |
+| 4 | Answer several more turns | The picture for the situation appears; the badge wording changes between turns while the tier stays |
+| 5 | **Sessions** → open the session, then reload the page | The full transcript with all feedback is still there |
+| 6 | **Settings** → switch to *Dark* and to *Deutsch* | The whole interface changes; the feedback language stays as configured |
+| 7 | **Sessions** → *Export* | `embrollado-export-<date>.json` is downloaded; it contains the conversations and no API key |
+| 8 | **Settings** → *Import* that file | A warning names how many conversations will be replaced; after confirming, the same conversations are there |
 | 10 | **Settings** → write your own partner, save it as a template | The template appears in the Setup screen and in later sessions |
 
 ## 5. Build and preview (production behaviour)

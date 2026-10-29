@@ -19,7 +19,6 @@ function makeTurn(overrides: Partial<Turn> = {}): Turn {
     assumptions: [{ original: '???', filled: 'el lavadero', reason: 'It fits the context.' }],
     badge: { tier: 'good', labelKey: 'good.1', label: 'Good!' },
     issues: [{ category: 'grammar', detail: 'Word order.', suggestion: 'Use "nearby".' }],
-    explain: null,
     illustrationId: null,
     audioId: null,
     createdAt: '2026-10-28T10:00:00.000Z',
@@ -30,7 +29,7 @@ function makeTurn(overrides: Partial<Turn> = {}): Turn {
 
 const mountPanel = (turn: Turn, props: Record<string, unknown> = {}) =>
   mount(FeedbackPanel, {
-    props: { turn, showExplain: true, ...props },
+    props: { turn, ...props },
     global: { plugins: [i18n] },
   })
 
@@ -57,23 +56,6 @@ describe('feedback panel (T046, T052)', () => {
     expect(wrapper.text()).toContain('Good!')
   })
 
-  it('adds the explanation without hiding the existing feedback', async () => {
-    const turn = makeTurn()
-    const wrapper = mountPanel(turn)
-    const before = wrapper.text()
-    expect(before).toContain('Good!')
-    await wrapper.setProps({
-      turn: {
-        ...turn,
-        explain: { id: 'e1', turnId: turn.id, kind: 'both', content: 'Extra explanation.' },
-      },
-    })
-    const after = wrapper.text()
-    expect(after).toContain('Extra explanation.')
-    expect(after).toContain('Good!') // existing feedback stays visible (FR-010)
-    expect(after).toContain('A polite question.')
-  })
-
   it("shows the explanation of the turn's own answer, not a previous turn's", () => {
     // The stored explanation belongs to this turn's learner answer.
     const turn = makeTurn({ explanation: 'The learner asked a clear question.' })
@@ -83,24 +65,6 @@ describe('feedback panel (T046, T052)', () => {
     expect(wrapper.text()).not.toContain('A polite question.')
     // The assessment still comes from the answered turn (FR-040).
     expect(wrapper.text()).toContain('Good!')
-  })
-
-  it("only the pressed turn's Explain button becomes busy (per-turn state)", () => {
-    const turn = makeTurn()
-    const idle = mountPanel(turn)
-    const button = (w: typeof idle) => w.find('button')
-    expect(button(idle).text()).toBe('Explain to me')
-    expect(button(idle).attributes('disabled')).toBeUndefined()
-
-    // This turn is being explained → busy ("Explaining…").
-    const busy = mountPanel(turn, { explaining: true })
-    expect(button(busy).text()).toBe('Explaining…')
-    expect(button(busy).attributes('disabled')).toBeDefined()
-
-    // Another turn is being explained → this turn's button is disabled but not busy.
-    const blocked = mountPanel(turn, { explainDisabled: true })
-    expect(button(blocked).text()).toBe('Explain to me')
-    expect(button(blocked).attributes('disabled')).toBeDefined()
   })
 
   it('has a distinct coloured badge per tier', () => {

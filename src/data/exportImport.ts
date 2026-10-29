@@ -44,7 +44,6 @@ export interface ExportTurn {
   assumptions: Turn['assumptions']
   badge: Turn['badge']
   issues: Turn['issues']
-  explain: Turn['explain']
   feedbackLanguage: string
   createdAt: string
 }
@@ -78,7 +77,6 @@ function toExportTurn(turn: Turn): ExportTurn {
     assumptions: turn.assumptions,
     badge: turn.badge,
     issues: turn.issues,
-    explain: turn.explain,
     feedbackLanguage: turn.feedbackLanguage,
     createdAt: turn.createdAt,
   }
@@ -254,7 +252,6 @@ function toStoredTurn(exportTurn: ExportTurn, sessionId: string, language: strin
     assumptions: exportTurn.assumptions,
     badge: exportTurn.badge,
     issues: exportTurn.issues,
-    explain: exportTurn.explain,
     illustrationId: null,
     audioId: null,
     createdAt: exportTurn.createdAt || now,

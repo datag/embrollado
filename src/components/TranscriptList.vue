@@ -14,7 +14,7 @@ defineProps<{ turns: Turn[] }>()
            Vorschau immer sichtbar unter der Zeile (FR-057). -->
       <div v-if="turn.learnerText" class="flex flex-col gap-2">
         <TurnBubble :text="turn.learnerText" side="learner" />
-        <FeedbackPanel :turn="turn" :show-explain="false" />
+        <FeedbackPanel :turn="turn" />
       </div>
       <TurnBubble
         v-if="turn.partnerText"

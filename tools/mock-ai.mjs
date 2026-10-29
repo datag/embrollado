@@ -120,31 +120,20 @@ const server = http.createServer((req, res) => {
         /* ignore */
       }
       const stream = parsed.stream === true
-      // The "Explain to me" request carries the embrollado_explanation schema.
-      const isExplain =
-        parsed._tone === 'explain' ||
-        parsed.response_format?.json_schema?.name === 'embrollado_explanation'
-      const payload = isExplain
-        ? {
-            kind: 'both',
-            content:
-              'This phrase is informal and idiomatic; a more neutral form is used when addressing strangers.',
-          }
-        : TURN
       if (stream) {
-        sendStream(res, payload)
+        sendStream(res, TURN)
         return
       }
       const usage = { prompt_tokens: 10, completion_tokens: 8, total_tokens: 18 }
       sendJson(res, 200, {
-        id: isExplain ? 'chatcmpl-mock-explain' : 'chatcmpl-mock',
+        id: 'chatcmpl-mock',
         object: 'chat.completion',
         created: Date.now(),
         model: parsed.model ?? 'mock-chat',
         choices: [
           {
             index: 0,
-            message: { role: 'assistant', content: JSON.stringify(payload) },
+            message: { role: 'assistant', content: JSON.stringify(TURN) },
             finish_reason: 'stop',
           },
         ],
