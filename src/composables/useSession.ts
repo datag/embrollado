@@ -109,15 +109,32 @@ export function useSession(): UseSessionReturn {
   function isAnswered(turnId: string): boolean {
     const idx = turns.value.findIndex((t) => t.id === turnId)
     return idx !== -1 && idx < turns.value.length - 1
-  }
-
-  function isTranslationVisible(turnId: string): boolean {
+  }  function isTranslationVisible(turnId: string): boolean {
     const override = translationOverrides.has(turnId) ? translationOverrides.get(turnId)! : null
     return translationVisible(override, isAnswered(turnId), session.value?.state === 'ended')
   }
 
   function toggleTranslation(turnId: string) {
     translationOverrides.set(turnId, !isTranslationVisible(turnId))
+  }
+
+  /**
+   * Rebuild the model-side history from the stored turns so a resumed session continues with the
+   * same minimal dialogue context: the complete correspondence (every partner line, every learner
+   * answer) and nothing else — no stored feedback, which would anchor a new rating to the
+   * previous answer.
+   */
+  async function rebuildHistory() {
+    const s = session.value
+    if (!s) return
+    clearMessages()
+    messages.push({ role: 'system', content: await buildSystemPromptFor(s) })
+    let opening = true
+    for (const t of turns.value) {
+      messages.push(buildTurnUserMessage(opening ? null : t.learnerText))
+      if (t.partnerText) messages.push({ role: 'assistant', content: t.partnerText })
+      opening = false
+    }
   }
 
   async function buildSystemPromptFor(sessionValue: Session): Promise<string> {
@@ -175,8 +192,14 @@ export function useSession(): UseSessionReturn {
       onDelta,
     })
     if (result.refusal) throw { kind: 'refusal', message: result.refusal } as SessionError
-    messages.push(userMessage, { role: 'assistant', content: result.content })
-    return (parseLooseJson(result.content) ?? {}) as Record<string, unknown>
+    const parsed = (parseLooseJson(result.content) ?? {}) as Record<string, unknown>
+    // The model-side history holds ONLY the correspondence (the complete dialogue): the assistant
+    // message is the partner line itself. If the full turn JSON (with its badge, issues, …) were
+    // stored instead, the previous turn's rating would sit directly above the next request and
+    // anchor the model's new rating to the WRONG (previous) answer — the observable "lag by one".
+    const partnerLine = typeof parsed.partnerText === 'string' ? parsed.partnerText : result.content
+    messages.push(userMessage, { role: 'assistant', content: partnerLine })
+    return parsed
   }
 
   /** Open a session and produce the partner's first line. */
@@ -444,6 +467,9 @@ export function useSession(): UseSessionReturn {
     if (found.state === 'active' && turns.value.length === 0) {
       await startInitialTurn()
     } else {
+      // Rebuild the dialogue-only history from storage — also makes a resumed session continue
+      // correctly (the in-memory messages start empty on every fresh mount/reload).
+      await rebuildHistory()
       phase.value = 'waiting-answer'
     }
   }

@@ -66,6 +66,16 @@ describe('prompt builder (T045, T039)', () => {
     expect(prompt).toContain('gap marker or unintelligible')
   })
 
+  it('anchors the feedback to the latest learner answer, never earlier turns', () => {
+    const prompt = buildSystemPrompt(base)
+    expect(prompt).toContain('ONLY the learner\'s answer in the LATEST user message')
+    expect(prompt).toContain('never the feedback of a previous turn')
+    expect(prompt).toContain("never the partner's lines")
+    // The explanation is part of that bundle: it clarifies the learner's own latest answer.
+    expect(prompt).toContain('explain the learner\'s answer in the LATEST user message')
+    expect(prompt).toContain('which may appear inside the explanation')
+  })
+
   it('builds a user message that opens the session', () => {
     const msg = buildTurnUserMessage(null)
     expect(msg.role).toBe('user')

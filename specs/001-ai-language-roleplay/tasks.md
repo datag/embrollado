@@ -277,6 +277,16 @@ learner answers (FR-057).
 - [x] T104 Sharpen the system-prompt rule for `interpretation` in `src/ai/prompts.ts`: it must render the learner's answer in the feedback language — the translation of what their words mean, as one would interpret them; only the learner's own text is translated (no intentions, no situation/partner-line import, no framing like "The learner asks:"), gap markers stay unchanged
 - [x] T105 Update the interpretation rule assertion in `tests/unit/prompts.test.ts`, the mock answer in `tools/mock-ai.mjs` (learner answer translated into German) with the matching e2e assertion in `tests/e2e/dialogue.spec.ts`, and the `interpretation` wording in `contracts/turn-payload.md` and `data-model.md`
 
+### Rating must not lag behind (request history = dialogue only)
+
+- [x] T106 In `src/composables/useSession.ts`: keep the model-side history to the complete correspondence — push only the partner line as each assistant message (no previous `badge`/`issues`/`correctedText`/`interpretation`/`assumptions`), so a new rating cannot be anchored to the previous answer; add `rebuildHistory()` in `load()` from the stored turns so a resumed/reloaded session continues consistently
+- [x] T107 In `src/ai/prompts.ts`: the feedback fields MUST assess only the learner's answer in the latest user message — never an earlier answer, the partner's lines or a previous turn's feedback; update `tests/unit/prompts.test.ts` and document the dialogue-only history in `contracts/turn-payload.md` §4
+- [x] T108 E2E test in `tests/e2e/dialogue.spec.ts`: a running session continues after a reload (input enabled again, the next answer produces fresh feedback)
+
+### Explanation targets the learner's latest answer
+
+- [x] T109 Repoint the `explanation` field at the learner's answer: in `src/ai/prompts.ts` the explanation must clarify the learner's answer in the LATEST user message (added to the feedback-target rule); `src/components/FeedbackPanel.vue` reads the explanation from `turn.explanation` and drops the `prevTurn` prop (removed from `src/views/DialogueView.vue` and `src/components/TranscriptList.vue`); update the component test, the mock's explanation, and the `explanation` wording in `spec.md` (FR-008, FR-036), `contracts/turn-payload.md`, `data-model.md` and `settings-profile.md`
+
 ---
 
 ## Dependencies & Execution Order

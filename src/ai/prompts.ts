@@ -54,9 +54,10 @@ export function buildSystemPrompt(input: PromptInput): string {
     '- One utterance per turn, at most 300 characters.',
     '- Stay fully in character as the person described above; never break into a teaching/lesson voice.',
     '- Always answer with the JSON turn object described in the schema; never with prose outside it.',
-    '- The "explanation" field and all "Explain to me" content MUST be written in the ' +
+    '- The "explanation" field MUST explain the learner\'s answer in the LATEST user message — ' +
+      'what it means and how well it works — and MUST be written in the ' +
       `feedback language (${input.feedbackLanguage}), NEVER in the target language (except for a ` +
-      'quoted word or phrase, which may appear inside the explanation).',
+      'quoted word or phrase from the answer, which may appear inside the explanation).',
     '- When the learner used "???" or a word from the native language as a gap, fill it with the most ' +
       'plausible replacement and explain in the "assumptions" field why that reading fits the context ' +
       '(max 5 assumptions).',
@@ -67,6 +68,9 @@ export function buildSystemPrompt(input: PromptInput): string {
       'situation or the partner\'s lines, and never add framing like "The learner asks:" — ' +
       'the heading already shows whose words these are. If a part of the answer is a gap ' +
       'marker or unintelligible, translate the rest and keep that part unchanged.',
+    '- The feedback fields (explanation, correctedText, interpretation, assumptions, badge, ' +
+      "issues) MUST assess ONLY the learner's answer in the LATEST user message — never an " +
+      "earlier answer, never the partner's lines, and never the feedback of a previous turn.",
     '- The "translation" field MUST translate the partner line you just produced (partnerText) ' +
       'into the feedback language.',
     "- If the learner's text is already correct, set correctedText to null.",

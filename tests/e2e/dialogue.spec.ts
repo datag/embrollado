@@ -91,6 +91,28 @@ test.describe('dialogue cycle', () => {
     await expect(page.getByText('Nice to meet you').last()).toBeVisible()
   })
 
+  test('continues a running session after a reload (history rebuilt from stored turns)', async ({
+    page,
+  }) => {
+    await configureService(page)
+    await startConversation(page)
+    await expectPartnerLine(page, 'Hello! Nice to meet you.')
+
+    await page.getByTestId('dialogue-input').fill('Where do you come from?')
+    await page.getByTestId('send').click()
+    await expect(page.getByTestId('feedback')).toBeVisible({ timeout: 20_000 })
+
+    await page.reload()
+    await expect(page.getByTestId('dialogue-input')).toBeEnabled({ timeout: 20_000 })
+    await page.getByTestId('dialogue-input').fill('Is the washroom nearby?')
+    await page.getByTestId('send').click()
+    // The resumed session builds its dialogue-only history from the stored turns instead of
+    // starting with an empty context (which would answer with an "unexpected format" error).
+    const continued = page.getByTestId('feedback')
+    await expect(continued).toBeVisible({ timeout: 20_000 })
+    await expect(continued).toContainText('Well done!')
+  })
+
   test('explains a turn on demand without hiding the existing feedback (FR-010)', async ({
     page,
   }) => {

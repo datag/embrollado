@@ -74,22 +74,13 @@ describe('feedback panel (T046, T052)', () => {
     expect(after).toContain('A polite question.')
   })
 
-  it("shows the explanation of the PREVIOUS partner line, not the current turn's", () => {
-    // The answered turn carries the explanation of the partner's NEXT line…
-    const turn = makeTurn({ explanation: 'The next line talks about bread.' })
-    // …while the previous turn holds the line the learner actually responded to.
-    const prev: Turn = {
-      ...turn,
-      id: 't0',
-      position: 1,
-      partnerText: '¿Dónde está el lavadero?',
-      translation: 'Where is the washroom?',
-      explanation: 'A polite question.',
-      learnerText: null,
-    }
-    const wrapper = mountPanel(turn, { prevTurn: prev })
-    expect(wrapper.text()).toContain('A polite question.')
-    expect(wrapper.text()).not.toContain('The next line talks about bread.')
+  it("shows the explanation of the turn's own answer, not a previous turn's", () => {
+    // The stored explanation belongs to this turn's learner answer.
+    const turn = makeTurn({ explanation: 'The learner asked a clear question.' })
+    const wrapper = mountPanel(turn)
+    expect(wrapper.text()).toContain('The learner asked a clear question.')
+    // A previous turn's explanation must not leak into this block.
+    expect(wrapper.text()).not.toContain('A polite question.')
     // The assessment still comes from the answered turn (FR-040).
     expect(wrapper.text()).toContain('Good!')
   })

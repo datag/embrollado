@@ -14,7 +14,7 @@ badge) and FR-040…FR-043 (the four-tier badge).
 {
   "partnerText": "¿Puedecriberse dónde está el lavadero?",
   "translation": "Können Sie mir sagen, wo der Waschraum ist?",
-  "explanation": "«¿Puede decirse?» is a polite request; «el lavadero» is the washroom.",
+  "explanation": "Die Frage ist höflich; «lavadero» bedeutet Waschraum.",
   "correctedText": "¿Puede decirme dónde está el lavadero?",
   "interpretation": "Kann ich neben den Waschräumen warten?",
   "assumptions": [
@@ -39,7 +39,7 @@ badge) and FR-040…FR-043 (the four-tier badge).
 | ---------------- | ------------------ | -------- | ------------------------------------------------------------------------------------ |
 | `partnerText`    | yes                | target   | The partner's next line; one utterance, ≤ 300 characters                             |
 | `translation`    | yes                | native   | The partner's line in the learner's native language (FR-036)                         |
-| `explanation`    | no                 | native   | Optional explanation of the partner's line (FR-008)                                  |
+| `explanation`    | no                 | native   | Optional explanation of the learner's answer (FR-008)                                 |
 | `correctedText`  | no                 | target   | The learner's answer, corrected; `null` when the answer was already correct (FR-036) |
 | `interpretation` | yes                | native   | The learner's answer translated into the native language — what their words mean (FR-008) |
 | `assumptions`    | yes (may be empty) | native   | The gaps that were filled (FR-009)                                                   |
@@ -160,6 +160,15 @@ The system prompt is assembled by `ai/prompts.ts` from:
 7. **Rules** — one utterance per turn; stay in character; never break into a lesson; always answer
    with the JSON turn object; treat `???` and native-language words as gaps and fill them with a
    plausible assumption and state the reason; rate the learner's answer against the selected level.
+
+**Request history = the dialogue only.** The message list sent to the model contains the complete
+correspondence — every partner line (assistant) and every learner answer (user), plus the system
+prompt — but **none of the stored feedback** (no previous `correctedText`, `interpretation`,
+`assumptions`, `badge` or `issues`). Storing a previous turn's ratings in the context would anchor
+the model's next rating to the previous answer instead of the latest one ("lag by one"). The same
+minimal history is rebuilt from the stored turns when a session is resumed after a reload, so a
+continued conversation is consistent. The feedback fields must assess **only the answer in the
+latest user message**, never an earlier answer, the partner's lines or a previous turn's feedback.
 
 The learner profile is **sent to the model** and therefore leaves the device — it is part of the
 prompt. The privacy text in the app says so.

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import type { Turn } from '@/domain/types'
 import QualityBadge from '@/components/QualityBadge.vue'
 import ExplainButton from '@/components/ExplainButton.vue'
@@ -7,12 +6,6 @@ import { renderMarkdown } from '@/utils/markdown'
 
 const _props = defineProps<{
   turn: Turn
-  /**
-   * The partner line this answer responds to. Its translation/explanation is what the feedback
-   * block must show first ("the translation of the partner's line", FR-036) — the current turn's
-   * own translation belongs to the partner's NEXT line.
-   */
-  prevTurn?: Turn
   explaining?: boolean
   showExplain?: boolean
   explainDisabled?: boolean
@@ -21,12 +14,6 @@ const emit = defineEmits<{ explain: [] }>()
 
 const md = (value: string | null | undefined) => (value ? renderMarkdown(value) : '')
 const heading = 'text-xs font-semibold uppercase tracking-wide text-fg-muted'
-
-/**
- * The explanation of the partner line the learner just answered. The line's translation lives on
- * the partner bubble itself (FR-057), so the feedback block starts with the explanation.
- */
-const partnerExplanation = computed(() => _props.prevTurn?.explanation ?? _props.turn.explanation)
 </script>
 
 <template>
@@ -35,12 +22,13 @@ const partnerExplanation = computed(() => _props.prevTurn?.explanation ?? _props
     data-testid="feedback"
   >
     <!-- Fixed order (settings-profile.md §3): explanation → correction → interpretation →
-         assumptions → badge → issues (T052). The translation of the partner line sits on the
-         partner bubble (FR-057); the explanation is of the line the learner just answered
-         (prevTurn), not of the line this turn carries. -->
-    <section v-if="partnerExplanation" class="mb-2">
+         assumptions → badge → issues (T052). Every field targets the learner's answer in the
+         LATEST turn — the explanation (like interpretation, badge and issues) concerns the
+         learner's own latest utterance, not a previous turn. The partner line's translation sits
+         on the partner bubble (FR-057). -->
+    <section v-if="turn.explanation" class="mb-2">
       <h4 :class="heading">{{ $t('feedback.explanation') }}</h4>
-      <div class="text-left" v-html="md(partnerExplanation)" />
+      <div class="text-left" v-html="md(turn.explanation)" />
     </section>
 
     <section v-if="turn.correctedText" class="mb-2">

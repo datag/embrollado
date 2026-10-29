@@ -296,9 +296,8 @@ service without those capabilities and verify the graceful fallback.
 - **FR-007**: The learner MUST be able to type an answer in the target language and send it, and the
   send control MUST be reachable on a phone-sized screen.
 - **FR-008**: After each answer, the system MUST show, in one place: an optional explanation of the
-  partner's preceding line, a corrected version of the learner's answer, an interpretation of the
-  learner's answer, the gaps that were filled with assumptions, and a quality badge that rates the
-  answer.
+  learner's answer, a corrected version of the learner's answer, an interpretation of the learner's
+  answer, the gaps that were filled with assumptions, and a quality badge that rates the answer.
 - **FR-009**: Where the learner's answer contains an explicit gap marker (`???`) or a word given in
   the learner's native language, the system MUST fill the gap with a plausible, context-appropriate
   assumption and MUST visibly mark that text as an assumption.
@@ -377,10 +376,10 @@ service without those capabilities and verify the graceful fallback.
   is being generated, and the feedback for the turn MUST appear as one complete block afterwards.
   If the service cannot deliver the line in parts, the app MUST fall back to showing the complete
   turn at once, without duplicated or incomplete text.
-- **FR-036**: The translation of the partner's line, its explanation, the interpretation, the
-  filled-in assumptions, the quality badge and the output of the "Explain to me" action MUST be
-  delivered in the learner's native language, while the corrected version of the learner's answer
-  MUST remain in the target language.
+- **FR-036**: The translation of the partner's line, the explanation of the learner's answer, the
+  interpretation, the filled-in assumptions, the quality badge and the output of the "Explain to
+  me" action MUST be delivered in the learner's native language, while the corrected version of
+  the learner's answer MUST remain in the target language.
 - **FR-057**: The translation of a partner line MUST arrive with the same request as the line itself
   and MUST be shown muted directly under the line in the learner's native language. While the line
   is still open it MUST be hidden by default; the learner MUST be able to reveal or hide it per

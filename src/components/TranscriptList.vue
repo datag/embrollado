@@ -8,17 +8,13 @@ defineProps<{ turns: Turn[] }>()
 
 <template>
   <div class="space-y-3">
-    <template v-for="(turn, idx) in turns" :key="turn.id">
-      <!-- Chronologische Reihenfolge: Antwort + Feedback (Erklärung der beantworteten Zeile),
-           dann die Partnerzeile (FR-011). Die Übersetzung steht in einer schreibgeschützten
+    <template v-for="turn in turns" :key="turn.id">
+      <!-- Chronologische Reihenfolge: Antwort + Feedback (Erklärung der eigenen Antwort), dann
+           die Partnerzeile (FR-011). Die Übersetzung steht in einer schreibgeschützten
            Vorschau immer sichtbar unter der Zeile (FR-057). -->
       <div v-if="turn.learnerText" class="flex flex-col gap-2">
         <TurnBubble :text="turn.learnerText" side="learner" />
-        <FeedbackPanel
-          :turn="turn"
-          :prev-turn="idx > 0 ? turns[idx - 1] : undefined"
-          :show-explain="false"
-        />
+        <FeedbackPanel :turn="turn" :show-explain="false" />
       </div>
       <TurnBubble
         v-if="turn.partnerText"

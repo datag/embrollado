@@ -69,7 +69,7 @@ One cycle step of a session. FR-006…FR-014, FR-040…FR-043.
 | `partnerText`         | string                | Required — the partner's line in the target language                    |
 | `partnerTextLanguage` | ISO 639-1             | Required, always the target language                                    |
 | `translation`         | string                | Required — the partner's line in the learner's native language (FR-036) |
-| `explanation`         | string \| null        | Optional explanation of the partner's line (FR-008)                     |
+| `explanation`         | string \| null        | Optional explanation of the learner's answer (FR-008)                   |
 | `learnerText`         | string \| null        | Required for turns the learner answered; null for the opening turn      |
 | `correctedText`       | string \| null        | The learner's answer, corrected; stays in the target language (FR-036)  |
 | `interpretation`      | string \| null        | The learner's answer translated into the native language (what their words mean) |

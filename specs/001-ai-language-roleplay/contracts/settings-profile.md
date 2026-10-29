@@ -81,7 +81,7 @@ Hash routing (`createWebHashHistory`) so the app works on any static host withou
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
 | 1    | The partner's line appears — progressively while it is generated (FR-035). Its translation sits muted directly under the line, hidden by default; a per-line toggle reveals or hides it, and once the learner answers the line the translation becomes visible immediately | FR-006, FR-057         |
 | 2    | The learner's input field with a send button of at least 44 × 44 px                                                                                                                               | FR-007                 |
-| 3    | One feedback block, always in this order: explanation (optional) → correction → interpretation → assumptions → quality badge → issues. The "Explain to me" button sits on the block | FR-008, FR-014, FR-010 |
+| 3    | One feedback block, always in this order: explanation (optional) → correction → interpretation → assumptions → quality badge → issues. Every field concerns the learner's own latest answer — the explanation clarifies it, the correction fixes it, the interpretation translates it. The "Explain to me" button sits on the block | FR-008, FR-014, FR-010 |
 | 4    | The partner's next line (or the cycle ends when the learner ends the session)                                                                                                                     | FR-011                 |
 
 Feedback block details:
