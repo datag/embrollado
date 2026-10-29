@@ -9,7 +9,8 @@ sitting muted under each line — hidden until you peek or until you have answer
 answer you get an explanation, a correction, an interpretation, filled-in gaps, a quality badge
 and concrete things to improve. Whenever you want, you can have the partner's line read aloud and
 generate an illustration of the current moment of the conversation (a picture button next to the
-input box; the button only appears when an image model is configured).
+input box; the button only appears when an image model is configured). Click any picture in the
+chat to view it at full resolution in a lightbox.
 
 There is no backend, no account and no tracking. Conversations, pictures and cached audio live in
 your browser (IndexedDB); a small settings document and your AI-service configuration live in

@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref, watchEffect } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { Illustration } from '@/domain/types'
 
 const props = defineProps<{
   illustration: Illustration | null | undefined
   alt: string
 }>()
+const emit = defineEmits<{ open: [] }>()
+const { t } = useI18n()
 
 const objectUrl = ref<string | null>(null)
 
@@ -21,6 +24,20 @@ onBeforeUnmount(() => {
 
 <template>
   <figure v-if="illustration && objectUrl" class="overflow-hidden rounded-xl border border-border">
-    <img :src="objectUrl" :alt="alt" class="h-auto w-full object-cover" loading="lazy" />
+    <!-- A thumbnail is a control: clicking it opens the full-resolution lightbox (ImageModal). -->
+    <button
+      type="button"
+      class="group block w-full cursor-zoom-in text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      :aria-label="t('dialogue.enlarge')"
+      :title="t('dialogue.enlarge')"
+      @click="emit('open')"
+    >
+      <img
+        :src="objectUrl"
+        :alt="alt"
+        class="h-auto w-full object-cover transition group-hover:opacity-95"
+        loading="lazy"
+      />
+    </button>
   </figure>
 </template>

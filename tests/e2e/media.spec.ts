@@ -58,6 +58,34 @@ test.describe('speech and illustrations', () => {
     await expect(page.locator('figure img')).toHaveCount(1)
   })
 
+  test('opens the full-resolution lightbox on click and closes on Escape', async ({ page }) => {
+    await configureService(page, { image: true })
+    await startConversation(page)
+    await expectPartnerLine(page, 'Hello! Nice to meet you.')
+
+    await page.getByTestId('illustration-button').click()
+    await expect(page.locator('figure img').first()).toBeVisible({ timeout: 15_000 })
+
+    // Clicking the thumbnail opens the native <dialog> lightbox with the same picture.
+    await page.locator('figure img').first().click()
+    const dialog = page.locator('dialog')
+    await expect(dialog).toBeVisible()
+    await expect(dialog.locator('img')).toHaveCount(1)
+
+    // The lightbox shrink-wraps the picture: it must not stretch over the full viewport width.
+    const dialogBox = await dialog.boundingBox()
+    const imgBox = await dialog.locator('img').boundingBox()
+    expect(dialogBox).not.toBeNull()
+    expect(imgBox).not.toBeNull()
+    // Only the p-2 padding (2×8 px) plus the 2×1 px border separate image from dialog edge.
+    expect(dialogBox!.width - imgBox!.width).toBeLessThanOrEqual(24)
+    expect(dialogBox!.width).toBeLessThan(320)
+
+    // Escape closes it again (native <dialog> cancel path).
+    await page.keyboard.press('Escape')
+    await expect(dialog).not.toBeVisible()
+  })
+
   test('without an image model the button is absent and the input takes full width', async ({
     page,
   }) => {

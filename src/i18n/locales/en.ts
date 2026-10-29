@@ -94,6 +94,8 @@ export default {
     illustration: 'Generate picture',
     illustrationBusy: 'Generating picture…',
     illustrationAlt: 'Illustration of the current moment of the conversation',
+    enlarge: 'Enlarge picture',
+    illustrationClose: 'Close',
   },
   feedback: {
     explanation: 'Explanation',

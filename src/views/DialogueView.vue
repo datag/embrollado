@@ -13,12 +13,15 @@ import FeedbackPanel from '@/components/FeedbackPanel.vue'
 import SpeechButton from '@/components/SpeechButton.vue'
 import TranslationToggle from '@/components/TranslationToggle.vue'
 import IllustrationPanel from '@/components/IllustrationPanel.vue'
+import ImageModal from '@/components/ImageModal.vue'
 
 const route = useRoute()
 const { t } = useI18n()
 const sessionState = useSession()
 const draft = ref('')
 const illustrations = ref<Illustration[]>([])
+/** The illustration shown at full resolution in the lightbox; null = closed. */
+const modalIllustration = ref<Illustration | null>(null)
 const speechHints = ref<Record<string, string | null>>({})
 
 const sessionId = computed(() => String(route.params.id ?? ''))
@@ -222,6 +225,7 @@ watch(
       <IllustrationPanel
         :illustration="startIllustration(session.id)"
         :alt="session.situation.name"
+        @open="modalIllustration = startIllustration(session.id)"
       />
 
       <div class="space-y-3">
@@ -278,6 +282,7 @@ watch(
               class="w-56 max-w-full"
               :illustration="turnIllustration(turn)"
               :alt="turnIllustration(turn)?.prompt || $t('dialogue.illustrationAlt')"
+              @open="modalIllustration = turnIllustration(turn)"
             />
           </div>
         </template>
@@ -378,5 +383,12 @@ watch(
         </p>
       </footer>
     </template>
+
+    <!-- Full-resolution lightbox for any illustration the learner clicks. -->
+    <ImageModal
+      :illustration="modalIllustration"
+      :alt="modalIllustration?.prompt || $t('dialogue.illustrationAlt')"
+      @close="modalIllustration = null"
+    />
   </section>
 </template>

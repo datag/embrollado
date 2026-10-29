@@ -94,6 +94,8 @@ export default {
     illustration: 'Bild erzeugen',
     illustrationBusy: 'Bild wird erzeugt…',
     illustrationAlt: 'Illustration des aktuellen Gesprächsmoments',
+    enlarge: 'Bild vergrößern',
+    illustrationClose: 'Schließen',
   },
   feedback: {
     explanation: 'Erklärung',
