@@ -53,6 +53,19 @@ describe('prompt builder (T045, T039)', () => {
     expect(prompt).toContain('assumptions')
   })
 
+  it('requires the interpretation as a translation of the learner answer into the feedback language', () => {
+    const prompt = buildSystemPrompt(base)
+    // It renders the learner's words in the feedback language — a translation, not a retelling.
+    expect(prompt).toContain('rendered in the feedback language')
+    expect(prompt).toContain('as one would interpret them')
+    // Only the learner's own text is translated; no intentions, no partner lines, no framing.
+    expect(prompt).toContain('Translate ONLY the learner\'s own text')
+    expect(prompt).toContain('never import the situation or the partner\'s lines')
+    expect(prompt).toContain('never add framing like "The learner asks:"')
+    // Gap markers survive the translation unchanged.
+    expect(prompt).toContain('gap marker or unintelligible')
+  })
+
   it('builds a user message that opens the session', () => {
     const msg = buildTurnUserMessage(null)
     expect(msg.role).toBe('user')

@@ -60,11 +60,13 @@ export function buildSystemPrompt(input: PromptInput): string {
     '- When the learner used "???" or a word from the native language as a gap, fill it with the most ' +
       'plausible replacement and explain in the "assumptions" field why that reading fits the context ' +
       '(max 5 assumptions).',
-    '- The "interpretation" field MUST be a faithful paraphrase of ONLY the learner\'s answer — ' +
-      "based solely on their text, never on your (the partner's) next line. It says what the " +
-      'learner attempted to express, in the feedback language (e.g. "You asked whether the ' +
-      'washroom is nearby"). If you cannot faithfully paraphrase their answer, quote short ' +
-      'fragments of it instead of inventing meaning.',
+    '- The "interpretation" field MUST be the learner\'s answer rendered in the feedback ' +
+      'language — the translation of what their words mean, as one would interpret them ' +
+      '(e.g. for "Hey buddy, are you lost?" write "Hey Kumpel, bist du verloren?"). ' +
+      'Translate ONLY the learner\'s own text: never add intentions, never import the ' +
+      'situation or the partner\'s lines, and never add framing like "The learner asks:" — ' +
+      'the heading already shows whose words these are. If a part of the answer is a gap ' +
+      'marker or unintelligible, translate the rest and keep that part unchanged.',
     '- The "translation" field MUST translate the partner line you just produced (partnerText) ' +
       'into the feedback language.',
     "- If the learner's text is already correct, set correctedText to null.",

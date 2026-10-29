@@ -16,7 +16,7 @@ badge) and FR-040…FR-043 (the four-tier badge).
   "translation": "Können Sie mir sagen, wo der Waschraum ist?",
   "explanation": "«¿Puede decirse?» is a polite request; «el lavadero» is the washroom.",
   "correctedText": "¿Puede decirme dónde está el lavadero?",
-  "interpretation": "You asked whether the washroom is next to the showers and offered to wait.",
+  "interpretation": "Kann ich neben den Waschräumen warten?",
   "assumptions": [
     {
       "original": "???",
@@ -41,7 +41,7 @@ badge) and FR-040…FR-043 (the four-tier badge).
 | `translation`    | yes                | native   | The partner's line in the learner's native language (FR-036)                         |
 | `explanation`    | no                 | native   | Optional explanation of the partner's line (FR-008)                                  |
 | `correctedText`  | no                 | target   | The learner's answer, corrected; `null` when the answer was already correct (FR-036) |
-| `interpretation` | yes                | native   | What the learner actually said (FR-008)                                              |
+| `interpretation` | yes                | native   | The learner's answer translated into the native language — what their words mean (FR-008) |
 | `assumptions`    | yes (may be empty) | native   | The gaps that were filled (FR-009)                                                   |
 | `badge`          | yes                | —        | The four-tier rating (FR-040)                                                        |
 | `issues`         | yes (may be empty) | native   | Concrete things to improve                                                           |

@@ -72,7 +72,7 @@ One cycle step of a session. FR-006…FR-014, FR-040…FR-043.
 | `explanation`         | string \| null        | Optional explanation of the partner's line (FR-008)                     |
 | `learnerText`         | string \| null        | Required for turns the learner answered; null for the opening turn      |
 | `correctedText`       | string \| null        | The learner's answer, corrected; stays in the target language (FR-036)  |
-| `interpretation`      | string \| null        | What the learner actually said, in the native language                  |
+| `interpretation`      | string \| null        | The learner's answer translated into the native language (what their words mean) |
 | `assumptions`         | `Assumption[]`        | The gaps that were filled (FR-009)                                      |
 | `badge`               | `Badge \| null`       | The four-tier rating (FR-040)                                           |
 | `issues`              | `Issue[]`             | Concrete things to improve, derived from the model's issue list         |

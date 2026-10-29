@@ -272,6 +272,11 @@ learner answers (FR-057).
 - [x] T102 Update `tests/component/FeedbackPanel.test.ts` for the new block order (explanation first, no translation)
 - [x] T103 Update `tests/e2e/dialogue.spec.ts`: translation hidden by default, toggle reveal/hide, auto-reveal of the answered line while the new line stays hidden
 
+### Interpretation as a translation into the feedback language (follow-up)
+
+- [x] T104 Sharpen the system-prompt rule for `interpretation` in `src/ai/prompts.ts`: it must render the learner's answer in the feedback language — the translation of what their words mean, as one would interpret them; only the learner's own text is translated (no intentions, no situation/partner-line import, no framing like "The learner asks:"), gap markers stay unchanged
+- [x] T105 Update the interpretation rule assertion in `tests/unit/prompts.test.ts`, the mock answer in `tools/mock-ai.mjs` (learner answer translated into German) with the matching e2e assertion in `tests/e2e/dialogue.spec.ts`, and the `interpretation` wording in `contracts/turn-payload.md` and `data-model.md`
+
 ---
 
 ## Dependencies & Execution Order

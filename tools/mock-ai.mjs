@@ -20,7 +20,7 @@ const TURN = {
   translation: 'Hallo! Schön, dich zu treffen. Woher kommst du?',
   explanation: 'A simple greeting to start the conversation.',
   correctedText: null,
-  interpretation: 'You greeted the partner and asked where they come from.',
+  interpretation: 'Ist der Waschraum neben den Duschen?',
   assumptions: [],
   badge: { tier: 'good', labelKey: 'good.1' },
   issues: [],

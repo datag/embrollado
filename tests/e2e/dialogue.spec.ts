@@ -28,9 +28,9 @@ test.describe('dialogue cycle', () => {
 
     const feedback = page.getByTestId('feedback')
     await expect(feedback).toBeVisible({ timeout: 20_000 })
-    // badge wording and interpretation
+    // badge wording and interpretation (the learner's answer, translated into German)
     await expect(feedback).toContainText('Well done!')
-    await expect(feedback).toContainText('greeted the partner')
+    await expect(feedback).toContainText('Ist der Waschraum neben den Duschen?')
     // The translation moved to the partner bubble (FR-057) — not duplicated here.
     await expect(feedback).not.toContainText('Hallo! Schön, dich zu treffen.')
   })
