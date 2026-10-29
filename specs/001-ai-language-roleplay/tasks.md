@@ -291,6 +291,14 @@ learner answers (FR-057).
 
 - [x] T110 Remove the "Explain to me" button and its function: delete `src/components/ExplainButton.vue` and the `explain` path through `useSession` (`explainingTurnId`, `explainTurn`, the `explaining` phase), `aiService.requestExplanation`, `buildExplanationMessages`/`ExplanationContext`/`EXPLANATION_SCHEMA_TEXT` in `prompts.ts`, `EXPLANATION_SCHEMA` in `schema.ts`, the `Explanation` type and `Turn.explain` in `types.ts` (+ the export/import mapping and the mock's `embrollado_explanation` branch); drop the Explain sections from `FeedbackPanel` and the tests; mark FR-010 and SC-006 as removed in `spec.md` and clean up `turn-payload.md`, `data-model.md`, `settings-profile.md`, `storage-export.md`, `quickstart.md`, `README.md` and `docs/configure-ai-service.md`
 
+### Assessment must never be empty (badge fallback)
+
+- [x] T111 Guarantee a rating per turn in `src/domain/session.ts`: a missing / null / non-object `badge` (typical with the `json_object` fallback, which does not enforce the schema) shows as the grey `unknown` state instead of an empty assessment or an invented `acceptable` rating (owner decision; FR-058); add the `unknown` tier to the badge type, its label variants and the grey colour token (`QualityBadge`, `style.css`), update the unit tests in `tests/unit/badge.test.ts`, and document the rule in `contracts/turn-payload.md` (§2, §3) and `spec.md` (FR-058)
+
+### Badges were invisible (Tailwind never generated non-perfect bg utilities)
+
+- [x] T112 Fix the invisible assessment pills found while inspecting the user's sessions via chrome-devtools: `QualityBadge.vue` built the class dynamically as `bg-badge-${tier}`, so Tailwind v4 only generated `bg-badge-perfect` (the sole literal match, in a test file) and `good`/`acceptable`/`unsatisfactory` (and later `unknown`) pills had a transparent background with near-white text → the assessment looked empty. The `TIER_CLASS` map now holds the full literal class names; a component test checks all five tiers, and the dialogue e2e asserts the badge's computed background is not transparent
+
 ---
 
 ## Dependencies & Execution Order

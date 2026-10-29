@@ -31,6 +31,12 @@ test.describe('dialogue cycle', () => {
     // badge wording and interpretation (the learner's answer, translated into German)
     await expect(feedback).toContainText('Well done!')
     await expect(feedback).toContainText('Ist der Waschraum neben den Duschen?')
+    // The badge must be a visible coloured pill (its bg utility is not generated otherwise).
+    const badgeBg = await page.evaluate(() => {
+      const el = document.querySelector('span[class*="bg-badge-"]')
+      return el ? getComputedStyle(el).backgroundColor : null
+    })
+    expect(badgeBg ?? 'rgba(0, 0, 0, 0)').not.toBe('rgba(0, 0, 0, 0)')
     // The translation moved to the partner bubble (FR-057) — not duplicated here.
     await expect(feedback).not.toContainText('Hallo! Schön, dich zu treffen.')
   })

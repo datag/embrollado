@@ -118,7 +118,11 @@ Sent as `response_format.json_schema` with `strict: true`. Every property is lis
 
 **Validation on arrival** (the app is the last line of defence):
 
-- `badge.tier` outside the four values ⇒ the badge is shown as `acceptable` and the turn is flagged
+- `badge` missing, `null` or not an object ⇒ the turn is rated `unknown` (grey) — the json_object
+  fallback does not enforce the schema, so a weak model may omit the field. The app never invents
+  a rating: no `acceptable` fallback in that case (owner decision), and the assessment is never
+  empty (FR-025, SC-003).
+- `badge.tier` outside the four values ⇒ the badge is shown as `unknown` and the turn is flagged
   internally (FR-025).
 - `assumptions[].original` does not appear in the learner's text ⇒ the assumption is dropped.
 - The number of assumptions is capped at 5; the rest are dropped.
@@ -132,10 +136,13 @@ Sent as `response_format.json_schema` with `strict: true`. Every property is lis
 | `good`           | Good                 | "Good!", "Well done!"      | "Gut!", "Gut gemacht!"    |
 | `acceptable`     | Acceptable           | "Acceptable", "That works" | "Akzeptabel", "Das geht"  |
 | `unsatisfactory` | Unsatisfying         | "Not quite", "What?"       | "Noch nicht ganz", "Wie?" |
+| `unknown`        | No rating could be determined (grey) | "No assessment" | "Keine Bewertung"        |
 
 - The model returns the **tier** and a **label key**. The wording itself comes from the
   translation files (FR-041), so the same tier can be shown with different wordings on different
   turns (FR-042) without the model choosing the wording.
+- `unknown` is **not** a tier the model may return — it is an app-side fallback for a missing or
+  malformed rating, shown in grey. The app never invents a rating (owner decision).
 - Each tier has at least two variants per locale. The app picks one — by default the next unused
   variant of the previous turn, so consecutive turns rarely repeat the same word.
 - The tier is judged **relative to the selected level** (FR-043): the same sentence earns a

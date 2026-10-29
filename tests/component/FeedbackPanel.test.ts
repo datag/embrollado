@@ -67,13 +67,16 @@ describe('feedback panel (T046, T052)', () => {
     expect(wrapper.text()).toContain('Good!')
   })
 
-  it('has a distinct coloured badge per tier', () => {
-    const wrapper = mountPanel(
-      makeTurn({ badge: { tier: 'perfect', labelKey: 'perfect.0', label: 'Perfect!' } }),
-    )
-    const badgeEl = wrapper
-      .findAll('span')
-      .find((s) => s.classes().some((c) => c.startsWith('bg-badge-')))
-    expect(badgeEl?.classes()).toContain('bg-badge-perfect')
+  it('has a distinct full-literal badge class per tier (visible in the compiled CSS)', () => {
+    const tiers = ['perfect', 'good', 'acceptable', 'unsatisfactory', 'unknown'] as const
+    for (const tier of tiers) {
+      const wrapper = mountPanel(
+        makeTurn({ badge: { tier, labelKey: `${tier}.0`, label: tier } }),
+      )
+      const badgeEl = wrapper
+        .findAll('span')
+        .find((s) => s.classes().some((c) => c.startsWith('bg-badge-')))
+      expect(badgeEl?.classes()).toContain(`bg-badge-${tier}`)
+    }
   })
 })

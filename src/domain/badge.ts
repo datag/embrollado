@@ -12,9 +12,9 @@ export function isTier(value: unknown): value is BadgeTier {
   return typeof value === 'string' && (TIERS as string[]).includes(value)
 }
 
-/** Invalid tiers fall back to `acceptable` (FR-025) — a malformed answer never breaks the layout. */
+/** Invalid tiers rate as `unknown` (FR-025) — the app never invents a rating. */
 export function sanitizeTier(value: unknown): BadgeTier {
-  return isTier(value) ? value : 'acceptable'
+  return isTier(value) ? value : 'unknown'
 }
 
 export function variantsFor(tier: BadgeTier, locale: string): string[] {
@@ -31,7 +31,7 @@ export interface BuiltBadge {
 
 /**
  * Build a final, stored badge from the model's answer:
- *  - the tier is sanitised (fallback `acceptable`);
+ *  - the tier is sanitised (a missing or invalid rating becomes `unknown`);
  *  - a valid key the model supplied is respected;
  *  - otherwise the next variant index after the previous turn's is chosen.
  */

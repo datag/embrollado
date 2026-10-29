@@ -96,15 +96,16 @@ export function assembleFeedback(raw: unknown, ctx: AssembleContext): TurnFeedba
 
   let badge: Badge | null = null
   let badgeIndex = ctx.previousBadgeIndex
-  if (value.badge && typeof value.badge === 'object') {
-    const built = buildBadge(
-      value.badge as { tier?: unknown; labelKey?: unknown },
-      ctx.locale,
-      badgeIndex,
-    )
-    badge = built.badge
-    badgeIndex = built.index
-  }
+  // Every answer must receive a rating (FR-040, SC-003). The strict schema enforces `badge`, but
+  // in the json_object fallback weak models often omit it — a missing or malformed rating then
+  // shows as `unknown` (grey), never an invented `acceptable` (owner decision).
+  const badgeInput =
+    value.badge && typeof value.badge === 'object'
+      ? (value.badge as { tier?: unknown; labelKey?: unknown })
+      : {}
+  const built = buildBadge(badgeInput, ctx.locale, ctx.previousBadgeIndex)
+  badge = built.badge
+  badgeIndex = built.index
 
   return {
     translation,

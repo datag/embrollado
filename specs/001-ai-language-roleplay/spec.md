@@ -402,6 +402,9 @@ service without those capabilities and verify the graceful fallback.
   different wording than in the previous turn without changing the tier.
 - **FR-043**: The tier MUST be derived from the correctness and the quality of the answer relative
   to the selected level, and MUST NOT be expressed as a numeric score.
+- **FR-058**: When no rating can be determined (the model omitted or malformed the badge), the app
+  MUST show a grey `unknown` assessment — it MUST NOT invent a rating. `unknown` is an app-side
+  state, never a tier the model returns.
 
 **Catalogue content and learner-defined entries**
 

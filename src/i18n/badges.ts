@@ -12,12 +12,14 @@ export const BADGE_VARIANTS: Record<string, Record<BadgeTier, string[]>> = {
     good: ['Good!', 'Well done!', 'Nice!'],
     acceptable: ['Acceptable', 'That works', 'Okay'],
     unsatisfactory: ['Not quite', 'What?', 'Almost'],
+    unknown: ['No assessment'],
   },
   de: {
     perfect: ['Perfekt!', 'Sehr gut!', 'Großartig!'],
     good: ['Gut!', 'Gut gemacht!', 'Prima!'],
     acceptable: ['Akzeptabel', 'Das geht', 'In Ordnung'],
     unsatisfactory: ['Noch nicht ganz', 'Wie bitte?', 'Fast'],
+    unknown: ['Keine Bewertung'],
   },
 }
 

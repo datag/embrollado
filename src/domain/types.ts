@@ -4,7 +4,7 @@
 
 export type Level = 'beginner' | 'intermediate' | 'expert'
 export type SessionState = 'active' | 'ended'
-export type BadgeTier = 'perfect' | 'good' | 'acceptable' | 'unsatisfactory'
+export type BadgeTier = 'perfect' | 'good' | 'acceptable' | 'unsatisfactory' | 'unknown'
 export type IssueCategory = 'grammar' | 'vocabulary' | 'usage' | 'completeness'
 export type IllustrationMoment = 'start' | 'key' | 'end'
 export type Origin = 'builtin' | 'learner'

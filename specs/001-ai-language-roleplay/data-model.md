@@ -74,7 +74,7 @@ One cycle step of a session. FR-006…FR-014, FR-040…FR-043.
 | `correctedText`       | string \| null        | The learner's answer, corrected; stays in the target language (FR-036)  |
 | `interpretation`      | string \| null        | The learner's answer translated into the native language (what their words mean) |
 | `assumptions`         | `Assumption[]`        | The gaps that were filled (FR-009)                                      |
-| `badge`               | `Badge \| null`       | The four-tier rating (FR-040)                                           |
+| `badge`               | `Badge \| null`       | The four-tier rating (FR-040); `unknown` when the model gave no usable rating |
 | `issues`              | `Issue[]`             | Concrete things to improve, derived from the model's issue list         |
 | `illustrationId`      | UUID \| null          | FK → Illustration                                                       |
 | `audioId`             | UUID \| null          | FK → the cached AudioEntry for this line                                |
@@ -202,7 +202,7 @@ FR-040…FR-043.
 
 | Field      | Type                                                      | Rules                                                                                                       |
 | ---------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `tier`     | `"perfect" \| "good" \| "acceptable" \| "unsatisfactory"` | Required, exactly one of four                                                                               |
+| `tier`     | `"perfect" \| "good" \| "acceptable" \| "unsatisfactory" \| "unknown"` | Required; the four rating values, plus the app-side `unknown` state (missing/malformed rating, grey) |
 | `labelKey` | string                                                    | Required — the key of the wording variant shown; the wording itself lives in the translation files (FR-041) |
 | `label`    | string                                                    | The rendered label, stored so a stored transcript keeps the wording it was shown with                       |
 
@@ -243,7 +243,7 @@ sessions (edge case in the spec).
 | `session.language` is in the catalogue's language list                           | FR-002                      | `domain/catalogue.ts`                                                      |
 | `session.level` ∈ {beginner, intermediate, expert}                               | FR-002                      | `domain/catalogue.ts`                                                      |
 | A turn always has a badge unless the learner has not answered yet                | FR-040                      | `domain/session.ts`                                                        |
-| A badge tier is one of exactly four values                                       | FR-040                      | `domain/badge.ts`                                                          |
+| A badge tier is one of the four rating values, or `unknown` for an unratable turn | FR-040, FR-058             | `domain/badge.ts`                                                          |
 | A badge label is one of the locale's variants for that tier                      | FR-041, FR-042              | `i18n/badges.ts`                                                           |
 | A learner-defined persona has a name; a learner-defined situation has a setting  | FR-048                      | `views/SetupView.vue` + `data/profile.ts`                                  |
 | A learner-defined entry is either a template or session-only                     | FR-045, FR-046              | `data/profile.ts`                                                          |
@@ -301,9 +301,10 @@ keeps the partner line if it had already been streamed.
 ### Badge tier
 
 The tier is chosen by the model from the answer's correctness and quality **relative to the
-selected level** (FR-043). The app validates the returned tier against the four allowed values
-and falls back to `acceptable` when the model returns something unexpected, so a malformed answer
-can never break the layout (FR-025).
+selected level** (FR-043). The app validates the returned tier against the four rating values;
+when the model returns something unexpected or omits the badge entirely (typical with the
+`json_object` fallback), the badge shows as `unknown` (grey) — the app never invents a rating
+(FR-058, FR-025), and the assessment is never empty.
 
 ## 6. Storage operations that need care
 
