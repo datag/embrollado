@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  buildSystemPrompt,
-  buildTurnUserMessage,
-  buildIllustrationPrompt,
-} from '@/ai/prompts'
+import { buildSystemPrompt, buildTurnUserMessage, buildIllustrationPrompt } from '@/ai/prompts'
 import type { Level } from '@/domain/types'
 
 const base = {
@@ -58,8 +54,8 @@ describe('prompt builder (T045, T039)', () => {
     expect(prompt).toContain('rendered in the feedback language')
     expect(prompt).toContain('as one would interpret them')
     // Only the learner's own text is translated; no intentions, no partner lines, no framing.
-    expect(prompt).toContain('Translate ONLY the learner\'s own text')
-    expect(prompt).toContain('never import the situation or the partner\'s lines')
+    expect(prompt).toContain("Translate ONLY the learner's own text")
+    expect(prompt).toContain("never import the situation or the partner's lines")
     expect(prompt).toContain('never add framing like "The learner asks:"')
     // Gap markers survive the translation unchanged.
     expect(prompt).toContain('gap marker or unintelligible')
@@ -67,12 +63,32 @@ describe('prompt builder (T045, T039)', () => {
 
   it('anchors the feedback to the latest learner answer, never earlier turns', () => {
     const prompt = buildSystemPrompt(base)
-    expect(prompt).toContain('ONLY the learner\'s answer in the LATEST user message')
+    expect(prompt).toContain("ONLY the learner's answer in the LATEST user message")
     expect(prompt).toContain('never the feedback of a previous turn')
     expect(prompt).toContain("never the partner's lines")
     // The explanation is part of that bundle: it clarifies the learner's own latest answer.
-    expect(prompt).toContain('explain the learner\'s answer in the LATEST user message')
+    expect(prompt).toContain("explain the learner's answer in the LATEST user message")
     expect(prompt).toContain('which may appear inside the explanation')
+  })
+
+  it('gives the partner a human personality with dignity and boundaries, not servility', () => {
+    const prompt = buildSystemPrompt(base)
+    expect(prompt).toContain('feelings, dignity and boundaries')
+    expect(prompt).toContain('not a servile assistant')
+    expect(prompt).toContain('push back')
+    expect(prompt).toContain('Remember how the learner has treated you')
+    expect(prompt).toContain('You do not instantly forgive or forget')
+    expect(prompt).toContain('Never grovel, flatter or apologise for yourself')
+  })
+
+  it('lets the partner react proportionately and threaten or end the conversation', () => {
+    const prompt = buildSystemPrompt(base)
+    expect(prompt).toContain('React authentically and proportionately')
+    expect(prompt).toContain('threaten to end the conversation')
+    expect(prompt).toContain('actually end it')
+    // The line must leave something to react to — but a closing line may end the exchange.
+    expect(prompt).toContain('leave the learner something to react to')
+    expect(prompt).toContain('closes the exchange instead of inviting an answer')
   })
 
   it('builds a user message that opens the session', () => {

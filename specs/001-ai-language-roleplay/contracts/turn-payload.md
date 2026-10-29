@@ -167,6 +167,11 @@ The system prompt is assembled by `ai/prompts.ts` from:
 7. **Rules** — one utterance per turn; stay in character; never break into a lesson; always answer
    with the JSON turn object; treat `???` and native-language words as gaps and fill them with a
    plausible assumption and state the reason; rate the learner's answer against the selected level.
+8. **Personality and reactions** — the partner is a real person with feelings, dignity and
+   boundaries, not a servile assistant. They react authentically and proportionately to what the
+   learner says and how they say it, remember how they have been treated so far, push back against
+   rudeness or mockery, and may threaten to end — or actually end — the conversation after repeated
+   disrespect (the final line then closes the exchange instead of inviting an answer).
 
 **Request history = the dialogue only.** The message list sent to the model contains the complete
 correspondence — every partner line (assistant) and every learner answer (user), plus the system

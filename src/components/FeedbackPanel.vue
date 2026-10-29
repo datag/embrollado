@@ -13,7 +13,7 @@ const heading = 'text-xs font-semibold uppercase tracking-wide text-fg-muted'
 
 <template>
   <div
-    class="feedback-prose rounded-xl border border-border bg-surface-raised p-3"
+    class="feedback-prose rounded-xl border border-border bg-surface-muted p-3"
     data-testid="feedback"
   >
     <!-- Fixed order (settings-profile.md §3): explanation → correction → interpretation →

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSession } from '@/composables/useSession'
 import type { Illustration, Session, Turn } from '@/domain/types'
@@ -43,6 +43,8 @@ async function loadIllustrations() {
 onMounted(async () => {
   await sessionState.load(sessionId.value)
   await loadIllustrations()
+  // Resume a conversation with the newest content in view.
+  void nextTick(() => scrollToBottom(false))
 })
 
 // New turns may bring a freshly generated illustration — fetch it when the turn list changes.
@@ -86,6 +88,51 @@ const errorKind = computed(() => sessionState.error.value?.kind ?? null)
 const errorMessage = computed(() => sessionState.error.value?.message ?? '')
 const offline = computed(() => typeof navigator !== 'undefined' && navigator.onLine === false)
 const statusHint = computed(() => (offline.value ? 'network' : null) ?? errorKind.value)
+
+/* ------------------------------------------------------------------ */
+/* Auto-scroll: keep the newest content in view (no dedicated scroll   */
+/* container — the window scrolls, the composer is sticky at the foot). */
+/* ------------------------------------------------------------------ */
+
+function maxScrollTop(): number {
+  const doc = document.documentElement
+  const height = Math.max(doc.scrollHeight, document.body.scrollHeight, doc.offsetHeight)
+  return Math.max(0, height - window.innerHeight)
+}
+
+function reduceMotion(): boolean {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+/** Scroll the window to the bottom. `smooth` unless the user prefers reduced motion. */
+function scrollToBottom(smooth = true) {
+  window.scrollTo({ top: maxScrollTop(), behavior: smooth && !reduceMotion() ? 'smooth' : 'auto' })
+}
+
+/** True while the viewport is at/near the bottom (threshold px). */
+function isNearBottom(threshold = 120): boolean {
+  return maxScrollTop() <= window.scrollY + threshold
+}
+
+// Follow the streamed partner line only while the learner is watching the bottom — a manual
+// scroll-up to re-read is never overridden mid-stream.
+watch(
+  () => sessionState.partnerProgress.value,
+  () => {
+    if (streaming.value && isNearBottom()) scrollToBottom(false)
+  },
+  { flush: 'post' },
+)
+
+// A completed message (feedback + partner line) always scrolls into view — the learner just sent
+// an answer, so the new content belongs at the foot of the conversation.
+watch(
+  () => turns.value,
+  () => {
+    void nextTick(() => scrollToBottom(true))
+  },
+  { flush: 'post' },
+)
 </script>
 
 <template>

@@ -97,6 +97,37 @@ test.describe('dialogue cycle', () => {
     await expect(page.getByText('Nice to meet you').last()).toBeVisible()
   })
 
+  test('scrolls the window to the bottom when a new message arrives', async ({ page }) => {
+    await configureService(page)
+    await startConversation(page)
+    await expectPartnerLine(page, 'Hello! Nice to meet you.')
+
+    // Grow the transcript so it overflows even the tallest mobile viewport.
+    for (let i = 0; i < 3; i++) {
+      await page.getByTestId('dialogue-input').fill('Where do you come from?')
+      await page.getByTestId('send').click()
+      await expect(page.getByTestId('feedback')).toHaveCount(i + 1, { timeout: 20_000 })
+    }
+
+    // The transcript must overflow the viewport for the assertion to be meaningful.
+    const maxScroll = await page.evaluate(() => {
+      const doc = document.documentElement
+      return Math.max(doc.scrollHeight, document.body.scrollHeight) - window.innerHeight
+    })
+    expect(maxScroll).toBeGreaterThan(0)
+
+    // And the app must follow the new content down instead of leaving the learner to scroll.
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const doc = document.documentElement
+          const max = Math.max(doc.scrollHeight, document.body.scrollHeight) - window.innerHeight
+          return window.scrollY >= max - 4
+        }),
+      )
+      .toBe(true)
+  })
+
   test('continues a running session after a reload (history rebuilt from stored turns)', async ({
     page,
   }) => {
