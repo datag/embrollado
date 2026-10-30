@@ -44,8 +44,10 @@ export default {
     level: 'Niveau',
     situation: 'Situation',
     situationCustom: 'Eigene schreiben',
+    situationSearch: 'Situation, Stichwort…',
     partner: 'Partner',
     partnerCustom: 'Eigene schreiben',
+    partnerSearch: 'Name, Beruf, Stichwort…',
     options: 'Gesprächs-Optionen',
     knowsLearner: 'Die KI-Persona kennt dich bereits',
     knowsLearnerHint:
@@ -80,7 +82,6 @@ export default {
     situationName: 'Name',
     setting: 'Ort / was passiert',
     description: 'Kurze Beschreibung',
-    language: 'Sprache dieses Textes',
     saveTemplate: 'Als Vorlage speichern',
     sessionOnly: 'Nur für dieses Gespräch',
     save: 'Weiter',

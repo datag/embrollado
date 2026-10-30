@@ -95,7 +95,6 @@ FR-003, FR-044, FR-045, FR-046.
 | `description` | string                         | Required, ≤ 400 characters — the short biography the model plays                                      |
 | `origin`      | `"builtin" \| "learner"`       | Required                                                                                              |
 | `visibility`  | `"template" \| "session-only"` | Required — a saved template persists; a session-only entry is used for one session and then discarded |
-| `language`    | ISO 639-1 \| null              | Required for learner-defined entries: the language the description is written in                      |
 | `createdAt`   | ISO 8601 string                | Required for learner-defined entries                                                                  |
 
 ### Situation
@@ -111,7 +110,6 @@ FR-003, FR-044, FR-045, FR-046.
 | `suggestedPartners` | string[]                       | Optional hints; not a restriction (FR-044)                                                 |
 | `origin`            | `"builtin" \| "learner"`       | Required                                                                                   |
 | `visibility`        | `"template" \| "session-only"` | Required                                                                                   |
-| `language`          | ISO 639-1 \| null              | Required for learner-defined entries                                                       |
 | `createdAt`         | ISO 8601 string                | Required for learner-defined entries                                                       |
 
 ### LearnerProfile

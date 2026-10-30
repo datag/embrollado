@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { SITUATIONS } from '@/domain/catalogue'
 import type { Situation } from '@/domain/types'
@@ -45,14 +45,20 @@ const filtered = computed(() => {
 
 // A custom entry sits at the end of the scrollable list; keep the selected row in view.
 const listEl = ref<HTMLElement | null>(null)
-watch(value, async (id, prev) => {
-  if (id && id !== prev) {
-    await nextTick()
-    listEl.value
-      ?.querySelector<HTMLElement>(`[data-entry-id="${id}"]`)
-      ?.scrollIntoView({ block: 'nearest' })
-  }
-})
+
+function scrollToSelected() {
+  const id = props.modelValue
+  if (!id) return
+  listEl.value
+    ?.querySelector<HTMLElement>(`[data-entry-id="${id}"]`)
+    ?.scrollIntoView({ block: 'nearest' })
+}
+
+// The picker is remounted when a custom form closes (v-if) and template entries can arrive after
+// the mount (a "save as template" write finishes only after the list refreshes), so scroll to the
+// selected row on mount, on every selection change, and whenever the entry list itself changes.
+onMounted(() => nextTick(scrollToSelected))
+watch([value, entries], () => nextTick(scrollToSelected))
 
 function visibilityBadge(s: Situation): { label: string; cls: string } {
   if (s.visibility === 'template')

@@ -113,7 +113,6 @@ export interface Persona {
   description: string
   origin: Origin
   visibility: Visibility
-  language: string | null
   createdAt: string | null
 }
 
@@ -126,7 +125,6 @@ export interface Situation {
   suggestedPartners: string[]
   origin: Origin
   visibility: Visibility
-  language: string | null
   createdAt: string | null
 }
 

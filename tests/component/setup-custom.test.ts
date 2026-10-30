@@ -150,4 +150,37 @@ describe('custom situation in the Setup screen', () => {
     expect(entryButton(wrapper, 'My custom situation')).toBeUndefined()
     vi.unstubAllGlobals()
   })
+
+  it('scrolls the freshly added custom entry into view after saving', async () => {
+    const calls: unknown[][] = []
+    const original = HTMLElement.prototype.scrollIntoView
+    HTMLElement.prototype.scrollIntoView = function (...args: unknown[]) {
+      calls.push(args)
+    }
+    try {
+      const { wrapper } = await mountSetup()
+      await createCustomSituation(wrapper)
+      // The picker remounts with the selection already set, so the mount scroll must have run.
+      expect(calls.length).toBeGreaterThan(0)
+      expect(calls[0][0]).toEqual({ block: 'nearest' })
+    } finally {
+      HTMLElement.prototype.scrollIntoView = original
+    }
+  })
+
+  it('shows picker-specific search placeholders, not the session-list one', async () => {
+    const { wrapper } = await mountSetup()
+    const [situationInput, partnerInput] = wrapper.findAll('input[type="search"]')
+    expect(situationInput.attributes('placeholder')).toBe('Situation, keyword…')
+    expect(partnerInput.attributes('placeholder')).toBe('Name, occupation, keyword…')
+  })
+
+  it('no longer asks for the language of the description', async () => {
+    const { wrapper } = await mountSetup()
+    await list(wrapper).findAll('button').at(-1)?.trigger('click')
+    await settle()
+    expect(wrapper.text()).not.toContain('Language of this text')
+    // The situation form now has no selects at all (gender/age are partner-only).
+    expect(wrapper.find('form select').exists()).toBe(false)
+  })
 })

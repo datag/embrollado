@@ -66,7 +66,6 @@ const sit = (
   suggestedPartners,
   origin: 'builtin',
   visibility: 'template',
-  language: null,
   createdAt: null,
 })
 
@@ -173,7 +172,6 @@ const pers = (
   description,
   origin: 'builtin',
   visibility: 'template',
-  language: null,
   createdAt: null,
 })
 

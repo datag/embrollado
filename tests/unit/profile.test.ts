@@ -18,7 +18,6 @@ function persona(id: string): Persona {
     description: 'description',
     origin: 'learner',
     visibility: 'template',
-    language: 'en',
     createdAt: '2026-01-01T00:00:00.000Z',
   }
 }
@@ -32,7 +31,6 @@ function situation(id: string): Situation {
     suggestedPartners: [],
     origin: 'learner',
     visibility: 'template',
-    language: 'en',
     createdAt: '2026-01-01T00:00:00.000Z',
   }
 }

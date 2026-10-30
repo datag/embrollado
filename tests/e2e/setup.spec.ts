@@ -27,6 +27,7 @@ test('a one-off situation is listed, visibly selected and marked ONE-TIME, and g
   // Listed and marked as one-off, with the built-in "write my own" row still there.
   const entry = situationPicker(page).getByRole('button', { name: /Park bench chat/ })
   await expect(entry).toBeVisible()
+  await expect(entry).toBeInViewport() // the list scrolled the fresh entry into view
   await expect(entry).toContainText('ONE-TIME')
   await expect(entry).toHaveClass(/border-accent/) // the selected highlight
   // The selected row offers promote (★) and remove (✕).
@@ -48,6 +49,7 @@ test('a template situation appears immediately with the CUSTOM badge and survive
   // Immediately visible in the list (the refresh race is fixed), marked CUSTOM, no promote action.
   const entry = situationPicker(page).getByRole('button', { name: /Hotel bar small talk/ })
   await expect(entry).toBeVisible()
+  await expect(entry).toBeInViewport()
   await expect(entry).toContainText('CUSTOM')
   await expect(entry).toHaveClass(/border-accent/)
   await expect(situationPicker(page).getByTestId('promote-entry')).not.toBeVisible()

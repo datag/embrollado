@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { LANGUAGES } from '@/domain/catalogue'
 import type { Gender, Persona, Situation } from '@/domain/types'
 
 const props = defineProps<{ kind: 'partner' | 'situation' }>()
@@ -14,7 +13,6 @@ const age = ref<number | null>(null)
 const gender = ref<Gender | null>(null)
 const occupation = ref('')
 const text = ref('') // description (partner) or setting (situation)
-const language = ref('en')
 const saveTemplate = ref(false)
 
 const isPartner = computed(() => props.kind === 'partner')
@@ -49,7 +47,6 @@ function save() {
       description: text.value.trim().slice(0, 400),
       origin: 'learner',
       visibility: saveTemplate.value ? 'template' : 'session-only',
-      language: language.value,
       createdAt: now,
     }
     emit('saved', persona, saveTemplate.value)
@@ -62,7 +59,6 @@ function save() {
       suggestedPartners: [],
       origin: 'learner',
       visibility: saveTemplate.value ? 'template' : 'session-only',
-      language: language.value,
       createdAt: now,
     }
     emit('saved', situation, saveTemplate.value)
@@ -143,15 +139,6 @@ function save() {
         class="w-full rounded-lg border border-border px-3 py-2"
         :class="textTooLong ? 'border-error' : ''"
       />
-    </label>
-
-    <label class="mb-3 block">
-      <span class="mb-1 block text-sm">{{ $t('customForm.language') }}</span>
-      <select v-model="language" class="min-h-11 w-full rounded-lg border border-border px-3">
-        <option v-for="l in LANGUAGES" :key="l.code" :value="l.code">
-          {{ l.nameEn }} — {{ l.nativeName }}
-        </option>
-      </select>
     </label>
 
     <div class="mb-3 flex items-center gap-2">

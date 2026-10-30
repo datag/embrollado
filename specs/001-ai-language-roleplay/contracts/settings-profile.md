@@ -127,7 +127,6 @@ streaming, complete, failed (with the learner's text kept and a retry), offline,
 | Age (partner), optional           | 0…120                                | —           |
 | Occupation (partner)              | Required, ≤ 60 characters            | FR-048      |
 | Description / Setting             | Required, ≤ 400 characters           | FR-048      |
-| Language of the description       | Required for learner-defined entries | —           |
 | Save as a template                | Toggle                               | FR-045      |
 | Use for this session only         | The default when not saving          | FR-046      |
 

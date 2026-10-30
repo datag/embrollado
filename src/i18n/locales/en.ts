@@ -44,8 +44,10 @@ export default {
     level: 'Level',
     situation: 'Situation',
     situationCustom: 'Write my own',
+    situationSearch: 'Situation, keyword…',
     partner: 'Partner',
     partnerCustom: 'Write my own',
+    partnerSearch: 'Name, occupation, keyword…',
     options: 'Conversation options',
     knowsLearner: 'The AI partner already knows you',
     knowsLearnerHint:
@@ -79,7 +81,6 @@ export default {
     situationName: 'Name',
     setting: 'Setting / what is happening',
     description: 'Short description',
-    language: 'Language of this text',
     saveTemplate: 'Save as a template',
     sessionOnly: 'Use for this conversation only',
     save: 'Continue',
