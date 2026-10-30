@@ -32,26 +32,34 @@ Offene Punkte, nach Themen gruppiert.
 - [ ] Falls AI am Zuge ist (laufender Request), dann Absenden-Button nicht aktivieren
 
 
-## Profil & Persona
-
-- [ ] Profile-Setting: Zielgruppe einstellbar (Kind vs. Erwachsener) oder automatisch aus dem Alter ableiten. Hinweis: Ableitung aus dem Alter schließt ein „Alter-Ego“ aus.
-
 ## TTS / Audio
 
 - [ ] TTS Voices auswählbar (männlich/weiblich, jung/alt).
 - [ ] TTS auch für die eigene (User-)Message? Ggf. als Einstellung.
 - [ ] Option für lokales TTS (browser-feature oder local model).
 
+## Image Generation
+
+- [ ] Prüfen: Bekommt Image-Gen den vollen Kontext, inkl. Aussehen der Personen?
+- [ ] Konsistente Images (also bei Folge-Bildern)
+
 ## Darstellung
 
 - [x] User-Message sofort rendern, während AI-Request noch passiert. _(Umsetzung: `useSession` exponiert `pendingLearnerText` — die getippte Antwort wird synchron beim Senden als Lernenden-Bubble gerendert und erst nach Erfolg durch den gespeicherten Turn ersetzt; bei Fehlern bleibt sie sichtbar.)_
 - [ ] Emoji für Stimmungen?
 - [ ] Bildstil (Illustrationen) festlegen.
+- [ ] Buttons sollen Feedback geben
+- [ ] Auto-Scroll to bottom auch bei Bild-Generierung Ergebnis
 
 ## Gesprächs-Lebenszyklus
 
 - [ ] Beendetes Gespräch: entweder die Beenden-Funktion entfernen oder das Wiedereröffnen erlauben.
 
+## Profil & Persona
+
+- [ ] Zielgruppe einstellbar (Kind vs. Erwachsener) oder automatisch aus dem Alter ableiten. Hinweis: Ableitung aus dem Alter schließt ein „Alter-Ego“ aus.
+
 ## Settings & Konfiguration
 
-- [ ] Settings: Auth-style / Provider-Profil – URL als separate Option anbieten?
+- [ ] Auth-style / Provider-Profil – URL als separate Option anbieten?
+- [ ] Optionen "Play the partner's lines" und "Generate pictures": Welchen Nutzen haben diese? Entfernen?
