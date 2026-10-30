@@ -95,6 +95,7 @@ export default {
     connectHint: 'Beendet — du kannst das Protokoll lesen und exportieren.',
     showTranslation: 'Übersetzung zeigen',
     hideTranslation: 'Übersetzung verbergen',
+    stopSpeech: 'Wiedergabe stoppen',
     illustration: 'Bild erzeugen',
     illustrationBusy: 'Bild wird erzeugt…',
     illustrationAlt: 'Illustration des aktuellen Gesprächsmoments',

@@ -24,7 +24,6 @@ Offene Punkte, nach Themen gruppiert.
 
 ## Konversation
 
-- [ ] Falls AI am Zuge ist (laufender Request), dann Absenden-Button nicht aktivieren
 - [ ] Beendetes Gespräch: entweder die Beenden-Funktion entfernen oder das Wiedereröffnen erlauben.
 
 
@@ -43,7 +42,6 @@ Offene Punkte, nach Themen gruppiert.
 
 - [ ] Emoji für Stimmungen?
 - [ ] Bildstil (Illustrationen) festlegen.
-- [ ] Buttons sollen Feedback geben
 - [ ] Auto-Scroll to bottom auch bei Bild-Generierung Ergebnis
 - [ ] AJAX-/AI-Request-Loading soll visuell ansprechender sein
 

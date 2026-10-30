@@ -130,8 +130,12 @@ const server = http.createServer((req, res) => {
               'thirties in front of a small campsite washroom building at dusk.',
           }
         : TURN
+      // The `mock-slow-chat` model answers only after a delay — the e2e tests use it to observe
+      // the locked send button / spinner while a request is in flight for a comfortable window.
+      const delayMs = parsed.model === 'mock-slow-chat' ? 3000 : 0
       if (stream) {
-        sendStream(res, payload)
+        if (delayMs) setTimeout(() => sendStream(res, payload), delayMs)
+        else sendStream(res, payload)
         return
       }
       const usage = { prompt_tokens: 10, completion_tokens: 8, total_tokens: 18 }
@@ -166,7 +170,9 @@ const server = http.createServer((req, res) => {
         /* ignore */
       }
       const sampleRate = 24000
-      const seconds = 0.3
+      // `mock-slow-speech` returns a longer clip so the e2e test can observe the Stop control
+      // while the partner line plays instead of missing the (too short) window.
+      const seconds = parsed.model === 'mock-slow-speech' ? 3 : 0.3
       const n = Math.floor(sampleRate * seconds)
       if (parsed.response_format === 'pcm') {
         const raw = Buffer.alloc(n * 2) // silence, 16-bit little-endian

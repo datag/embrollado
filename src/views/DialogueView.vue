@@ -11,6 +11,7 @@ import { getIllustrationsBySession } from '@/data/media'
 import TurnBubble from '@/components/TurnBubble.vue'
 import FeedbackPanel from '@/components/FeedbackPanel.vue'
 import SpeechButton from '@/components/SpeechButton.vue'
+import SpinnerIcon from '@/components/SpinnerIcon.vue'
 import TranslationToggle from '@/components/TranslationToggle.vue'
 import IllustrationPanel from '@/components/IllustrationPanel.vue'
 import ImageModal from '@/components/ImageModal.vue'
@@ -121,6 +122,9 @@ async function onPlay(turn: Turn) {
     delete speechHints.value[turn.id]
   }
 }
+
+const speakingTurnId = computed(() => sessionState.speakingTurnId.value)
+const speechBusyTurnId = computed(() => sessionState.speechRequestTurnId.value)
 
 function speechHint(turnId: string): string | null {
   return (
@@ -295,6 +299,8 @@ watch(
               <SpeechButton
                 class="shrink-0"
                 :label="$t('settings.speech')"
+                :active="speakingTurnId === turn.id"
+                :busy="speechBusyTurnId === turn.id"
                 :hint="
                   speechHint(turn.id)
                     ? speechHint(turn.id) === 'speechUnavailable'
@@ -303,6 +309,7 @@ watch(
                     : null
                 "
                 @play="onPlay(turn)"
+                @stop="sessionState.stopSpeaking"
               />
               <TranslationToggle
                 v-if="!readOnly && turn.translation"
@@ -365,6 +372,7 @@ watch(
             type="button"
             data-testid="illustration-button"
             class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border text-fg disabled:opacity-50"
+            :class="illustrationBusy ? 'cursor-wait' : ''"
             :disabled="streaming || illustrationBusy"
             :aria-label="
               illustrationBusy ? $t('dialogue.illustrationBusy') : $t('dialogue.illustration')
@@ -383,11 +391,7 @@ watch(
                 d="M21 3H3a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zM10 13l2.5-3 2.5 3 2-2.5L20 16H6l2.5-3zM7 7.5A1.5 1.5 0 1 1 7 4.5 1.5 1.5 0 0 1 7 7.5z"
               />
             </svg>
-            <span
-              v-else
-              class="h-5 w-5 animate-pulse rounded-full bg-fg-muted"
-              aria-hidden="true"
-            />
+            <SpinnerIcon v-else />
           </button>
           <textarea
             ref="inputEl"
@@ -403,11 +407,13 @@ watch(
             type="button"
             data-testid="send"
             class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-fg disabled:opacity-50"
+            :class="streaming ? 'cursor-wait' : ''"
             :disabled="!canSend"
             :aria-label="$t('dialogue.send')"
             @click="onSend"
           >
-            <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor" aria-hidden="true">
+            <SpinnerIcon v-if="streaming" />
+            <svg v-else viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor" aria-hidden="true">
               <path d="M3 20.5 21 12 3 3.5v6l12 2.5-12 2.5z" />
             </svg>
           </button>

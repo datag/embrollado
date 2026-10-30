@@ -11,6 +11,7 @@ import SituationPicker from '@/components/SituationPicker.vue'
 import PartnerPicker from '@/components/PartnerPicker.vue'
 import CustomEntryForm from '@/components/CustomEntryForm.vue'
 import ConversationOptions from '@/components/ConversationOptions.vue'
+import SpinnerIcon from '@/components/SpinnerIcon.vue'
 
 const router = useRouter()
 
@@ -145,10 +146,12 @@ function resolvePartner() {
 
     <button
       type="button"
-      class="min-h-11 w-full rounded-lg bg-accent font-medium text-accent-fg disabled:opacity-50"
+      class="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent font-medium text-accent-fg disabled:opacity-50"
+      :class="starting ? 'cursor-wait' : ''"
       :disabled="!situationId || !partnerId || starting"
       @click="begin"
     >
+      <SpinnerIcon v-if="starting" class="h-4 w-4" />
       {{ $t('setup.start') }}
     </button>
   </section>

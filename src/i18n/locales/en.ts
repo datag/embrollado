@@ -95,6 +95,7 @@ export default {
     connectHint: 'Ended — you can read and export the transcript.',
     showTranslation: 'Show translation',
     hideTranslation: 'Hide translation',
+    stopSpeech: 'Stop playback',
     illustration: 'Generate picture',
     illustrationBusy: 'Generating picture…',
     illustrationAlt: 'Illustration of the current moment of the conversation',

@@ -38,6 +38,25 @@ test.describe('speech and illustrations', () => {
     await expect.poll(() => page.getByTestId('speech-hint').count(), { timeout: 15_000 }).toBe(0)
   })
 
+  test('shows a Stop control while a line plays and stops the playback on click', async ({
+    page,
+  }) => {
+    await configureService(page, { speech: true, speechModel: 'mock-slow-speech' })
+    await startConversation(page)
+    await expectPartnerLine(page, 'Hello! Nice to meet you.')
+
+    // The mock-slow-speech clip lasts ~3 s, so the playing state is observable. While the line
+    // plays the button becomes Stop; clicking it stops the playback and restores the play icon.
+    await page.getByTestId('speech-button').first().click()
+    const stop = page.getByTestId('stop-icon')
+    await expect(stop).toBeVisible({ timeout: 15_000 })
+    // No error hint — the request and the playback succeeded.
+    await expect.poll(() => page.getByTestId('speech-hint').count(), { timeout: 15_000 }).toBe(0)
+    await stop.click()
+    await expect(stop).toHaveCount(0)
+    await expect(page.getByTestId('speech-button').first()).toBeEnabled()
+  })
+
   test('replaces the picture on a second request instead of accumulating', async ({ page }) => {
     await configureService(page, { image: true })
     await startConversation(page)

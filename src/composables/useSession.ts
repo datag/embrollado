@@ -68,6 +68,12 @@ export interface UseSessionReturn {
    * provider's raw message. A failure never interrupts the dialogue (FR-030).
    */
   illustrationHint: Ref<string | null>
+  /** Which turn's line is currently being played aloud (null = nothing plays). */
+  speakingTurnId: Ref<string | null>
+  /** Which turn's line is currently being fetched from the speech service (null = idle). */
+  speechRequestTurnId: Ref<string | null>
+  /** Stop the current speech playback, if any. */
+  stopSpeaking: () => void
   /** Generate an illustration of the CURRENT moment — situation, people and dialogue in one
    * context; attaches the picture to the latest turn. Only run from an explicit user action. */
   generateIllustration: () => Promise<void>
@@ -103,6 +109,10 @@ export function useSession(): UseSessionReturn {
   const imagesAvailable = ref(true)
   const illustrationBusy = ref(false)
   const illustrationHint = ref<string | null>(null)
+  const speakingTurnId = ref<string | null>(null)
+  const speechRequestTurnId = ref<string | null>(null)
+  /** The single <audio> element currently playing a partner line, if any. */
+  let audioEl: HTMLAudioElement | null = null
   /** The learner's answer awaiting the model's reply — kept across failures for retry (FR-025). */
   const pendingText = ref<string | null>(null)
   /**
@@ -441,13 +451,34 @@ export function useSession(): UseSessionReturn {
     }
   }
 
+  /** Stop the current speech playback inside this composable scope. */
+  function stopSpeaking() {
+    if (audioEl) {
+      audioEl.pause()
+      audioEl.currentTime = 0
+      audioEl = null
+    }
+    speakingTurnId.value = null
+  }
+
   async function playTurn(turn: Turn): Promise<{ ok: boolean; message: string | null }> {
+    // While a line is playing, its own button becomes Stop.
+    if (speakingTurnId.value === turn.id) {
+      stopSpeaking()
+      return { ok: true, message: null }
+    }
+    // One speech request at a time — later clicks on other lines are ignored until it settles.
+    if (speechRequestTurnId.value) return { ok: false, message: null }
+    // Starting a different line replaces the current playback.
+    if (speakingTurnId.value) stopSpeaking()
+
     const { service } = useServiceConfig()
     if (!service.speechModel) {
       speechAvailable.value = false
       return { ok: false, message: 'speechUnavailable' }
     }
     const voice = service.speechVoice?.trim() || profileById(service.providerProfile).defaultVoice
+    speechRequestTurnId.value = turn.id
     try {
       // Reuse an identical line from the cache (FR-050).
       let audio: AudioEntry | undefined = turn.audioId
@@ -479,15 +510,29 @@ export function useSession(): UseSessionReturn {
         if (session.value) turns.value = await getTurns(session.value.id)
       }
       const url = URL.createObjectURL(audio.bytes)
-      try {
-        const el = new Audio(url)
-        await el.play()
-      } finally {
-        setTimeout(() => URL.revokeObjectURL(url), 10_000)
+      const el = new Audio(url)
+      audioEl = el
+      const cleanup = () => {
+        if (audioEl === el) {
+          audioEl = null
+          speakingTurnId.value = null
+        }
+        URL.revokeObjectURL(url)
       }
+      el.addEventListener('ended', cleanup, { once: true })
+      el.addEventListener('error', cleanup, { once: true })
+      try {
+        await el.play()
+      } catch (err) {
+        cleanup()
+        return { ok: false, message: err instanceof Error ? err.message : 'speechUnavailable' }
+      }
+      speakingTurnId.value = turn.id
       return { ok: true, message: null }
     } catch (err) {
       return { ok: false, message: err instanceof Error ? err.message : 'speechUnavailable' }
+    } finally {
+      speechRequestTurnId.value = null
     }
   }
 
@@ -552,6 +597,9 @@ export function useSession(): UseSessionReturn {
     imagesAvailable,
     illustrationBusy,
     illustrationHint,
+    speakingTurnId,
+    speechRequestTurnId,
+    stopSpeaking,
     generateIllustration,
     isTranslationVisible,
     toggleTranslation,

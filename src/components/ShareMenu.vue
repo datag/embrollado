@@ -7,6 +7,7 @@ import {
   importSessions,
   type ExportDoc,
 } from '@/data/exportImport'
+import SpinnerIcon from '@/components/SpinnerIcon.vue'
 
 /**
  * The Share action (T066, D9): **Download file** and **Import file** are always available; the
@@ -18,6 +19,8 @@ const emit = defineEmits<{ imported: []; cancelled: [] }>()
 
 const fileInput = ref<HTMLInputElement | null>(null)
 const importing = ref(false)
+/** Which export/share action is currently building a blob (single flight). */
+const busy = ref<string | null>(null)
 const importState = ref<{
   doc: ExportDoc
   count: number
@@ -45,28 +48,41 @@ async function exportBlob(withPictures = false): Promise<Blob> {
 }
 
 async function download(withPictures = false) {
-  const blob = await exportBlob(withPictures)
-  const url = URL.createObjectURL(blob)
-  const a = Object.assign(document.createElement('a'), {
-    href: url,
-    download: exportDownloadName(),
-  })
-  document.body.appendChild(a)
-  a.click()
-  a.remove()
-  setTimeout(() => URL.revokeObjectURL(url), 10_000)
-  message.value = { kind: 'ok', key: 'exportDone' }
+  const action = withPictures ? 'exportWithPictures' : 'download'
+  if (busy.value) return
+  busy.value = action
+  try {
+    const blob = await exportBlob(withPictures)
+    const url = URL.createObjectURL(blob)
+    const a = Object.assign(document.createElement('a'), {
+      href: url,
+      download: exportDownloadName(),
+    })
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 10_000)
+    message.value = { kind: 'ok', key: 'exportDone' }
+  } finally {
+    busy.value = null
+  }
 }
 
 async function share() {
-  const blob = await exportBlob()
-  const file = new File([blob], exportDownloadName(), { type: 'application/json' })
-  if (navigator.canShare({ files: [file] })) {
-    try {
-      await navigator.share({ files: [file], title: 'Embrollado' })
-    } catch {
-      /* the learner cancelled the system share sheet — not an error */
+  if (busy.value) return
+  busy.value = 'shareToApp'
+  try {
+    const blob = await exportBlob()
+    const file = new File([blob], exportDownloadName(), { type: 'application/json' })
+    if (navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: 'Embrollado' })
+      } catch {
+        /* the learner cancelled the system share sheet — not an error */
+      }
     }
+  } finally {
+    busy.value = null
   }
 }
 
@@ -134,16 +150,22 @@ async function cancelImport() {
     <div class="flex flex-wrap gap-2">
       <button
         type="button"
-        class="min-h-11 rounded-lg border border-border px-3"
+        class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border px-3"
+        :class="busy === 'download' ? 'cursor-wait' : ''"
+        :disabled="busy !== null"
         @click="download(false)"
       >
+        <SpinnerIcon v-if="busy === 'download'" class="h-4 w-4" />
         {{ $t('exportImport.download') }}
       </button>
       <button
         type="button"
-        class="min-h-11 rounded-lg border border-border px-3"
+        class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border px-3"
+        :class="busy === 'exportWithPictures' ? 'cursor-wait' : ''"
+        :disabled="busy !== null"
         @click="download(true)"
       >
+        <SpinnerIcon v-if="busy === 'exportWithPictures'" class="h-4 w-4" />
         {{ $t('exportImport.exportWithPictures') }}
       </button>
       <button
@@ -156,9 +178,12 @@ async function cancelImport() {
       <button
         v-if="canShareFiles"
         type="button"
-        class="min-h-11 rounded-lg border border-border px-3"
+        class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border px-3"
+        :class="busy === 'shareToApp' ? 'cursor-wait' : ''"
+        :disabled="busy !== null"
         @click="share"
       >
+        <SpinnerIcon v-if="busy === 'shareToApp'" class="h-4 w-4" />
         {{ $t('exportImport.shareToApp') }}
       </button>
     </div>
@@ -201,10 +226,12 @@ async function cancelImport() {
         <div class="flex gap-2">
           <button
             type="button"
-            class="min-h-11 flex-1 rounded-lg bg-accent px-4 font-medium text-accent-fg disabled:opacity-50"
+            class="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-accent px-4 font-medium text-accent-fg disabled:opacity-50"
+            :class="importing ? 'cursor-wait' : ''"
             :disabled="importing"
             @click="confirmImport"
           >
+            <SpinnerIcon v-if="importing" class="h-4 w-4" />
             {{ $t('exportImport.confirmImport') }}
           </button>
           <button type="button" class="min-h-11 rounded-lg border border-border px-4" @click="cancelImport">

@@ -164,6 +164,23 @@ test.describe('dialogue cycle', () => {
       .toBe(true)
   })
 
+  test('locks the send button and shows a spinner while the AI responds', async ({ page }) => {
+    await configureService(page, { chatModel: 'mock-slow-chat' })
+    await startConversation(page)
+    await expectPartnerLine(page, 'Hello! Nice to meet you.')
+
+    // The mock-slow-chat model answers after ~3 s: the send button must be locked for the whole
+    // wait and show a spinner instead of the arrow, then unlock again.
+    await page.getByTestId('dialogue-input').fill('Where do you come from?')
+    await page.getByTestId('send').click()
+    const send = page.getByTestId('send')
+    await expect(send).toBeDisabled()
+    await expect(send.locator('[data-testid="spinner"]')).toBeVisible()
+    await expect(page.getByTestId('feedback')).toBeVisible({ timeout: 20_000 })
+    await expect(send).toBeEnabled()
+    await expect(send.locator('[data-testid="spinner"]')).toHaveCount(0)
+  })
+
   test('continues a running session after a reload (history rebuilt from stored turns)', async ({
     page,
   }) => {

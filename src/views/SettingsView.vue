@@ -9,6 +9,7 @@ import type { ConnectionTestResult } from '@/ai/aiService'
 import { getStorageEstimate, requestPersistentStorage } from '@/data/db'
 import ProfileForm from '@/components/ProfileForm.vue'
 import ShareMenu from '@/components/ShareMenu.vue'
+import SpinnerIcon from '@/components/SpinnerIcon.vue'
 
 /**
  * Settings screen (T071, T078; settings-profile.md §2). The only place where the learner states
@@ -210,10 +211,12 @@ function lowSpaceComputed(): boolean {
           />
           <button
             type="button"
-            class="min-h-11 shrink-0 rounded-lg border border-border px-3 text-sm"
+            class="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-lg border border-border px-3 text-sm"
+            :class="modelsLoading ? 'cursor-wait' : ''"
             :disabled="modelsLoading"
             @click="runFetchModels"
           >
+            <SpinnerIcon v-if="modelsLoading" class="h-4 w-4" />
             {{ $t('settings.fetchModels') }}
           </button>
         </div>
@@ -268,10 +271,12 @@ function lowSpaceComputed(): boolean {
         <button
           type="button"
           data-testid="test-connection"
-          class="min-h-11 rounded-lg bg-accent px-4 font-medium text-accent-fg disabled:opacity-50"
+          class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent px-4 font-medium text-accent-fg disabled:opacity-50"
+          :class="testing ? 'cursor-wait' : ''"
           :disabled="testing"
           @click="runTest"
         >
+          <SpinnerIcon v-if="testing" class="h-4 w-4" />
           {{ testing ? $t('settings.testing') : $t('settings.test') }}
         </button>
         <p v-if="testResult" class="mt-1 text-sm" :class="testResult.ok ? 'text-ok' : 'text-error'">
