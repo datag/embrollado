@@ -97,6 +97,42 @@ test.describe('dialogue cycle', () => {
     await expect(page.getByText('Nice to meet you').last()).toBeVisible()
   })
 
+  test('moves focus back into the input after every AI feedback', async ({ page }) => {
+    await configureService(page)
+    await startConversation(page)
+    await expectPartnerLine(page, 'Hello! Nice to meet you.')
+
+    // Sending focuses the send button; the focus must return to the composer once the feedback
+    // (and the disabled state) is gone, so the learner can keep typing without clicking.
+    await page.getByTestId('dialogue-input').fill('Where do you come from?')
+    await page.getByTestId('send').click()
+    await expect(page.getByTestId('feedback')).toBeVisible({ timeout: 20_000 })
+
+    await expect
+      .poll(() =>
+        page.evaluate(() => document.activeElement?.getAttribute('data-testid') ?? null),
+      )
+      .toBe('dialogue-input')
+  })
+
+  test('moves focus into the input when opening an existing conversation', async ({ page }) => {
+    await configureService(page)
+    await startConversation(page)
+    await expectPartnerLine(page, 'Hello! Nice to meet you.')
+
+    // Leave to the session list and open the same, already running conversation again.
+    await page.goto('/#/')
+    await expect(page.getByRole('heading', { name: 'Your conversations' })).toBeVisible()
+    await page.getByRole('button', { name: /washroom/i }).first().click()
+    await expect(page.getByTestId('dialogue-input')).toBeEnabled({ timeout: 20_000 })
+
+    await expect
+      .poll(() =>
+        page.evaluate(() => document.activeElement?.getAttribute('data-testid') ?? null),
+      )
+      .toBe('dialogue-input')
+  })
+
   test('scrolls the window to the bottom when a new message arrives', async ({ page }) => {
     await configureService(page)
     await startConversation(page)

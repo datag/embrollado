@@ -19,6 +19,7 @@ const route = useRoute()
 const { t } = useI18n()
 const sessionState = useSession()
 const draft = ref('')
+const inputEl = ref<HTMLTextAreaElement | null>(null)
 const illustrations = ref<Illustration[]>([])
 /** The illustration shown at full resolution in the lightbox; null = closed. */
 const modalIllustration = ref<Illustration | null>(null)
@@ -183,6 +184,28 @@ watch(
   () => turns.value,
   () => {
     void nextTick(() => scrollToBottom(true))
+  },
+  { flush: 'post' },
+)
+
+// Keep the focus in the composer so the learner can keep typing without clicking. Two cases:
+// - An AI response just finished (feedback on the learner's answer, the opening line, or a
+//   failure) and re-enabled the input.
+// - The learner opened an already existing conversation ('idle' → 'waiting-answer' right after
+//   its session was loaded) — same thing: the input is enabled and empty, ready for the next
+//   answer. Ended sessions have no composer, so focusing there is a harmless no-op, and a brand
+//   new conversation passes through 'partner-streaming' first (covered by the first case).
+watch(
+  () => sessionState.phase.value,
+  (next, prev) => {
+    const aiResponseEnded =
+      (prev === 'generating' || prev === 'partner-streaming') &&
+      (next === 'waiting-answer' || next === 'failed')
+    const resumedConversation =
+      prev === 'idle' && next === 'waiting-answer' && turns.value.length > 0
+    if (aiResponseEnded || resumedConversation) {
+      inputEl.value?.focus()
+    }
   },
   { flush: 'post' },
 )
@@ -367,6 +390,7 @@ watch(
             />
           </button>
           <textarea
+            ref="inputEl"
             v-model="draft"
             rows="1"
             data-testid="dialogue-input"

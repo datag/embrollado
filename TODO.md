@@ -28,6 +28,9 @@ Offene Punkte, nach Themen gruppiert.
 ## Konversation
 
 - [x] Klären, was genau "Filled-in gaps" macht. Möglicherweise false positives damit. _(Geklärt: Der Abschnitt zeigt nur noch echte Lücken — `???`-Marker oder ein einzelnes Wort in der Muttersprache. `validateAssumptions` verwirft Phrasen in der Zielsprache, No-op-Assumptions (original = filled) und Originale, die nicht in der Antwort vorkommen; Prompt-Regel geschärft; `tests/unit/assumptions.test.ts` ergänzt.)_
+- [x] Input-Fokus soll nach jedem AI-Feedback ins Input-Feld wandern. _(Umsetzung: `DialogueView` fokussiert das Composer-Textarea nach jedem abgeschlossenen AI-Response — Feedback, Eröffnungszeile oder Fehler — über einen Phasen-Watcher (`generating`/`partner-streaming` → `waiting-answer`/`failed`); ebenso beim Wechsel/Öffnen einer bereits bestehenden Konversation (`idle` → `waiting-answer`); kein Fokus-Diebstahl bei beendeten Sessions; `tests/e2e/dialogue.spec.ts` ergänzt.)_
+- [ ] Falls AI am Zuge ist (laufender Request), dann Absenden-Button nicht aktivieren
+
 
 ## Profil & Persona
 
