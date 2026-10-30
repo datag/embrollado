@@ -50,7 +50,7 @@ A single practice conversation. FR-015, FR-016, FR-053.
 | `situation`         | `SituationRef`                             | Required                                                                                                                                                              |
 | `partner`           | `PartnerRef`                               | Required                                                                                                                                                              |
 | `situationSnapshot` | `SituationSnapshot`                        | Required — the situation and partner as they were described when the session started, so later edits or deletions of a learner-defined template never rewrite history |
-| `learnerName`       | string                                     | Optional — the name the learner gave in Settings, used by the partner to address them                                                                                 |
+| `options`           | `SessionOptions`                           | Required — the conversation options chosen when the session started (e.g. `{ knowsLearner }`), snapshotted like the situation (FR-060) |
 | `state`             | `"active" \| "ended"`                      | Required                                                                                                                                                              |
 | `createdAt`         | ISO 8601 string                            | Required                                                                                                                                                              |
 | `updatedAt`         | ISO 8601 string                            | Required                                                                                                                                                              |
@@ -104,7 +104,7 @@ FR-003, FR-044, FR-045, FR-046.
 
 | Field               | Type                           | Rules                                                                                      |
 | ------------------- | ------------------------------ | ------------------------------------------------------------------------------------------ |
-| `id`                | string                         | Required; `builtin:<slug>` for the 12 predefined situations, UUID for learner-defined ones |
+| `id`                | string                         | Required; `builtin:<slug>` for the 13 predefined situations, UUID for learner-defined ones |
 | `name`              | string                         | Required, ≤ 80 characters                                                                  |
 | `setting`           | string                         | Required, ≤ 400 characters — where and what is happening                                   |
 | `keyMoments`        | string[]                       | Required; the situation's key moments — legacy illustration hooks (FR-028 as amended: pictures are on demand) |
@@ -117,18 +117,30 @@ FR-003, FR-044, FR-045, FR-046.
 ### LearnerProfile
 
 The learner as the app knows them. FR-021, FR-034; owner requirement (settings: name and further
-details about their own person).
+details about their own person). Only the perceivable traits travel by default — FR-059.
 
 | Field                  | Type                          | Rules                                                                                                                       |
 | ---------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `name`                 | string                        | Optional, ≤ 60 characters; the partner may address the learner by it                                                        |
-| `details`              | string                        | Optional, ≤ 500 characters — further personal details (job, hobbies, family, …) the partner may weave into the conversation |
+| `appearance`           | string                        | Optional, ≤ 500 characters — what someone sees (hair, height, clothing); perceivable, part of every dialogue and of pictures |
+| `voice`                | string                        | Optional, ≤ 300 characters — what someone hears (voice, laugh, accent); perceivable, part of every dialogue                 |
+| `age`                  | number \| null                | Optional, 0…120; sent to the model as an approximate band ("somewhere in their thirties")                                  |
+| `gender`               | `"female" \| "male" \| "other" \| null` | Optional; perceivable                                                           |
+| `name`                 | string                        | Optional, ≤ 60 characters; pictures always, dialogue only with the "already knows you" option (FR-060)                     |
+| `details`              | string                        | Optional, ≤ 500 characters — job, hobbies, family, …; pictures always, dialogue only with the "already knows you" option    |
 | `nativeLanguage`       | ISO 639-1 \| null             | Optional; `null` means "fall back to the interface language" (FR-034)                                                       |
 | `interfaceLanguage`    | `"en" \| "de"`                | Required, default `"en"` (FR-033)                                                                                           |
 | `theme`                | `"light" \| "dark" \| "auto"` | Required, default `"auto"`                                                                                                  |
 | `cachedSpeechLines`    | number                        | Required, default 20, range 0…200 (FR-050)                                                                                  |
 | `speechEnabled`        | boolean                       | Required, default `true`                                                                                                    |
 | `illustrationsEnabled` | boolean                       | Required, default `true`                                                                                                    |
+
+### SessionOptions
+
+A per-session snapshot chosen when the conversation starts (FR-060).
+
+| Field          | Type    | Rules                                                             |
+| -------------- | ------- | ----------------------------------------------------------------- |
+| `knowsLearner` | boolean | Default `false`. True releases the stored name + details to the partner from the first line on. |
 
 ### ServiceConfig
 

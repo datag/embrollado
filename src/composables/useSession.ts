@@ -150,14 +150,21 @@ export function useSession(): UseSessionReturn {
 
   async function buildSystemPromptFor(sessionValue: Session): Promise<string> {
     const { settings } = useSettings()
+    const knowsLearner = sessionValue.options?.knowsLearner ?? false
     return buildSystemPrompt({
       partner: sessionValue.partner,
       situation: sessionValue.situation,
       level: sessionValue.level,
       targetLanguage: sessionValue.language,
       feedbackLanguage: settings.nativeLanguage ?? settings.interfaceLanguage,
-      learnerName: settings.name || null,
-      learnerDetails: settings.details || null,
+      knowsLearner,
+      appearance: settings.appearance.trim() || null,
+      voice: settings.voice.trim() || null,
+      age: settings.age,
+      gender: settings.gender,
+      // Name and details leave the device only with the per-session option enabled.
+      learnerName: knowsLearner ? settings.name.trim() || null : null,
+      learnerDetails: knowsLearner ? settings.details.trim() || null : null,
     })
   }
 
@@ -344,8 +351,11 @@ export function useSession(): UseSessionReturn {
         messages: buildSceneMessages({
           partner: s.partner,
           situation: s.situation,
-          learnerName: settings.name || null,
-          learnerDetails: settings.details || null,
+          learnerName: settings.name.trim() || null,
+          learnerDetails: settings.details.trim() || null,
+          appearance: settings.appearance.trim() || null,
+          age: settings.age,
+          gender: settings.gender,
           dialogue: turns.value.map((t) => ({
             partnerText: t.partnerText,
             learnerText: t.learnerText,

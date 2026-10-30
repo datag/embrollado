@@ -162,8 +162,10 @@ The system prompt is assembled by `ai/prompts.ts` from:
    vocabulary, sentence length and grammar.
 4. **Target language** — the language the dialogue is conducted in.
 5. **Feedback language** — the language all explanatory text must be written in.
-6. **Learner** — the learner's name (if given) and personal details (if given), so the partner can
-   address them naturally.
+6. **Learner perception** — the learner's perceivable traits (appearance, voice, approximate age,
+   gender), read against the situation (face to face vs. a phone call), plus either the per-session
+   option "The AI partner already knows you" (releases the name + details) or the first-meeting
+   knowledge rules: no invented facts, no name before the learner introduces themselves.
 7. **Rules** — one utterance per turn; stay in character; never break into a lesson; always answer
    with the JSON turn object; treat `???` and native-language words as gaps and fill them with a
    plausible assumption and state the reason; rate the learner's answer against the selected level.
@@ -182,8 +184,14 @@ minimal history is rebuilt from the stored turns when a session is resumed after
 continued conversation is consistent. The feedback fields must assess **only the answer in the
 latest user message**, never an earlier answer, the partner's lines or a previous turn's feedback.
 
-The learner profile is **sent to the model** and therefore leaves the device — it is part of the
-prompt. The privacy text in the app says so.
+Only the learner's **perceivable traits** are part of the dialogue prompt by default (FR-059). The
+name and the personal details leave the device only when the per-session option is enabled
+(FR-060) or in the picture context of §5. The privacy notes and the pseudonym tip in the app say
+so.
+
+The situation description is written from the learner's perspective ("you are queuing…"); the
+prompt therefore resolves the ambiguity once: in the situation text, "you" refers to the learner,
+not to the partner.
 
 ## 5. On-demand illustration prompts (FR-028 as amended)
 
@@ -196,16 +204,23 @@ request produces the finished scene, a second renders it:
 
    ```text
    System: You are a visual director … narrate the CURRENT moment of the role-play … plain
-           English, at most 60 words, only what is visible — no speech bubbles, no text.
+           English, at most 60 words, only what is visible — no speech bubbles, no text. If the
+           situation means the two cannot see each other (a phone call), show both sides of the
+           call as one split scene — two panels, one shared moment — so both people appear.
 
    User:   Situation: {situation.name} — {situation.setting}
+           Note: in the situation description, "you" refers to the learner.
            Partner: {name} — {age} years old, {gender}, {occupation}. {description}
-           Learner: {settings.name} — details: {settings.details}
+           Learner: {settings.name} — {age band}, {gender}, {appearance}; details: {settings.details}
            Conversation so far:
            {partner.name}: {last partner line}
            {learner.name}: {last learner answer}
            …
    ```
+
+   The Learner line is the **full** context the learner allowed in Settings — perceivable traits,
+   name and details — because a picture renders the scene; the stricter dialogue rules of §4 do
+   not apply to the visual director.
 
    The answer is the strict object `{"scene": "<current moment>"}` (`embrollado_scene` schema) —
    e.g. *"A man in his late twenties hands a coin to a woman in her late thirties in front of a

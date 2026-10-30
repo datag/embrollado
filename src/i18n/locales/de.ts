@@ -46,6 +46,10 @@ export default {
     situationCustom: 'Eigene schreiben',
     partner: 'Partner',
     partnerCustom: 'Eigene schreiben',
+    options: 'Konversations-Optionen',
+    knowsLearner: 'Die KI-Persona kennt dich bereits',
+    knowsLearnerHint:
+      'Die Persona startet mit deinem Namen und deinen Angaben. Aus (Standard): Sie kennt nur, was sie sehen oder hören kann — den Rest erfährst du erst im Gespräch.',
     start: 'Gespräch starten',
     optional: 'optional',
   },
@@ -143,10 +147,28 @@ export default {
     testing: 'Wird getestet…',
     connected: 'Verbunden.',
     learner: 'Über dich',
+    profileTip:
+      'Tipp: Verwende ein Pseudonym statt deines echten Nachnamens — diese Angaben können deinen KI-Anbieter erreichen.',
+    perceivable: 'Was die Persona wahrnehmen kann',
+    perceivableHint:
+      'Sichtbare und hörbare Merkmale reisen mit jedem Gespräch, damit die Persona und die Bilder sie einbeziehen können.',
+    appearance: 'Aussehen (sichtbar)',
+    appearanceHint:
+      'Bis zu 500 Zeichen — was man sieht: Haare, Größe, Kleidung. Wird im Gespräch und in Bildern verwendet.',
+    voice: 'Stimme (hörbar)',
+    voiceHint:
+      'Bis zu 300 Zeichen — was man hört: Stimme, Lachen, Akzent. Wird im Gespräch verwendet.',
+    age: 'Alter',
+    gender: 'Geschlecht',
+    otherData: 'Sonstige Angaben zu dir',
+    otherDataHint:
+      'Erreichen das Gespräch nur, wenn du im Neues-Gespräch-Bildschirm „Die KI-Persona kennt dich bereits“ aktivierst — und werden immer bei der Bildgenerierung verwendet.',
     name: 'Name',
-    nameHint: 'Bis zu 60 Zeichen; der Partner kann dich damit ansprechen',
+    nameHint:
+      'Bis zu 60 Zeichen. Wird immer in Bildern verwendet; die Persona darf dich nur ansprechen, wenn „Die KI-Persona kennt dich bereits“ aktiviert ist.',
     details: 'Über mich',
-    detailsHint: 'Bis zu 500 Zeichen — Beruf, Hobbys, Familie… der Partner kann es einweben',
+    detailsHint:
+      'Bis zu 500 Zeichen — Beruf, Hobbys, Familie… Wird immer in Bildern verwendet; die Persona darf es nur verwenden, wenn „Die KI-Persona kennt dich bereits“ aktiviert ist.',
     nativeLanguage: 'Feedback-Sprache',
     nativeLanguageHint:
       'Die Sprache allen Feedbacks und aller Erklärungen; „wie Oberfläche“ fällt auf die Oberflächensprache zurück.',
@@ -169,7 +191,7 @@ export default {
     persistentDenied: 'Der Browser kann diese Daten löschen. Sichere sie per Export.',
     privacy: 'Privatsphäre',
     privacyText:
-      'Alles bleibt auf diesem Gerät. Name und Angaben zu dir werden als Teil des Modell-Kontexts an deinen KI-Dienst gesendet — siehe „Über“.',
+      'Alles bleibt auf diesem Gerät. Das Gespräch und die Profilangaben, die Teil davon sind — Aussehen, Alter, Geschlecht, Stimme sowie Name und Angaben, wenn „Die KI-Persona kennt dich bereits“ aktiviert ist — werden an deinen KI-Dienst gesendet. Tipp: Verwende ein Pseudonym statt deines echten Nachnamens. Siehe „Über“.',
     save: 'Speichern',
     saved: 'Gespeichert.',
   },
@@ -232,7 +254,7 @@ export default {
       'Embrollado ist eine reine Browser-App zum Üben von Fremdsprachen. Du führst ein realistisches Rollenspiel-Gespräch mit einem KI-Partner; alles bleibt auf deinem Gerät.',
     privacyTitle: 'Privatsphäre',
     privacy:
-      'Deine Gespräche, Bilder und zwischengespeichertes Audio liegen nur in diesem Browser. Der einzige ausgehende Verkehr geht an den von dir konfigurierten KI-Dienst, der das aktive Gespräch, die Situations- und Partner-Wahl und — falls eingegeben — deinen Namen und deine Angaben erhält. Der API-Schlüssel wird nur an diesen Dienst gesendet.',
+      'Deine Gespräche, Bilder und zwischengespeichertes Audio liegen nur in diesem Browser. Der einzige ausgehende Verkehr geht an den von dir konfigurierten KI-Dienst, der das aktive Gespräch, die Situations- und Partner-Wahl, die von dir eingetragenen wahrnehmbaren Merkmale (Aussehen, Alter, Geschlecht, Stimme) und — wenn du „Die KI-Persona kennt dich bereits“ aktivierst — deinen Namen und deine Angaben erhält. Bilder beziehen deinen Namen und deine Angaben immer ein. Der API-Schlüssel wird nur an diesen Dienst gesendet.',
     techTitle: 'Technik',
     tech: 'TypeScript, Vue, Tailwind CSS, Vite. Alle Ressourcen sind gebündelt und werden von dieser Seite geliefert.',
     licenceTitle: 'Lizenz',

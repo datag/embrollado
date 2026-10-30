@@ -6,6 +6,10 @@ import type { LearnerProfile } from '@/domain/types'
 const settings: LearnerProfile = {
   name: '',
   details: '',
+  appearance: '',
+  voice: '',
+  age: null,
+  gender: null,
   nativeLanguage: null,
   interfaceLanguage: 'en',
   theme: 'auto',

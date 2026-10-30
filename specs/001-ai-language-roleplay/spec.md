@@ -32,7 +32,7 @@
 
 - Q: When the app talks to the AI service that the learner configured, should the request go straight from the browser to that service, or may it go through a small helper that runs on the learner's own computer? → A: Direct browser-to-service calls only; if the service refuses browser requests, the app explains how to allow them on the service side
 - Q: What should the overall assessment of the learner's answer contain? → A: A four-tier quality badge (perfect or very good, good, acceptable, unsatisfactory) shown in colour with a short label whose wording varies between turns and comes from the translation files, instead of a score
-- Q: Which situations and conversation partners should the app ship with in the first release? → A: The target language is selectable from a list of the most common languages; the three levels are beginner, intermediate and expert; 12 situations and 5 partners are predefined; learners may define their own, either saved as a reusable template or given on the fly when starting a session
+- Q: Which situations and conversation partners should the app ship with in the first release? → A: The target language is selectable from a list of the most common languages; the three levels are beginner, intermediate and expert; 13 situations and 5 partners are predefined; learners may define their own, either saved as a reusable template or given on the fly when starting a session
 - Q: How long should the spoken audio and the generated pictures be kept on the learner's device? → A: The pictures are kept permanently, while only a bounded number of the most recent spoken lines per session are cached and older ones are requested again from the AI service when they are played
 - Q: When the learner imports a file of conversations they exported earlier, what should happen if a conversation already exists on the device? → A: The import replaces the conversations on the device with the contents of the file; a conversation with the same identifier is overwritten and a warning is shown before the import runs; a conversation is identified by a UUID
 
@@ -62,7 +62,7 @@ No feedback features are required for this story to be considered complete.
    a level, a situation and a persona and starts, **Then** the partner's first line or question is
    shown in the target language, and the situation and partner are visible in the session header.
 2. **Given** a language and level are selected, **When** the learner opens the situation catalogue,
-   **Then** 12 situations and 5 partners are selectable, including a person such as "Nicole, 38,
+   **Then** 13 situations and 5 partners are selectable, including a person such as "Nicole, 38,
    confectioner" together with a "washroom at a camping site" setting, and every situation can be
    combined with every partner.
 3. **Given** a level of beginner, intermediate or expert, **When** the first line is generated,
@@ -263,6 +263,13 @@ on a service without those capabilities and verify the graceful fallback.
   apart, and the one used in a session is always the one shown in the session header.
 - The service delivers the partner's line only in parts and then fails halfway: the app keeps the
   text already shown, does not repeat it, and offers to repeat the request.
+- The learner has stored a name and personal details but did not enable "The AI partner already
+  knows you": the partner starts the talk without knowing the learner and does not address them by
+  name until the learner offers it.
+- The learner is at a phone-call situation: the partner perceives only what it can hear (voice,
+  approximate age, gender) and never mentions the learner's appearance.
+- The learner's profile has no perceivable traits at all: the partner relies on the situation and
+  on what the learner reveals, and never invents an appearance.
 
 ## Requirements *(mandatory)*
 
@@ -275,13 +282,20 @@ on a service without those capabilities and verify the graceful fallback.
 - **FR-002**: The system MUST offer a selectable list of the most common target languages and
   exactly three proficiency levels, named beginner, intermediate and expert, where each level
   carries a short, plain-language description of what it means.
-- **FR-003**: The system MUST offer a catalogue of 12 situations and 5 conversation partners, each
+- **FR-003**: The system MUST offer a catalogue of 13 situations and 5 conversation partners, each
   situation with a setting description and each partner with a name, an age and an occupation, and
   the catalogue MUST allow browsing and searching by keyword.
 - **FR-004**: The catalogue MUST be available without a network connection, so that a learner can
   start a session while offline as far as the situation and partner selection are concerned.
 - **FR-005**: The system MUST show the chosen situation, partner, language and level in the session
   header of a running session.
+- **FR-059**: The AI partner MUST only know about the learner what is perceivable (aspect, voice,
+  approximate age, gender), what the situation establishes, or what the learner reveals during the
+  conversation. The partner MUST NOT use a name or a personal detail the learner has not offered
+  and MUST NOT invent any fact about the learner to fill the gaps.
+- **FR-060**: The learner MUST be able to enable, per session and when starting a conversation, an
+  option that the AI partner already knows them from the start (default off). Enabled, the partner
+  receives the stored name and personal details from the first line on.
 
 **Dialogue cycle**
 
@@ -409,7 +423,7 @@ on a service without those capabilities and verify the graceful fallback.
 
 **Catalogue content and learner-defined entries**
 
-- **FR-044**: Each of the 12 predefined situations MUST be usable with each of the 5 predefined
+- **FR-044**: Each of the 13 predefined situations MUST be usable with each of the 5 predefined
   partners. The catalogue MUST NOT restrict which situation and partner can be combined.
 - **FR-045**: The learner MUST be able to create their own partner and their own situation and
   save them as a template, and a saved template MUST stay available for later sessions.
@@ -530,7 +544,7 @@ on a service without those capabilities and verify the graceful fallback.
 - **SC-015**: Every rated turn shows exactly one of the four tiers with its own colour and a label
   taken from the translation files, in 100% of cases, and consecutive turns of the same tier may
   show different wordings without being rated differently.
-- **SC-016**: The first release offers 12 situations and 5 partners, and every situation can be
+- **SC-016**: The first release offers 13 situations and 5 partners, and every situation can be
   combined with every partner, in 100% of combinations.
 - **SC-017**: A partner or situation that the learner saved as a template is still offered after a
   device restart and can be used in a later session, in 100% of cases, and a partner or situation
@@ -575,7 +589,7 @@ on a service without those capabilities and verify the graceful fallback.
 - The quality badge is based on semantics, grammar and vocabulary. A rating of the learner's
   pronunciation is a later feature and is not part of the first release.
 - The situation and partner catalogue is part of the shipped app and is maintained with it, so that
-  it is available offline and requires no external service. The first release ships 12 situations
+  it is available offline and requires no external service. The first release ships 13 situations
   and 5 partners, which can be combined freely, and the target-language list covers the most
   commonly spoken languages, for example English, German, French, Spanish, Italian, Portuguese,
   Dutch, Polish, Turkish, Russian, Japanese and Chinese.

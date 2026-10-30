@@ -5,6 +5,7 @@ import {
   updateSettings,
   writeSettings,
   SETTINGS_KEY,
+  SETTINGS_SCHEMA,
 } from '@/data/settings'
 
 describe('settings store (T070, T019)', () => {
@@ -32,7 +33,22 @@ describe('settings store (T070, T019)', () => {
     const read = readSettings()
     expect(read.interfaceLanguage).toBe('de')
     const stored = JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}')
-    expect(stored.schema).toBe(1)
+    expect(stored.schema).toBe(SETTINGS_SCHEMA)
+  })
+
+  it('migration 1 → 2 keeps name/details and adds empty perceivable traits', () => {
+    // A doc as it existed before the perceivable traits — name and details set.
+    const legacy = { ...DEFAULT_SETTINGS, name: 'Sam', details: 'nurse from Hamburg' }
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ schema: 1, data: legacy }))
+    const read = readSettings()
+    // Old data survives…
+    expect(read.name).toBe('Sam')
+    expect(read.details).toBe('nurse from Hamburg')
+    // …and the perceivable traits start empty — a job is NOT copied into "appearance".
+    expect(read.appearance).toBe('')
+    expect(read.voice).toBe('')
+    expect(read.age).toBeNull()
+    expect(read.gender).toBeNull()
   })
 
   it('ignores a document from a newer app version (forward compatibility)', () => {

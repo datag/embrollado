@@ -4,12 +4,16 @@ Offene Punkte, nach Themen gruppiert.
 
 ## AI-Persona & Kontext
 
-- [ ] AI-Persona darf den gesamten Kontext (Name, eigene Situation etc.) nicht kennen, solange er im Gespräch noch nicht erwähnt wurde.
+- [x] AI-Persona darf den gesamten Kontext (Name, eigene Situation etc.) nicht kennen, solange er im Gespräch noch nicht erwähnt wurde. _(Umsetzung: Profil in wahrnehmbare Merkmale + sonstige Daten getrennt; Name/Angaben nur bei Option „KI-Persona kennt dich bereits" oder im Bild-Kontext; 13. Situation „Am Telefon" ergänzt.)_
 
 ## Feedback & Bewertung
 
 - [ ] Explanation sollte objektiv formuliert sein und nicht aus der Perspektive der AI („ich“).
 - [ ] Bewertung: Akzente mitbewerten; Typografie nur als Anmerkung. Ggf. konfigurierbar machen.
+
+## Development
+
+- [ ] AGENTS.md mit /init erzeugen
 
 ## Build & Deployment
 
@@ -33,6 +37,7 @@ Offene Punkte, nach Themen gruppiert.
 
 ## Darstellung
 
+- [ ] User-Message sofort rendern, während AI-Request noch passiert.
 - [ ] Emoji für Stimmungen?
 - [ ] Bildstil (Illustrationen) festlegen.
 

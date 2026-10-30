@@ -31,7 +31,7 @@ async function seedSession(): Promise<Session> {
       custom: false,
       description: 'A confectioner.',
     },
-    learnerName: null,
+    options: { knowsLearner: false },
   })
   const opening = createOpeningTurn(session, 'Hola, ¿qué tal?', 'Hi, how are you?', null, 'en')
   // An on-demand picture bound to this turn — the round trip must keep both the turn id and
@@ -91,6 +91,36 @@ describe('export envelope (T057, T064)', () => {
     const second = JSON.parse(await again.text()) as ExportDoc
     expect(second.sessions[0].turns[0].id).toBe(firstTurnId)
     expect(second.sessions[0].turns[0].illustrationId).toBe('illustration:1')
+  })
+
+  it('round-trips the per-session conversation options (export v3)', async () => {
+    await createSession({
+      language: 'es',
+      level: 'intermediate',
+      situation: {
+        id: 'builtin:phone-call',
+        name: 'On the phone',
+        setting: 'You are on the phone.',
+        custom: false,
+      },
+      partner: {
+        id: 'builtin:nicole',
+        name: 'Nicole',
+        age: 38,
+        gender: 'female',
+        occupation: 'confectioner',
+        custom: false,
+        description: 'A confectioner.',
+      },
+      options: { knowsLearner: true },
+    })
+    const blob = await createExportBlob()
+    const doc = JSON.parse(await blob.text()) as ExportDoc
+    expect(doc.sessions[0].options).toEqual({ knowsLearner: true })
+
+    await importSessions(doc)
+    const restored = (await listSessions())[0]
+    expect(restored.options).toEqual({ knowsLearner: true })
   })
 
   it('names the file Windows-safe without colons', () => {

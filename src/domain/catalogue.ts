@@ -1,7 +1,7 @@
 import type { Level, Persona, Situation } from '@/domain/types'
 
 /**
- * The static catalogue (T025): 12 target languages, 3 levels, 12 built-in situations, 5 built-in
+ * The static catalogue (T025): 12 target languages, 3 levels, 13 built-in situations, 5 built-in
  * partners (FR-002/003). Built-in entries carry `builtin:` ids; learner-defined ones live in the
  * profile store and combine with these lists in the Setup screen.
  */
@@ -148,6 +148,12 @@ export const SITUATIONS: Situation[] = [
     'You browse in a bookshop and start talking with someone who is also looking at the language-learning shelf.',
     ['the shared shelf', 'the recommendations', 'the stay in touch'],
     ['builtin:sofia'],
+  ),
+  sit(
+    'phone-call',
+    'On the phone',
+    'You are on the phone with the person at the other end — you can hear each other but cannot see each other. You called to ask about and sort out something.',
+    ['the greeting', 'the question', 'the goodbye'],
   ),
 ]
 

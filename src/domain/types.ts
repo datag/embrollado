@@ -40,6 +40,15 @@ export interface PartnerRef {
   description: string
 }
 
+/**
+ * Per-session conversation options, chosen when the session starts (Setup screen).
+ * The snapshot lives on the session so a resumed or re-exported session keeps the same behaviour.
+ */
+export interface SessionOptions {
+  /** The AI partner already knows the learner from the start (name + details). Default: false. */
+  knowsLearner: boolean
+}
+
 export interface Session {
   id: string
   title: string
@@ -47,7 +56,7 @@ export interface Session {
   level: Level
   situation: SituationRef
   partner: PartnerRef
-  learnerName: string | null
+  options: SessionOptions
   state: SessionState
   createdAt: string
   updatedAt: string
@@ -124,6 +133,13 @@ export interface Situation {
 export interface LearnerProfile {
   name: string
   details: string
+  /** What someone can see of the learner (hair, height, clothing…) — sent as perceivable context. */
+  appearance: string
+  /** What someone can hear of the learner (voice, laugh, accent…) — sent as perceivable context. */
+  voice: string
+  /** Exact age, 0…120. Sent to the model as an approximate age band. */
+  age: number | null
+  gender: Gender | null
   nativeLanguage: string | null
   interfaceLanguage: InterfaceLanguage
   theme: ThemeOption

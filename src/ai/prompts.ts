@@ -1,9 +1,14 @@
 import type { Gender, Level, SituationRef, PartnerRef } from '@/domain/types'
+import { audiblePerception, visiblePerception, ageRangePhrase } from '@/domain/perception'
 import { TURN_SCHEMA } from '@/ai/schema'
 
 /**
- * System-prompt assembly (T039; turn-payload.md §4). The learner profile is part of the prompt
- * and therefore leaves the device — the privacy text says so explicitly.
+ * System-prompt assembly (T039; turn-payload.md §4). Only the learner's perceivable traits
+ * (appearance, voice, approximate age, gender) are part of the normal prompt. The learner's name
+ * and details travel only when the per-session option "the AI partner already knows you" is
+ * enabled — otherwise the partner must learn them during the conversation. The scene prompt for
+ * the picture generation keeps the full learner context, because a picture of the situation is a
+ * rendering, not the partner's knowledge.
  */
 
 export interface PromptInput {
@@ -12,6 +17,14 @@ export interface PromptInput {
   level: Level
   targetLanguage: string
   feedbackLanguage: string
+  /** The per-session option: the partner knows the learner (releases name + details). */
+  knowsLearner: boolean
+  /** Perceivable traits — always part of the context. */
+  appearance: string | null
+  voice: string | null
+  age: number | null
+  gender: Gender | null
+  /** Only sent when `knowsLearner` is true (the caller filters it). */
   learnerName: string | null
   learnerDetails: string | null
 }
@@ -28,18 +41,69 @@ const LEVEL_RULES: Record<Level, string> = {
     'Treat the learner as fluent; keep the conversation rich and natural.',
 }
 
+/**
+ * What the partner may know about the learner at the start of the conversation: the perceivable
+ * blocks (driven by the situation — face to face vs. a phone call) plus, depending on the
+ * per-session option, either the "first meeting" knowledge rules or the already-known details.
+ */
+function buildLearnerContext(input: PromptInput): string {
+  const contact =
+    'Contact: read the situation to decide what you can perceive of the learner: face to face ' +
+    'you see them; in a phone call you only hear them. Never claim to perceive something the ' +
+    'situation does not let you perceive.'
+  const parts: string[] = [contact]
+
+  const visible = visiblePerception(input.age, input.gender, input.appearance)
+  const audible = audiblePerception(input.age, input.gender, input.voice)
+  if (visible.length) {
+    parts.push(
+      'Visible (only if the situation lets you see them):\n' +
+        visible.map((l) => `- ${l}`).join('\n'),
+    )
+  }
+  if (audible.length) {
+    parts.push(
+      'Audible (only if the situation lets you hear them):\n' +
+        audible.map((l) => `- ${l}`).join('\n'),
+    )
+  }
+
+  if (input.knowsLearner) {
+    if (input.learnerName || input.learnerDetails) {
+      const lines = ['- You already know the learner from before this conversation.']
+      if (input.learnerName)
+        lines.push(`- Their name is ${input.learnerName}; you may address them by it.`)
+      if (input.learnerDetails) lines.push(`- What you know about them: ${input.learnerDetails}.`)
+      parts.push('What you already know about the learner:\n' + lines.join('\n'))
+    } else {
+      parts.push(
+        'What you already know about the learner:\n' +
+          '- You already know the learner from before this conversation.',
+      )
+    }
+  } else {
+    parts.push(
+      'Rules about what you know:\n' +
+        '- You are meeting the learner for the first time. Do not act as if you already know them.\n' +
+        '- You know nothing about the learner beyond what you can perceive, what the situation ' +
+        'establishes, and what they tell you during the conversation. Do not fill the gaps with ' +
+        'invented facts: no invented name, no assumed job, age, origin or personal history.\n' +
+        '- Once the learner tells you something — their name, for example — you may refer to it ' +
+        'from that moment on.\n' +
+        '- Use "you" or whatever role the situation gives the learner; there is no name yet.',
+    )
+  }
+  return parts.join('\n\n')
+}
+
 export function buildSystemPrompt(input: PromptInput): string {
   const role = [
     `You are ${input.partner.name}${input.partner.age != null ? `, ${input.partner.age}` : ''}, ` +
       `${input.partner.occupation}. ${input.partner.description}`,
   ].join('')
-  const situation = `Situation: ${input.situation.name}. ${input.situation.setting}`
-  const learner =
-    input.learnerName || input.learnerDetails
-      ? `The learner is ${input.learnerName ? input.learnerName : 'someone who has not given a name'}` +
-        (input.learnerDetails ? `; details about them: ${input.learnerDetails}` : '') +
-        `. Address them by name when it is natural to do so.`
-      : 'The learner has not shared personal details; address them generally.'
+  const situation =
+    `Situation: ${input.situation.name}. ${input.situation.setting} ` +
+    `In the situation description, "you" refers to the learner, not to you.`
 
   return [
     role,
@@ -49,7 +113,7 @@ export function buildSystemPrompt(input: PromptInput): string {
     `All explanatory feedback text (translation, explanation, interpretation, assumptions, ` +
       `gaps, assessment, issues) MUST be written in: ${input.feedbackLanguage} — the learner's ` +
       `native language. The corrected answer MUST stay in the target language.`,
-    learner,
+    buildLearnerContext(input),
     'Personality and reactions:',
     '- You are a real person with your own feelings, dignity and boundaries — not a servile ' +
       'assistant and never a teacher. You have a life, opinions and moods of your own.',
@@ -129,6 +193,10 @@ export interface SceneContext {
   situation: SituationRef
   learnerName: string | null
   learnerDetails: string | null
+  /** Perceivable traits of the person behind the screen, for the picture. */
+  appearance: string | null
+  age: number | null
+  gender: Gender | null
   /** The complete correspondence so far — every partner line and every learner answer. */
   dialogue: Array<{ partnerText: string; learnerText: string | null }>
 }
@@ -152,20 +220,38 @@ function describePartner(p: PartnerRef): string {
 }
 
 /**
+ * The learner as the picture shows them: the full context the learner allowed in Settings —
+ * perceivable traits, and name and details. A picture is a rendering of the scene, not the
+ * partner's knowledge, so the stricter dialogue rules do not apply here.
+ */
+function describeLearnerInScene(ctx: SceneContext): string {
+  const traits: string[] = []
+  const range = ageRangePhrase(ctx.age)
+  if (range) traits.push(range)
+  const gender = genderNoun(ctx.gender)
+  if (gender) traits.push(gender)
+  if (ctx.appearance) traits.push(ctx.appearance)
+
+  if (!ctx.learnerName && !ctx.learnerDetails && traits.length === 0) {
+    return 'Learner: the app user has not shared personal details.'
+  }
+  const name = ctx.learnerName ?? 'the learner'
+  const bits: string[] = []
+  if (traits.length) bits.push(traits.join(', '))
+  if (ctx.learnerDetails) bits.push(`details: ${ctx.learnerDetails}`)
+  return bits.length ? `Learner: ${name} — ${bits.join('; ')}.` : `Learner: ${name}.`
+}
+
+/**
  * The scene-narration context (turn-payload.md §5). The whole situation, the people and the
  * conversation so far travel in ONE request — the request keeps the dialogue first, and the person
- * behind the learner's screen (name + details from Settings) is part of the people present. The
- * model answers with `{"scene": "…"}`, a short English description of the CURRENT moment that the
- * image endpoint renders verbatim.
+ * behind the learner's screen (perceivable traits + name + details from Settings) is part of the
+ * people present. The model answers with `{"scene": "…"}`, a short English description of the
+ * CURRENT moment that the image endpoint renders verbatim.
  */
 export function buildSceneMessages(
   ctx: SceneContext,
 ): Array<{ role: 'system' | 'user'; content: string }> {
-  const learner =
-    ctx.learnerName || ctx.learnerDetails
-      ? `Learner: ${ctx.learnerName ?? 'the app user'}${ctx.learnerDetails ? ` — details: ${ctx.learnerDetails}` : ''}.`
-      : 'Learner: the app user has not shared personal details.'
-
   const learnerSpeaker = ctx.learnerName ?? 'The learner'
   const lines: string[] = []
   for (const t of ctx.dialogue) {
@@ -185,7 +271,9 @@ export function buildSceneMessages(
         'Describe the situation first — where the scene happens and who is present — and only then ' +
         'the concrete now: what the two people are doing at this exact moment and which objects are ' +
         'exchanged or pointed at. Rules: the scene MUST depict the moment of the LAST exchange — ' +
-        'earlier lines are background context only, never show several moments at once; write plain ' +
+        'earlier lines are background context only, never show several moments at once; if the ' +
+        'situation means the two cannot see each other (a phone call), show both sides of the call ' +
+        'as one split scene — two panels, one shared moment — so both people appear; write plain ' +
         'English in at most 60 words (image models read English best); describe only what is ' +
         'visible — no speech bubbles, no dialogue text, no captions, no logos; keep it warm and ' +
         'realistic, suitable for a language-practice app for adults.',
@@ -194,9 +282,10 @@ export function buildSceneMessages(
       role: 'user',
       content: [
         `Situation: ${ctx.situation.name} — ${ctx.situation.setting}`,
+        `Note: in the situation description, "you" refers to the learner — the person behind the screen.`,
         ``,
         describePartner(ctx.partner),
-        learner,
+        describeLearnerInScene(ctx),
         ``,
         `Conversation so far:`,
         transcript,

@@ -9,11 +9,15 @@ import type { InterfaceLanguage, LearnerProfile, ThemeOption } from '@/domain/ty
  */
 
 export const SETTINGS_KEY = 'embrollado.settings.v1'
-export const SETTINGS_SCHEMA = 1
+export const SETTINGS_SCHEMA = 2
 
 export const DEFAULT_SETTINGS: LearnerProfile = {
   name: '',
   details: '',
+  appearance: '',
+  voice: '',
+  age: null,
+  gender: null,
   nativeLanguage: null,
   interfaceLanguage: 'en',
   theme: 'auto',
@@ -29,9 +33,17 @@ export interface SettingsDocument {
 
 export type SettingsPatch = Partial<LearnerProfile>
 
-/** Migration chain 1 → 2 → …; every step is a pure function. */
+/**
+ * Migration chain 1 → 2 → …; every step is a pure function.
+ * 1 → 2: the profile gains the perceivable traits (appearance, voice, age, gender). Name and
+ * details survive unchanged; the old "details" text is deliberately NOT copied into "appearance"
+ * — only what is perceivable may be sent by default, and a job or hobby is not visible.
+ */
 const migrations: Record<number, (doc: SettingsDocument) => SettingsDocument> = {
-  // 1 → 2: nothing yet — reserved so the pattern stays wired and testable.
+  2: (doc) => ({
+    schema: 2,
+    data: { ...doc.data, appearance: '', voice: '', age: null, gender: null },
+  }),
 }
 
 function clone(v: LearnerProfile): LearnerProfile {

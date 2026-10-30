@@ -24,7 +24,7 @@ small documents below; all transcripts, pictures and cached audio live in Indexe
 
 ```json
 {
-  "schema": 1,
+  "schema": 2,
   "data": {
     "interfaceLanguage": "en",
     "nativeLanguage": null,
@@ -32,8 +32,12 @@ small documents below; all transcripts, pictures and cached audio live in Indexe
     "speechEnabled": true,
     "illustrationsEnabled": true,
     "cachedSpeechLines": 20,
-    "learnerName": "",
-    "learnerDetails": ""
+    "name": "",
+    "details": "",
+    "appearance": "",
+    "voice": "",
+    "age": null,
+    "gender": null
   }
 }
 ```
@@ -69,7 +73,7 @@ A single JSON file, UTF-8, named `embrollado-export-YYYY-MM-DD-HHmm.json`.
 ```json
 {
   "format": "embrollado.export",
-  "version": 1,
+  "version": 3,
   "exportedAt": "2026-10-28T14:05:00.000Z",
   "app": { "name": "embrollado", "schema": 1 },
   "sessions": [
@@ -81,7 +85,7 @@ A single JSON file, UTF-8, named `embrollado-export-YYYY-MM-DD-HHmm.json`.
       "level": "intermediate",
       "situation": { "id": "builtin:campsite-washroom", "name": "…", "setting": "…", "custom": false },
       "partner":   { "id": "builtin:nicole", "name": "Nicole", "age": 38, "occupation": "Konditorin", "custom": false },
-      "learnerName": "Sam",
+      "options": { "knowsLearner": false },
       "state": "ended",
       "createdAt": "2026-10-28T13:40:00.000Z",
       "updatedAt": "2026-10-28T14:04:00.000Z",
@@ -143,7 +147,8 @@ A failed validation changes nothing — there is no partial import.
 
 ```ts
 const migrations: Record<number, (doc: ExportDoc) => ExportDoc> = {
-  // 1 → 2: add "learnerName" to every session
+  // 1 → 2: give every turn a stable id and a picture binding
+  // 2 → 3: replace the (never filled) learnerName with the conversation options snapshot
 };
 ```
 

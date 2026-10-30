@@ -13,8 +13,8 @@ describe('catalogue (T031)', () => {
     }
   })
 
-  it('exposes 12 predefined situations', () => {
-    expect(SITUATIONS).toHaveLength(12)
+  it('exposes 13 predefined situations', () => {
+    expect(SITUATIONS).toHaveLength(13)
     for (const s of SITUATIONS) {
       expect(s.id).toMatch(/^builtin:/)
       expect(s.name.length).toBeGreaterThan(0)

@@ -1,4 +1,12 @@
-import type { Level, PartnerRef, Persona, Session, SituationRef, Turn } from '@/domain/types'
+import type {
+  Level,
+  PartnerRef,
+  Persona,
+  Session,
+  SessionOptions,
+  SituationRef,
+  Turn,
+} from '@/domain/types'
 import { getDB, STORE, INDEX } from '@/data/db'
 import { isQuotaError } from '@/data/db'
 
@@ -13,7 +21,7 @@ export interface NewSessionInput {
   level: Level
   situation: SituationRef
   partner: PartnerRef
-  learnerName: string | null
+  options: SessionOptions
 }
 
 export function newSessionId(): string {
@@ -34,7 +42,7 @@ export async function createSession(input: NewSessionInput): Promise<Session> {
     level: input.level,
     situation: { ...input.situation },
     partner: { ...input.partner },
-    learnerName: input.learnerName,
+    options: { ...input.options },
     state: 'active',
     createdAt: now,
     updatedAt: now,
@@ -116,7 +124,7 @@ export async function renameSession(id: string, title: string): Promise<void> {
 }
 
 export async function updateSession(
-  input: Partial<Pick<Session, 'title' | 'level' | 'state' | 'learnerName'>> & {
+  input: Partial<Pick<Session, 'title' | 'level' | 'state' | 'options'>> & {
     id: string
   },
 ): Promise<void> {
@@ -127,7 +135,7 @@ export async function updateSession(
   if (input.title !== undefined) session.title = input.title.slice(0, 80)
   if (input.level !== undefined) session.level = input.level
   if (input.state !== undefined) session.state = input.state
-  if (input.learnerName !== undefined) session.learnerName = input.learnerName
+  if (input.options !== undefined) session.options = { ...input.options }
   await db.put(STORE.sessions, session)
 }
 

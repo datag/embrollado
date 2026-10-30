@@ -46,6 +46,10 @@ export default {
     situationCustom: 'Write my own',
     partner: 'Partner',
     partnerCustom: 'Write my own',
+    options: 'Conversation options',
+    knowsLearner: 'The AI partner already knows you',
+    knowsLearnerHint:
+      'The partner starts with your name and details. Off (default): it knows only what it can see or hear — the rest you reveal during the conversation.',
     start: 'Start the conversation',
     optional: 'optional',
   },
@@ -142,11 +146,28 @@ export default {
     testing: 'Testing…',
     connected: 'Connected.',
     learner: 'About you',
+    profileTip:
+      'Tip: use a pseudonym instead of your real last name — what you enter here can reach your AI provider.',
+    perceivable: 'What the partner can perceive',
+    perceivableHint:
+      'Visible and audible traits travel with every conversation, so the partner and the pictures can reflect them.',
+    appearance: 'Appearance (visible)',
+    appearanceHint:
+      'Up to 500 characters — what someone sees: hair, height, clothing. Used in the conversation and in pictures.',
+    voice: 'Voice (audible)',
+    voiceHint:
+      'Up to 300 characters — what someone hears: voice, laugh, accent. Used in the conversation.',
+    age: 'Age',
+    gender: 'Gender',
+    otherData: 'Other personal data',
+    otherDataHint:
+      'Only reaches the conversation when you enable “The AI partner already knows you” in the new-conversation screen — and is always used when a picture is generated.',
     name: 'Name',
-    nameHint: 'Up to 60 characters; the partner may address you by it',
+    nameHint:
+      'Up to 60 characters. Always used in pictures; the partner may address you by it only when “The AI partner already knows you” is enabled.',
     details: 'About me',
     detailsHint:
-      'Up to 500 characters — job, hobbies, family… the partner may weave it into the conversation',
+      'Up to 500 characters — job, hobbies, family… Always used in pictures; the partner may refer to it only when “The AI partner already knows you” is enabled.',
     nativeLanguage: 'Feedback language',
     nativeLanguageHint:
       'The language of all feedback and explanations; "same as interface" falls back to the interface language.',
@@ -169,7 +190,7 @@ export default {
     persistentDenied: 'The browser may clear this data. Use Export to back it up.',
     privacy: 'Privacy',
     privacyText:
-      'Everything stays on this device. Your name and details are sent to your AI service as part of the model context — see About.',
+      'Everything stays on this device. The conversation and the profile fields that are part of it — appearance, age, gender, voice, and name and details when “The AI partner already knows you” is enabled — are sent to your AI service. Tip: use a pseudonym instead of your real last name. See About.',
     save: 'Save',
     saved: 'Saved.',
   },
@@ -230,7 +251,7 @@ export default {
       'Embrollado is a browser-only practice app for foreign languages. You hold a realistic role-play conversation with an AI partner; everything stays on your device.',
     privacyTitle: 'Privacy',
     privacy:
-      'Your conversations, pictures and cached audio live only in this browser. The only outbound traffic is to the AI service you configure, which receives the conversation you are actively having, the situation and partner setup, and — if you entered them — your name and details. The API key is sent only to that service.',
+      'Your conversations, pictures and cached audio live only in this browser. The only outbound traffic is to the AI service you configure, which receives the conversation you are actively having, the situation and partner setup, the perceivable traits you entered (appearance, age, gender, voice), and — when you enable “The AI partner already knows you” — your name and details. Pictures also always include your name and details. The API key is sent only to that service.',
     techTitle: 'Technology',
     tech: 'TypeScript, Vue, Tailwind CSS, Vite. All assets are bundled and serve from this site.',
     licenceTitle: 'Licence',

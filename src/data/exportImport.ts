@@ -14,7 +14,7 @@ import { getIllustrationsBySession } from '@/data/media'
  */
 
 export const EXPORT_FORMAT = 'embrollado.export'
-export const EXPORT_VERSION = 2
+export const EXPORT_VERSION = 3
 export const MAX_IMPORT_BYTES = 250 * 1024 * 1024
 
 export interface ExportSession {
@@ -25,7 +25,7 @@ export interface ExportSession {
   level: Session['level']
   situation: Session['situation']
   partner: Session['partner']
-  learnerName: string | null
+  options: Session['options']
   state: Session['state']
   createdAt: string
   updatedAt: string
@@ -112,7 +112,7 @@ export async function buildExportSessions(includePictures: boolean): Promise<Exp
       level: session.level,
       situation: session.situation,
       partner: session.partner,
-      learnerName: session.learnerName,
+      options: session.options ?? { knowsLearner: false },
       state: session.state,
       createdAt: session.createdAt,
       updatedAt: session.updatedAt,
@@ -184,6 +184,19 @@ export const migrations: Record<number, (doc: ExportDoc) => ExportDoc> = {
         illustrationId: t.illustrationId ?? null,
       })),
     })),
+  }),
+  // 3: sessions carry the conversation-options snapshot instead of the (never filled) learnerName;
+  // older files get the default "the AI partner does not know the learner". Pure: dropping an
+  // absent field is the identity for already-migrated sessions.
+  3: (doc) => ({
+    ...doc,
+    version: 3,
+    sessions: doc.sessions.map((s) => {
+      const { learnerName: _learnerName, ...rest } = s as ExportSession & {
+        learnerName?: string | null
+      }
+      return { ...rest, options: rest.options ?? { knowsLearner: false } }
+    }),
   }),
 }
 
@@ -288,7 +301,7 @@ function toStoredSession(exportSession: ExportSession): Session {
     level: exportSession.level,
     situation: exportSession.situation,
     partner: exportSession.partner,
-    learnerName: exportSession.learnerName,
+    options: exportSession.options ?? { knowsLearner: false },
     state: exportSession.state,
     createdAt: exportSession.createdAt,
     updatedAt: exportSession.updatedAt,

@@ -10,6 +10,7 @@ import LevelPicker from '@/components/LevelPicker.vue'
 import SituationPicker from '@/components/SituationPicker.vue'
 import PartnerPicker from '@/components/PartnerPicker.vue'
 import CustomEntryForm from '@/components/CustomEntryForm.vue'
+import ConversationOptions from '@/components/ConversationOptions.vue'
 
 const router = useRouter()
 
@@ -26,6 +27,8 @@ const sessionOnly = ref<{ personas: Map<string, Persona>; situations: Map<string
   personas: new Map(),
   situations: new Map(),
 })
+/** Conversation option snapshot — "the AI partner already knows you" (default off). */
+const knowsLearner = ref(false)
 const starting = ref(false)
 
 onMounted(async () => {
@@ -69,7 +72,7 @@ async function begin() {
       level: level.value,
       situation: sit,
       partner: par,
-      learnerName: null,
+      options: { knowsLearner: knowsLearner.value },
     })
     router.push(`/session/${session.id}`)
   } finally {
@@ -137,6 +140,8 @@ function resolvePartner() {
       @saved="handleSaved"
       @cancel="customKind = 'none'"
     />
+
+    <ConversationOptions v-model="knowsLearner" />
 
     <button
       type="button"

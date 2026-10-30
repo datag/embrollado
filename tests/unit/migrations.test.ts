@@ -30,6 +30,8 @@ function v1Fixture(): ExportDoc {
           custom: false,
           description: 'B.',
         },
+        // A real pre-v3 file carries the (never filled) learnerName field — the migration must
+        // drop it and put the conversation options in its place.
         learnerName: null,
         state: 'ended',
         createdAt: '2026-10-28T09:00:00.000Z',
@@ -37,7 +39,7 @@ function v1Fixture(): ExportDoc {
         turns: [],
       },
     ],
-  }
+  } as unknown as ExportDoc
 }
 
 describe('export migrations (T058)', () => {
@@ -101,5 +103,29 @@ describe('export migrations (T058)', () => {
     expect(turn.illustrationId).toBe(null)
     // Pure: the same input yields the same output.
     expect(migrateExportDoc(withTurns)).toEqual(doc)
+  })
+
+  it('export v3 drops learnerName and defaults the conversation options to unknown (off)', () => {
+    const doc = migrateExportDoc(v1Fixture())
+    const session = doc.sessions[0] as ExportDoc['sessions'][number] & {
+      learnerName?: string | null
+    }
+    expect(session.options).toEqual({ knowsLearner: false })
+    expect(session.learnerName).toBeUndefined()
+  })
+
+  it('keeps an explicit knowsLearner option through the migration (export v3)', () => {
+    const withOptions = {
+      ...v1Fixture(),
+      sessions: [
+        {
+          ...v1Fixture().sessions[0],
+          learnerName: 'Sam',
+          options: { knowsLearner: true },
+        },
+      ],
+    }
+    const doc = migrateExportDoc(withOptions)
+    expect(doc.sessions[0].options).toEqual({ knowsLearner: true })
   })
 })

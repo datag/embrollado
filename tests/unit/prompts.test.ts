@@ -25,19 +25,74 @@ const base = {
   level: 'intermediate' as Level,
   targetLanguage: 'en',
   feedbackLanguage: 'de',
-  learnerName: 'Sam',
+  knowsLearner: false,
+  appearance: 'dark curly hair, a red rain jacket',
+  voice: 'warm, quick laugh',
+  age: 31,
+  gender: 'female' as const,
+  learnerName: null,
   learnerDetails: null,
 }
 
-describe('prompt builder (T045, T039)', () => {
-  it('includes role, situation, level, languages and learner', () => {
+describe('prompt builder (T045, T039, T112)', () => {
+  it('includes role, situation, level, languages and the learner context', () => {
     const prompt = buildSystemPrompt(base)
     expect(prompt).toContain('Nicole')
     expect(prompt).toContain('confectioner')
     expect(prompt).toContain('At the campsite washroom')
     expect(prompt).toContain('target language: en')
     expect(prompt).toContain('MUST be written in: de')
-    expect(prompt).toContain('Sam')
+  })
+
+  it('keeps the learner name and details out of the prompt by default (knowsLearner off)', () => {
+    const prompt = buildSystemPrompt({ ...base, learnerName: 'Sam', learnerDetails: 'gothic' })
+    // The option is off, so the stored name and details must never appear in the prompt —
+    // regardless of what the profile holds. The partner has to learn them during the talk.
+    expect(prompt).not.toContain('Sam')
+    expect(prompt).not.toContain('gothic')
+  })
+
+  it('sends the perceivable traits and the first-meeting rules when the option is off', () => {
+    const prompt = buildSystemPrompt(base)
+    // Visible and audible blocks, split by channel.
+    expect(prompt).toContain('they look somewhere in their thirties')
+    expect(prompt).toContain('they appear to be a woman')
+    expect(prompt).toContain('dark curly hair, a red rain jacket')
+    expect(prompt).toContain('their voice sounds somewhere in their thirties')
+    expect(prompt).toContain('their voice sounds female')
+    expect(prompt).toContain('warm, quick laugh')
+    // The first-meeting rules replace any profile knowledge.
+    expect(prompt).toContain('You are meeting the learner for the first time')
+    expect(prompt).toContain('Do not fill the gaps with invented facts')
+    expect(prompt).toContain('no invented name')
+    expect(prompt).toContain('there is no name yet')
+    expect(prompt).not.toContain('already know the learner')
+  })
+
+  it('releases name and details when the per-session option is enabled', () => {
+    const prompt = buildSystemPrompt({
+      ...base,
+      learnerName: 'Sam',
+      learnerDetails: 'gothic',
+      knowsLearner: true,
+    })
+    expect(prompt).toContain('Their name is Sam')
+    expect(prompt).toContain('What you know about them: gothic')
+    expect(prompt).toContain('You already know the learner from before this conversation')
+    // The first-meeting rules are replaced, not duplicated.
+    expect(prompt).not.toContain('There is no name yet')
+    expect(prompt).not.toContain('no invented name')
+  })
+
+  it('gives the partner an option not to perceive what the situation does not allow', () => {
+    const prompt = buildSystemPrompt(base)
+    expect(prompt).toContain('read the situation to decide what you can perceive')
+    expect(prompt).toContain('in a phone call you only hear them')
+  })
+
+  it('resolves the ambiguous "you" in the situation text to the learner', () => {
+    const prompt = buildSystemPrompt(base)
+    expect(prompt).toContain('"you" refers to the learner, not to you')
   })
 
   it('uses the level-specific rules', () => {
@@ -102,9 +157,18 @@ describe('prompt builder (T045, T039)', () => {
     expect(msg.content).toContain('starting')
   })
 
-  it('builds a generic prompt when the learner gives no name', () => {
-    const prompt = buildSystemPrompt({ ...base, learnerName: null, learnerDetails: null })
-    expect(prompt).toContain('has not shared personal details')
+  it('keeps the learner context minimal when nothing is perceivable or revealed', () => {
+    const prompt = buildSystemPrompt({
+      ...base,
+      appearance: null,
+      voice: null,
+      age: null,
+      gender: null,
+    })
+    expect(prompt).not.toContain('Visible (only if')
+    expect(prompt).not.toContain('Audible (only if')
+    expect(prompt).toContain('Rules about what you know')
+    expect(prompt).toContain('there is no name yet')
   })
 
   it('narrates the scene from the situation, the people and the whole dialogue in one request', () => {
@@ -113,6 +177,9 @@ describe('prompt builder (T045, T039)', () => {
       situation: base.situation,
       learnerName: 'Sam',
       learnerDetails: '27, gothic music fan',
+      appearance: 'dark curly hair',
+      age: 31,
+      gender: 'female',
       dialogue: [
         { partnerText: 'Where do you have to pay for the shower?', learnerText: null },
         { partnerText: 'All out. But here, take mine.', learnerText: 'Thanks a lot!' },
@@ -122,11 +189,14 @@ describe('prompt builder (T045, T039)', () => {
     const system = messages[0].content
     const user = messages[1].content
     // Situation first, then what was said — and the people, incl. the learner's settings.
+    // The picture keeps the full learner context (name, details and perceivable traits).
     expect(user).toContain('Situation:')
     expect(user).toContain('At the campsite washroom')
     expect(user).toContain('Nicole')
     expect(user).toContain('a woman')
     expect(user).toContain('Sam')
+    expect(user).toContain('somewhere in their thirties')
+    expect(user).toContain('dark curly hair')
     expect(user).toContain('27, gothic music fan')
     // The complete correspondence is part of the request.
     expect(user).toContain('Where do you have to pay for the shower?')
@@ -138,6 +208,8 @@ describe('prompt builder (T045, T039)', () => {
     expect(system).toContain('no dialogue text')
     expect(system).toContain('at most 60 words')
     expect(system).toContain('English')
+    // When the two cannot see each other, the director may render both sides as one split scene.
+    expect(system).toContain('split scene')
     // The dialogue-only context never leaks stored feedback into the picture prompt.
     expect(user).not.toContain('badge')
     expect(user).not.toContain('correctedText')
@@ -150,6 +222,9 @@ describe('prompt builder (T045, T039)', () => {
       situation: base.situation,
       learnerName: null,
       learnerDetails: null,
+      appearance: null,
+      age: null,
+      gender: null,
       dialogue: [],
     })
     const user = messages[1].content

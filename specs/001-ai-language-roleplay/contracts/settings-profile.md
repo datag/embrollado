@@ -46,8 +46,12 @@ Hash routing (`createWebHashHistory`) so the app works on any static host withou
 
 | Field               | Control                                                 | Validation                 | Where it goes                                                         |
 | ------------------- | ------------------------------------------------------- | -------------------------- | --------------------------------------------------------------------- |
-| Name                | Text input                                              | ≤ 60 characters, optional  | `LearnerProfile.name`                                                 |
-| About me            | Text area                                               | ≤ 500 characters, optional | `LearnerProfile.details`                                              |
+| Appearance          | Text area                                               | ≤ 500 characters, optional | `LearnerProfile.appearance` — perceivable, sent with every dialogue  |
+| Voice               | Text area                                               | ≤ 300 characters, optional | `LearnerProfile.voice` — perceivable, sent with every dialogue       |
+| Age                 | Number                                                  | 0…120, optional            | `LearnerProfile.age` — sent as an approximate band                   |
+| Gender              | Select: not specified / female / male / other           | —                          | `LearnerProfile.gender`                                               |
+| Name                | Text input                                              | ≤ 60 characters, optional  | `LearnerProfile.name` — pictures always; dialogue only via the "already knows you" option |
+| About me            | Text area                                               | ≤ 500 characters, optional | `LearnerProfile.details` — pictures always; dialogue only via the "already knows you" option |
 | Native language     | Select from the language list + "same as the interface" | —                          | `LearnerProfile.nativeLanguage` (`null` ⇒ interface language, FR-034) |
 | Interface language  | Select: English / Deutsch                               | —                          | `LearnerProfile.interfaceLanguage` (FR-033)                           |
 | Theme               | Select: light / dark / follow the system                | —                          | `LearnerProfile.theme`                                                |
@@ -57,9 +61,16 @@ Hash routing (`createWebHashHistory`) so the app works on any static host withou
 
 **Rules**
 
-- The name and the personal details are **sent to the AI service** as part of the model context, so
-  the partner can address the learner by name. The privacy text says so explicitly.
-- Both fields are optional; with neither filled the partner simply addresses the learner generically.
+- The perceivable traits (appearance, voice, age, gender) are **sent to the AI service** as part of
+  the model context of every dialogue and of the picture prompt, so the partner can perceive the
+  learner and the pictures can show them (FR-059).
+- The **name and the personal details** are sent in the picture context (FR-028) and reach the
+  dialogue only when the learner enables the per-session option "The AI partner already knows you"
+  (FR-060). Otherwise the partner must learn them during the conversation (FR-059).
+- A **pseudonym tip** next to the profile fields makes clear that these values can reach the
+  configured provider.
+- Both name and details are optional; the picture context falls back to "the learner has not
+  shared personal details".
 - The interface language switch applies immediately to every screen and every message (FR-033).
 - The native language applies to the feedback only: translation, explanation, interpretation,
   assumptions, assessment and the badge label (FR-036). The corrected answer stays in the target
@@ -106,8 +117,9 @@ streaming, complete, failed (with the learner's text kept and a retry), offline,
 | --------------- | ----------------------------------------------------------------------------- | -------------- |
 | Target language | The catalogue's language list                                                 | FR-002         |
 | Level           | beginner / intermediate / expert, each with a one-line explanation            | FR-002         |
-| Situation       | The 12 predefined situations + the learner's saved templates + "write my own" | FR-003, FR-044 |
+| Situation       | The 13 predefined situations + the learner's saved templates + "write my own" | FR-003, FR-044 |
 | Partner         | The 5 predefined partners + the learner's saved templates + "write my own"    | FR-003, FR-044 |
+| Conversation option | "The AI partner already knows you" — checkbox, default off                 | FR-060         |
 
 "Write my own" opens a small form:
 
@@ -122,7 +134,9 @@ streaming, complete, failed (with the learner's text kept and a retry), offline,
 | Use for this session only         | The default when not saving          | FR-046      |
 
 A session keeps a **snapshot** of the situation and the partner, so later changes to a template
-never rewrite past conversations.
+never rewrite past conversations. The conversation option is snapshotted the same way
+(`Session.options`), so a resumed session and an export keep the partner's starting knowledge
+identical to the original talk.
 
 ## 5. Validation and error behaviour in the UI
 

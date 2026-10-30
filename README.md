@@ -91,8 +91,12 @@ Embrollado talks to any **OpenAI-compatible** endpoint. In **Settings → AI ser
 4. **Test the connection** — one minimal request. If your service blocks the browser (CORS),
    Embrollado shows the exact flag for that provider.
 
-The learner profile fields (name, details) are sent to your AI service as part of the model
-context so the partner can address you naturally — the privacy notes in the app say so explicitly.
+The learner profile is split into **perceivable traits** and **other personal data**. What you can
+see or hear (appearance, voice, approximate age, gender) travels with every conversation so the
+partner and the generated pictures can reflect it. Your **name and details** always reach the
+picture generation, and — in the dialogue — only when you tick "The AI partner already knows you"
+when starting a conversation (off by default); otherwise the partner gets to know you during the
+talk, the way strangers do. The privacy notes and a pseudonym tip in the app say so explicitly.
 
 See [docs/configure-ai-service.md](docs/configure-ai-service.md) for provider-specific tips.
 
