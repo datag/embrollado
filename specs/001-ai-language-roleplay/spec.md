@@ -308,7 +308,9 @@ on a service without those capabilities and verify the graceful fallback.
   answer, the gaps that were filled with assumptions, and a quality badge that rates the answer.
 - **FR-009**: Where the learner's answer contains an explicit gap marker (`???`) or a word given in
   the learner's native language, the system MUST fill the gap with a plausible, context-appropriate
-  assumption and MUST visibly mark that text as an assumption.
+  assumption and MUST visibly mark that text as an assumption. The app only shows an assumption
+  when the answer contained `???` or the reported original is a single word that differs from the
+  fill — a phrase the learner wrote in the target language is never shown as a gap.
 - **FR-010**: *(removed in this iteration — owner decision. The `explanation` field already covers
   the learner's answer per turn, so the on-demand "Explain to me" action has been removed along
   with its button and its separate request.)*

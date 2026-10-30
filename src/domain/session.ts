@@ -33,10 +33,16 @@ export interface TurnFeedback {
   badgeIndex: number
 }
 
-/** Gaps are only kept when the learner's original text actually appeared in their answer (FR-009). */
+/**
+ * Gaps are only shown when the learner actually left one (FR-009): the explicit "???" marker, or a
+ * single word written in the learner's native language that the model filled in. A phrase the
+ * learner wrote in the TARGET language is never a gap — the model sometimes lists one anyway, so
+ * the app drops it here (the defence must not rely on the model alone).
+ */
 export function validateAssumptions(value: unknown, learnerText: string | null): Assumption[] {
   if (!Array.isArray(value)) return []
   const cleaned: Assumption[] = []
+  const hasMarker = learnerText != null && learnerText.includes('???')
   for (const item of value) {
     if (cleaned.length >= 5) break // capped at 5 (data-model §2)
     if (typeof item !== 'object' || item === null) continue
@@ -44,8 +50,11 @@ export function validateAssumptions(value: unknown, learnerText: string | null):
     const original = typeof raw.original === 'string' ? raw.original : ''
     const filled = typeof raw.filled === 'string' ? raw.filled : ''
     const reason = typeof raw.reason === 'string' ? raw.reason : ''
-    if (!original || !filled) continue
+    if (!original || !filled || original === filled) continue
     if (learnerText && !learnerText.includes(original)) continue
+    // Without an explicit "???" marker, only a single (native) word can plausibly be a gap —
+    // never a phrase the learner wrote in the target language.
+    if (!hasMarker && /\s/.test(original)) continue
     cleaned.push({ original, filled, reason })
   }
   return cleaned

@@ -125,6 +125,10 @@ Sent as `response_format.json_schema` with `strict: true`. Every property is lis
 - `badge.tier` outside the four values ⇒ the badge is shown as `unknown` and the turn is flagged
   internally (FR-025).
 - `assumptions[].original` does not appear in the learner's text ⇒ the assumption is dropped.
+- An assumption is shown only when the learner actually left a gap: the answer contains the `???`
+  marker, or `original` is a **single word** that differs from `filled`. A phrase the learner wrote
+  in the target language is never a gap — the model sometimes lists one anyway, and the app drops
+  it (FR-009).
 - The number of assumptions is capped at 5; the rest are dropped.
 - Unknown keys are ignored.
 

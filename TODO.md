@@ -8,7 +8,7 @@ Offene Punkte, nach Themen gruppiert.
 
 ## Feedback & Bewertung
 
-- [ ] Explanation sollte objektiv formuliert sein und nicht aus der Perspektive der AI („ich“).
+- [ ] Explanation sollte objektiv formuliert sein und nicht aus der Perspektive der AI („ich“). Beispiel: `Explanation – Deine Antwort ist natürlich und grammatisch korrekt. Du bestätigst, dass du ein Entwickler bist, und sagst dann, dass du mich ja vorher gewarnt hast. Das passt gut zur Situation. Nichts zu korrigieren.`
 - [ ] Bewertung: Akzente mitbewerten; Typografie nur als Anmerkung. Ggf. konfigurierbar machen.
 
 ## Development
@@ -27,7 +27,7 @@ Offene Punkte, nach Themen gruppiert.
 
 ## Konversation
 
-- [ ] Klären, was genau "Filled-in gaps" macht. Möglicherweise false positives damit.
+- [x] Klären, was genau "Filled-in gaps" macht. Möglicherweise false positives damit. _(Geklärt: Der Abschnitt zeigt nur noch echte Lücken — `???`-Marker oder ein einzelnes Wort in der Muttersprache. `validateAssumptions` verwirft Phrasen in der Zielsprache, No-op-Assumptions (original = filled) und Originale, die nicht in der Antwort vorkommen; Prompt-Regel geschärft; `tests/unit/assumptions.test.ts` ergänzt.)_
 
 ## Profil & Persona
 

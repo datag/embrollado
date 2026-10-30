@@ -137,9 +137,12 @@ export function buildSystemPrompt(input: PromptInput): string {
       'what it means and how well it works — and MUST be written in the ' +
       `feedback language (${input.feedbackLanguage}), NEVER in the target language (except for a ` +
       'quoted word or phrase from the answer, which may appear inside the explanation).',
-    '- When the learner used "???" or a word from the native language as a gap, fill it with the most ' +
-      'plausible replacement and explain in the "assumptions" field why that reading fits the context ' +
-      '(max 5 assumptions).',
+    '- Fill a gap only when the learner actually left one: a literal "???" or a single word written ' +
+      "in the learner's native language. The \"assumptions\" field then lists the exact gap " +
+      '("???" or that word) as "original", the most plausible replacement as "filled", and why it ' +
+      'fits the context (max 5). "filled" MUST differ from "original"; words and phrases the learner ' +
+      'wrote in the TARGET language are NEVER gaps. If the answer has neither "???" nor a native ' +
+      'word, return an empty "assumptions" array.',
     '- The "interpretation" field MUST be the learner\'s answer rendered in the feedback ' +
       'language — the translation of what their words mean, as one would interpret them ' +
       '(e.g. for "Hey buddy, are you lost?" write "Hey Kumpel, bist du verloren?"). ' +
