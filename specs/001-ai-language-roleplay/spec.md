@@ -438,8 +438,8 @@ on a service without those capabilities and verify the graceful fallback.
 - **FR-045**: The learner MUST be able to create their own partner and their own situation and
   save them as a template, and a saved template MUST stay available for later sessions.
 - **FR-046**: The learner MUST be able to give a partner or a situation directly when starting a
-  session without saving it. Such an entry MUST apply to that session only and MUST NOT be added to
-  the catalogue.
+  session without saving it. Such an entry MUST apply to that session only, MUST NOT be stored as a
+  template and MUST NOT be offered again in a later session.
 - **FR-047**: The learner MUST be able to rename and delete their own saved templates, and deleting
   a template MUST NOT delete the sessions that were practised with it.
 - **FR-048**: A learner-defined partner MUST have at least a name, and a learner-defined situation
@@ -560,7 +560,7 @@ on a service without those capabilities and verify the graceful fallback.
   combined with every partner, in 100% of combinations.
 - **SC-017**: A partner or situation that the learner saved as a template is still offered after a
   device restart and can be used in a later session, in 100% of cases, and a partner or situation
-  given on the fly is never listed in the catalogue.
+  given on the fly is never stored as a template and never offered in a later session.
 - **SC-018**: After practising in 50 sessions, the app still starts, lists and opens every one of
   them, and the stored transcripts and pictures are intact, in 100% of cases.
 - **SC-019**: Playing an older line whose audio is no longer cached fetches it again from the AI

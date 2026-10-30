@@ -52,6 +52,12 @@ export default {
       'The partner starts with your name and details. Off (default): it knows only what it can see or hear — the rest you reveal during the conversation.',
     start: 'Start the conversation',
     optional: 'optional',
+    badgeCustom: 'CUSTOM',
+    badgeOneTime: 'ONE-TIME',
+    promoteTemplate: 'Save as a template',
+    removeEntry: 'Remove this entry',
+    deleteTemplateConfirm: 'Delete the template "{name}"? This cannot be undone.',
+    ownSaveFailed: 'Saving as a template failed. The entry is saved for this conversation only.',
   },
   level: {
     beginner: 'Beginner — simple words and short sentences; a slow, forgiving conversation.',

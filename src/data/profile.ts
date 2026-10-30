@@ -106,20 +106,49 @@ export async function writeTemplates(templates: TemplateCollection): Promise<voi
   await db.put(STORE.meta, { key: TEMPLATES_META_KEY, value: JSON.stringify(templates) })
 }
 
+/**
+ * Run a read-modify-write cycle over the template document. Every mutation goes through a shared
+ * queue, so concurrent calls (e.g. saving a template right after removing another) serialise and
+ * never lose each other's entries.
+ */
+let mutationQueue: Promise<void> = Promise.resolve()
+
+async function mutateTemplates(
+  mutate: (t: TemplateCollection) => TemplateCollection,
+): Promise<void> {
+  const run = mutationQueue.then(async () => {
+    const t = await readTemplates()
+    await writeTemplates(mutate(t))
+  })
+  // Keep the chain alive after a failure; the caller still observes the rejection.
+  mutationQueue = run.catch(() => undefined)
+  return run
+}
+
 export async function addPersonaTemplate(persona: Persona): Promise<void> {
-  const t = await readTemplates()
-  const next = {
+  await mutateTemplates((t) => ({
     personas: [...t.personas.filter((p) => p.id !== persona.id), persona],
     situations: t.situations,
-  }
-  await writeTemplates(next)
+  }))
 }
 
 export async function addSituationTemplate(situation: Situation): Promise<void> {
-  const t = await readTemplates()
-  const next = {
+  await mutateTemplates((t) => ({
     personas: t.personas,
     situations: [...t.situations.filter((s) => s.id !== situation.id), situation],
-  }
-  await writeTemplates(next)
+  }))
+}
+
+export async function removePersonaTemplate(id: string): Promise<void> {
+  await mutateTemplates((t) => ({
+    personas: t.personas.filter((p) => p.id !== id),
+    situations: t.situations,
+  }))
+}
+
+export async function removeSituationTemplate(id: string): Promise<void> {
+  await mutateTemplates((t) => ({
+    personas: t.personas,
+    situations: t.situations.filter((s) => s.id !== id),
+  }))
 }

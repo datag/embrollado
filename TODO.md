@@ -15,16 +15,19 @@ Offene Punkte, nach Themen gruppiert.
 
 - [ ] HTML-Kommentare mit Verweisen auf Specs entfernen – oder sicherstellen, dass sie im finalen Build nicht sichtbar sind.
 - [ ] FavIcon ergänzen.
+- [ ] Datenschutzerklärung-Verlinkung Englisch/Deutsch mittels Env- bzw. GitHub-Repository-Vars (analog zu anderen Projekten)
 
 ## Konversations-Settings
 
 - [ ] Konversations-Settings: festlegen, wer beginnt (User oder AI) inkl. Default.
-- [ ] Eigene konfigurierte Situation/Persona ist nicht als „ausgewählt“ erkennbar.
+- [x] Custom konfigurierte Situation/Persona ist nicht als „ausgewählt“ erkennbar.
+- [ ] Eigene Vorlagen umbenennen (FR-047: rename fehlt bisher; Delete ist umgesetzt).
 
 ## Konversation
 
 - [ ] Beendetes Gespräch: entweder die Beenden-Funktion entfernen oder das Wiedereröffnen erlauben.
-
+- [ ] Eingabe-Hilfe (Button-Zeile) für Akzente und Zeichen wie ¿ und ¡
+- [ ] Emoji für Stimmungen?
 
 ## TTS / Audio
 
@@ -35,12 +38,8 @@ Offene Punkte, nach Themen gruppiert.
 ## Image Generation
 
 - [ ] Prüfen: Bekommt Image-Gen den vollen Kontext, inkl. Aussehen der Personen?
-- [ ] Konsistente Images (also bei Folge-Bildern)
-
-## Darstellung
-
-- [ ] Emoji für Stimmungen?
 - [ ] Bildstil (Illustrationen) festlegen.
+- [ ] Konsistente Images (also bei Folge-Bildern)
 
 ## Profil & Persona
 

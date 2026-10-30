@@ -52,6 +52,13 @@ export default {
       'Die Persona startet mit deinem Namen und deinen Angaben. Aus (Standard): Sie kennt nur, was sie sehen oder hören kann — den Rest erfährst du erst im Gespräch.',
     start: 'Gespräch starten',
     optional: 'optional',
+    badgeCustom: 'EIGEN',
+    badgeOneTime: 'EINMALIG',
+    promoteTemplate: 'Als Vorlage speichern',
+    removeEntry: 'Eintrag entfernen',
+    deleteTemplateConfirm: 'Vorlage „{name}“ löschen? Das kann nicht rückgängig gemacht werden.',
+    ownSaveFailed:
+      'Als Vorlage speichern fehlgeschlagen. Der Eintrag ist nur für dieses Gespräch gespeichert.',
   },
   level: {
     beginner: 'Anfänger — einfache Wörter und kurze Sätze; ein langsames, geduldiges Gespräch.',

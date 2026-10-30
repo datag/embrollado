@@ -115,8 +115,8 @@ streaming, complete, failed (with the learner's text kept and a retry), offline,
 | --------------- | ----------------------------------------------------------------------------- | -------------- |
 | Target language | The catalogue's language list                                                 | FR-002         |
 | Level           | beginner / intermediate / expert, each with a one-line explanation            | FR-002         |
-| Situation       | The 13 predefined situations + the learner's saved templates + "write my own" | FR-003, FR-044 |
-| Partner         | The 5 predefined partners + the learner's saved templates + "write my own"    | FR-003, FR-044 |
+| Situation       | The 13 predefined situations + the learner's templates + own one-off entries + "write my own" | FR-003, FR-044, FR-045, FR-046 |
+| Partner         | The 5 predefined partners + the learner's templates + own one-off entries + "write my own"    | FR-003, FR-044, FR-045, FR-046 |
 | Conversation option | "The AI partner already knows you" — checkbox, default off                 | FR-060         |
 
 "Write my own" opens a small form:
@@ -130,6 +130,14 @@ streaming, complete, failed (with the learner's text kept and a retry), offline,
 | Language of the description       | Required for learner-defined entries | —           |
 | Save as a template                | Toggle                               | FR-045      |
 | Use for this session only         | The default when not saving          | FR-046      |
+
+Own entries are listed inside the same picker list as the built-ins and templates. Every
+learner-defined row carries a badge — `CUSTOM`/`EIGEN` for a saved template and
+`ONE-TIME`/`EINMALIG` for an entry used for this conversation only. The selected row is
+highlighted like any selected entry, and on a selected learner-defined row two actions appear:
+**★** promotes a one-off entry to a template (same id, so the selection survives) and **✕**
+removes the entry (a saved template first asks for confirmation; a one-off entry is discarded
+without one).
 
 A session keeps a **snapshot** of the situation and the partner, so later changes to a template
 never rewrite past conversations. The conversation option is snapshotted the same way
