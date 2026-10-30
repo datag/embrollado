@@ -7,7 +7,7 @@ const props = defineProps<{
   illustration: Illustration | null | undefined
   alt: string
 }>()
-const emit = defineEmits<{ open: [] }>()
+const emit = defineEmits<{ open: []; loaded: [] }>()
 const { t } = useI18n()
 
 const objectUrl = ref<string | null>(null)
@@ -37,6 +37,7 @@ onBeforeUnmount(() => {
         :alt="alt"
         class="h-auto w-full object-cover transition group-hover:opacity-95"
         loading="lazy"
+        @load="emit('loaded')"
       />
     </button>
   </figure>

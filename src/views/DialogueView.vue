@@ -77,6 +77,8 @@ async function onIllustrate() {
   if (illustrationBusy.value || streaming.value) return
   await sessionState.generateIllustration()
   await loadIllustrations()
+  // First attempt: jump to the foot right away. The picture itself fires `loaded` once its
+  // (previously unknown) height is laid out, which scrolls again to the true bottom.
   void nextTick(() => scrollToBottom(true))
 }
 
@@ -265,6 +267,7 @@ watch(
         :illustration="startIllustration(session.id)"
         :alt="session.situation.name"
         @open="modalIllustration = startIllustration(session.id)"
+        @loaded="scrollToBottom(true)"
       />
 
       <div class="space-y-3">
@@ -325,6 +328,7 @@ watch(
               :illustration="turnIllustration(turn)"
               :alt="turnIllustration(turn)?.prompt || $t('dialogue.illustrationAlt')"
               @open="modalIllustration = turnIllustration(turn)"
+              @loaded="scrollToBottom(true)"
             />
           </div>
         </template>
