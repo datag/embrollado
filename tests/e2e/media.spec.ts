@@ -155,10 +155,9 @@ test.describe('speech and illustrations', () => {
     await configureService(page, { speech: false, image: false })
     await startConversation(page)
     await expectPartnerLine(page, 'Hello! Nice to meet you.')
-    // No speech model configured → the playback button stays, nothing is requested.
-    await page.getByTestId('speech-button').first().click()
-    await expect(page.getByText('This service cannot produce speech.')).toBeVisible()
-    // No illustration button and no illustration appear (image model missing).
+    // Without a speech model the playback control is not offered at all (the action is only
+    // available proactively); the same holds for the picture button without an image model.
+    await expect(page.getByTestId('speech-button')).toHaveCount(0)
     await expect(page.getByTestId('illustration-button')).toHaveCount(0)
     await expect(page.locator('figure img')).toHaveCount(0)
   })

@@ -55,8 +55,6 @@ Hash routing (`createWebHashHistory`) so the app works on any static host withou
 | Native language     | Select from the language list + "same as the interface" | —                          | `LearnerProfile.nativeLanguage` (`null` ⇒ interface language, FR-034) |
 | Interface language  | Select: English / Deutsch                               | —                          | `LearnerProfile.interfaceLanguage` (FR-033)                           |
 | Theme               | Select: light / dark / follow the system                | —                          | `LearnerProfile.theme`                                                |
-| Speech              | Switch                                                  | —                          | `LearnerProfile.speechEnabled`                                        |
-| Illustrations       | Switch                                                  | —                          | `LearnerProfile.illustrationsEnabled`                                 |
 | Cached spoken lines | Number input                                            | 0…200, default 20          | `LearnerProfile.cachedSpeechLines` (FR-050)                           |
 
 **Rules**

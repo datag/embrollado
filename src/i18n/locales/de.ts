@@ -180,7 +180,6 @@ export default {
     themeDark: 'Dunkel',
     themeAuto: 'Dem System folgen',
     speech: 'Partnerstimme abspielen',
-    illustrations: 'Bilder erzeugen (Knopf neben der Eingabe)',
     cachedSpeechLines: 'Gespeicherte Sprachzeilen',
     cachedSpeechLinesHint: '0…200, Standard 20. Ältere Zeilen werden zuerst entfernt.',
     storage: 'Speicher',

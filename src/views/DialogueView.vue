@@ -3,7 +3,7 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useSession } from '@/composables/useSession'
-import { useServiceConfig, useSettings } from '@/composables/useSettings'
+import { useServiceConfig } from '@/composables/useSettings'
 import { canGenerateImages as imagesPossible } from '@/ai/providers'
 import type { Illustration, Session, Turn } from '@/domain/types'
 import { LEVELS } from '@/domain/catalogue'
@@ -52,14 +52,23 @@ function turnIllustration(turn: Turn): Illustration | null {
 
 /**
  * The generate-picture button is only offered when the configured service can produce images at
- * all: an image model is set AND the provider profile exposes an images path AND the learner
- * enabled illustrations AND the endpoint has not already declined. Without a model the input box
- * takes the full width — no explanatory error is shown, that state is the normal one.
+ * all: an image model is set AND the provider profile exposes an images path AND the endpoint has
+ * not already declined. Without a model the input box takes the full width — no explanatory error
+ * is shown, that state is the normal one.
  */
 const showIllustrationButton = computed(() => {
   const { service } = useServiceConfig()
-  const { settings } = useSettings()
-  return imagesPossible(service, settings, sessionState.imagesAvailable.value)
+  return imagesPossible(service, sessionState.imagesAvailable.value)
+})
+
+/**
+ * The playback button is only offered when a speech model is configured. Without one the partner
+ * line simply is not speakable — like the picture button, its absence is the normal state. When a
+ * model IS set but the endpoint refuses (404/405), the unavailability hint still explains why.
+ */
+const showSpeechButton = computed(() => {
+  const { service } = useServiceConfig()
+  return !!service.speechModel?.trim()
 })
 
 const illustrationBusy = computed(() => sessionState.illustrationBusy.value)
@@ -300,6 +309,7 @@ watch(
             </div>
             <div class="flex shrink-0 flex-col items-center gap-1.5">
               <SpeechButton
+                v-if="showSpeechButton"
                 class="shrink-0"
                 :label="$t('settings.speech')"
                 :active="speakingTurnId === turn.id"

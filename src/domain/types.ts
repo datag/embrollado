@@ -143,8 +143,6 @@ export interface LearnerProfile {
   nativeLanguage: string | null
   interfaceLanguage: InterfaceLanguage
   theme: ThemeOption
-  speechEnabled: boolean
-  illustrationsEnabled: boolean
   cachedSpeechLines: number
 }
 

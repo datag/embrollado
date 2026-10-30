@@ -51,4 +51,3 @@ Offene Punkte, nach Themen gruppiert.
 ## Settings & Konfiguration
 
 - [ ] Auth-style / Provider-Profil – URL als separate Option anbieten?
-- [ ] Optionen "Play the partner's lines" und "Generate pictures": Welchen Nutzen haben diese? Entfernen?

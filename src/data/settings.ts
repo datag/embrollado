@@ -9,7 +9,7 @@ import type { InterfaceLanguage, LearnerProfile, ThemeOption } from '@/domain/ty
  */
 
 export const SETTINGS_KEY = 'embrollado.settings.v1'
-export const SETTINGS_SCHEMA = 2
+export const SETTINGS_SCHEMA = 3
 
 export const DEFAULT_SETTINGS: LearnerProfile = {
   name: '',
@@ -21,8 +21,6 @@ export const DEFAULT_SETTINGS: LearnerProfile = {
   nativeLanguage: null,
   interfaceLanguage: 'en',
   theme: 'auto',
-  speechEnabled: true,
-  illustrationsEnabled: true,
   cachedSpeechLines: 20,
 }
 
@@ -34,16 +32,26 @@ export interface SettingsDocument {
 export type SettingsPatch = Partial<LearnerProfile>
 
 /**
- * Migration chain 1 → 2 → …; every step is a pure function.
+ * Migration chain 1 → 2 → 3; every step is a pure function.
  * 1 → 2: the profile gains the perceivable traits (appearance, voice, age, gender). Name and
  * details survive unchanged; the old "details" text is deliberately NOT copied into "appearance"
  * — only what is perceivable may be sent by default, and a job or hobby is not visible.
+ * 2 → 3: the speech/illustration master switches are removed — availability is derived from the
+ * configured models and the provider profile, so the stored fields are dropped.
  */
 const migrations: Record<number, (doc: SettingsDocument) => SettingsDocument> = {
   2: (doc) => ({
     schema: 2,
     data: { ...doc.data, appearance: '', voice: '', age: null, gender: null },
   }),
+  3: (doc) => {
+    const legacy = doc.data as LearnerProfile & {
+      speechEnabled?: boolean
+      illustrationsEnabled?: boolean
+    }
+    const { speechEnabled: _speech, illustrationsEnabled: _illustrations, ...data } = legacy
+    return { schema: 3, data }
+  },
 }
 
 function clone(v: LearnerProfile): LearnerProfile {

@@ -179,7 +179,6 @@ export default {
     themeDark: 'Dark',
     themeAuto: 'Follow the system',
     speech: 'Play the partner’s lines',
-    illustrations: 'Generate pictures (button next to the input)',
     cachedSpeechLines: 'Cached spoken lines',
     cachedSpeechLinesHint: '0…200, default 20. Older lines are pruned first.',
     storage: 'Storage',

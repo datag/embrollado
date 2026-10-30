@@ -51,6 +51,23 @@ describe('settings store (T070, T019)', () => {
     expect(read.gender).toBeNull()
   })
 
+  it('migration 2 → 3 removes the speech/illustration master switches', () => {
+    // A v2 document as the previous version wrote it, with both switches set.
+    localStorage.setItem(
+      SETTINGS_KEY,
+      JSON.stringify({
+        schema: 2,
+        data: { ...DEFAULT_SETTINGS, speechEnabled: false, illustrationsEnabled: false },
+      }),
+    )
+    const read = readSettings()
+    expect(read).not.toHaveProperty('speechEnabled')
+    expect(read).not.toHaveProperty('illustrationsEnabled')
+    const stored = JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}')
+    expect(stored.schema).toBe(SETTINGS_SCHEMA)
+    expect(stored.data).not.toHaveProperty('speechEnabled')
+  })
+
   it('ignores a document from a newer app version (forward compatibility)', () => {
     localStorage.setItem(
       SETTINGS_KEY,

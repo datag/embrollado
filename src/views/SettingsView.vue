@@ -356,27 +356,6 @@ function lowSpaceComputed(): boolean {
           }}</span>
         </label>
       </div>
-
-      <div class="flex flex-col gap-2">
-        <label class="flex min-h-11 items-center gap-3 rounded-lg border border-border px-3">
-          <input
-            type="checkbox"
-            class="h-5 w-5 accent-[color:var(--color-accent)]"
-            :checked="settings.speechEnabled"
-            @change="update({ speechEnabled: ($event.target as HTMLInputElement).checked })"
-          />
-          <span class="text-sm">{{ $t('settings.speech') }}</span>
-        </label>
-        <label class="flex min-h-11 items-center gap-3 rounded-lg border border-border px-3">
-          <input
-            type="checkbox"
-            class="h-5 w-5 accent-[color:var(--color-accent)]"
-            :checked="settings.illustrationsEnabled"
-            @change="update({ illustrationsEnabled: ($event.target as HTMLInputElement).checked })"
-          />
-          <span class="text-sm">{{ $t('settings.illustrations') }}</span>
-        </label>
-      </div>
     </article>
 
     <!-- Storage -->

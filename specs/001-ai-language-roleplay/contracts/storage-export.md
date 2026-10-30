@@ -29,8 +29,6 @@ small documents below; all transcripts, pictures and cached audio live in Indexe
     "interfaceLanguage": "en",
     "nativeLanguage": null,
     "theme": "auto",
-    "speechEnabled": true,
-    "illustrationsEnabled": true,
     "cachedSpeechLines": 20,
     "name": "",
     "details": "",

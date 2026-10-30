@@ -1,4 +1,4 @@
-import type { AuthMode, LearnerProfile, ServiceConfig } from '@/domain/types'
+import type { AuthMode, ServiceConfig } from '@/domain/types'
 
 /**
  * Declarative endpoint profiles (T023, ai-service.md §7). All provider differences that would
@@ -157,20 +157,18 @@ export function profileById(id: string): EndpointProfile {
 }
 
 /**
- * Whether the generate-picture button may be offered (FR-028 as amended). All four conditions
+ * Whether the generate-picture button may be offered (FR-028 as amended). The three conditions
  * must hold: an image model is configured, the current provider profile exposes an images path
- * (ollama/llama.cpp/vLLM/LM Studio never do — a button there would always fail), the learner
- * enabled illustrations, and the service has not already declined the images endpoint.
+ * (ollama/llama.cpp/vLLM/LM Studio never do — a button there would always fail), and the service
+ * has not already declined the images endpoint.
  */
 export function canGenerateImages(
   service: ServiceConfig,
-  settings: LearnerProfile,
   imagesAvailable: boolean,
 ): boolean {
   return (
     !!service.imageModel?.trim() &&
     !!profileById(service.providerProfile).imagesPath &&
-    settings.illustrationsEnabled &&
     imagesAvailable
   )
 }

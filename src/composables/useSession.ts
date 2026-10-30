@@ -348,7 +348,7 @@ export function useSession(): UseSessionReturn {
     const s = session.value
     if (!s) return
     const { settings } = useSettings()
-    if (!settings.illustrationsEnabled || !imagesAvailable.value) return
+    if (!imagesAvailable.value) return
     const { service } = useServiceConfig()
     if (!service.imageModel) return
     const profile = profileById(service.providerProfile)

@@ -131,8 +131,6 @@ details about their own person). Only the perceivable traits travel by default â
 | `interfaceLanguage`    | `"en" \| "de"`                | Required, default `"en"` (FR-033)                                                                                           |
 | `theme`                | `"light" \| "dark" \| "auto"` | Required, default `"auto"`                                                                                                  |
 | `cachedSpeechLines`    | number                        | Required, default 20, range 0â€¦200 (FR-050)                                                                                  |
-| `speechEnabled`        | boolean                       | Required, default `true`                                                                                                    |
-| `illustrationsEnabled` | boolean                       | Required, default `true`                                                                                                    |
 
 ### SessionOptions
 
