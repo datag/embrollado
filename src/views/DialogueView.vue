@@ -31,6 +31,8 @@ const phase = computed(() => sessionState.phase.value)
 const streaming = computed(
   () => phase.value === 'partner-streaming' || phase.value === 'generating',
 )
+/** The learner's latest answer while its response is pending or failed — rendered immediately. */
+const pendingLearnerText = computed(() => sessionState.pendingLearnerText.value ?? '')
 const readOnly = computed(() => session.value?.state === 'ended')
 const canSend = computed(() => !readOnly.value && draft.value.trim().length > 0 && !streaming.value)
 const levelName = computed(() => {
@@ -165,6 +167,16 @@ watch(
   { flush: 'post' },
 )
 
+// The learner's answer renders instantly on send — scroll it into view even before the model
+// answers (the sent message belongs at the foot of the conversation).
+watch(
+  () => sessionState.pendingLearnerText.value,
+  (v) => {
+    if (v) void nextTick(() => scrollToBottom(true))
+  },
+  { flush: 'post' },
+)
+
 // A completed message (feedback + partner line) always scrolls into view — the learner just sent
 // an answer, so the new content belongs at the foot of the conversation.
 watch(
@@ -286,6 +298,11 @@ watch(
             />
           </div>
         </template>
+
+        <!-- the learner's latest answer renders immediately, while the response is pending -->
+        <div v-if="pendingLearnerText" class="flex flex-col gap-2">
+          <TurnBubble :text="pendingLearnerText" side="learner" />
+        </div>
 
         <!-- the partner's next line streams here -->
         <TurnBubble

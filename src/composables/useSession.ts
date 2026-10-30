@@ -53,6 +53,11 @@ export interface UseSessionReturn {
   turns: Ref<Turn[]>
   phase: Ref<TurnPhase>
   partnerProgress: Ref<string>
+  /**
+   * The learner's latest answer while its response is pending (generating) or was rejected
+   * (failed) — rendered immediately, because the text is already known 1:1. Cleared on success.
+   */
+  pendingLearnerText: Ref<string | null>
   error: Ref<SessionError | null>
   speechAvailable: Ref<boolean>
   imagesAvailable: Ref<boolean>
@@ -541,6 +546,7 @@ export function useSession(): UseSessionReturn {
     turns,
     phase,
     partnerProgress,
+    pendingLearnerText: pendingText,
     error,
     speechAvailable,
     imagesAvailable,

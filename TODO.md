@@ -23,11 +23,15 @@ Offene Punkte, nach Themen gruppiert.
 ## Conversation Settings
 
 - [ ] Konversations-Settings: festlegen, wer beginnt (User oder AI) inkl. Default.
+- [ ] Eigene Situation/Persona nicht als „ausgewählt“ erkenntlich machen.
+
+## Konversation
+
+- [ ] Klären, was genau "Filled-in gaps" macht. Möglicherweise false positives damit.
 
 ## Profil & Persona
 
 - [ ] Profile-Setting: Zielgruppe einstellbar (Kind vs. Erwachsener) oder automatisch aus dem Alter ableiten. Hinweis: Ableitung aus dem Alter schließt ein „Alter-Ego“ aus.
-- [ ] Eigene Situation/Persona nicht als „ausgewählt“ erkenntlich machen.
 
 ## TTS / Audio
 
@@ -37,7 +41,7 @@ Offene Punkte, nach Themen gruppiert.
 
 ## Darstellung
 
-- [ ] User-Message sofort rendern, während AI-Request noch passiert.
+- [x] User-Message sofort rendern, während AI-Request noch passiert. _(Umsetzung: `useSession` exponiert `pendingLearnerText` — die getippte Antwort wird synchron beim Senden als Lernenden-Bubble gerendert und erst nach Erfolg durch den gespeicherten Turn ersetzt; bei Fehlern bleibt sie sichtbar.)_
 - [ ] Emoji für Stimmungen?
 - [ ] Bildstil (Illustrationen) festlegen.
 
