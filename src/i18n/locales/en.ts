@@ -5,7 +5,7 @@ export default {
       'This app must be served over http(s) — open it from a web server, not from a file.',
   },
   nav: {
-    sessions: 'Sessions',
+    sessions: 'Conversations',
     new: 'New conversation',
     settings: 'Settings',
     about: 'About',
@@ -75,7 +75,7 @@ export default {
     description: 'Short description',
     language: 'Language of this text',
     saveTemplate: 'Save as a template',
-    sessionOnly: 'Use for this session only',
+    sessionOnly: 'Use for this conversation only',
     save: 'Continue',
     cancel: 'Cancel',
     tooLong: 'Too long',

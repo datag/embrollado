@@ -80,7 +80,7 @@ providers. This is a documented deviation from the strict guarantee, narrowing
 
 ### Why it works
 
-- **Hash routing** (`#/sessions`) means no rewrite rule is needed on any static host; a refresh
+- **Hash routing** (`#/`) means no rewrite rule is needed on any static host; a refresh
   never 404s.
 - The base path is computed by the workflow (`/` for a user site, `/<repo>/` otherwise) and passed
   to `vite build --base`, so all asset URLs and the service-worker scope follow it.

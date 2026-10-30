@@ -74,7 +74,7 @@ async function begin() {
       partner: par,
       options: { knowsLearner: knowsLearner.value },
     })
-    router.push(`/session/${session.id}`)
+    router.push(`/conversation/${session.id}`)
   } finally {
     starting.value = false
   }

@@ -46,7 +46,7 @@ export default {
     situationCustom: 'Eigene schreiben',
     partner: 'Partner',
     partnerCustom: 'Eigene schreiben',
-    options: 'Konversations-Optionen',
+    options: 'Gesprächs-Optionen',
     knowsLearner: 'Die KI-Persona kennt dich bereits',
     knowsLearnerHint:
       'Die Persona startet mit deinem Namen und deinen Angaben. Aus (Standard): Sie kennt nur, was sie sehen oder hören kann — den Rest erfährst du erst im Gespräch.',

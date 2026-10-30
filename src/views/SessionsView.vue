@@ -56,7 +56,7 @@ function formatDate(iso: string): string {
 }
 
 function openSession(id: string) {
-  router.push(`/session/${id}`)
+  router.push(`/conversation/${id}`)
 }
 
 function startRename(s: Session) {

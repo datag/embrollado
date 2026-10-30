@@ -17,10 +17,6 @@ Offene Punkte, nach Themen gruppiert.
 - [ ] HTML-Kommentare mit Verweisen auf Specs entfernen – oder sicherstellen, dass sie im finalen Build nicht sichtbar sind.
 - [ ] FavIcon ergänzen.
 
-## Konversations-Liste
-
-- [ ] Begriff Session durch Konversation ersetzen (Frontend/Routen/...); aktuell ist es gemischt
-
 ## Konversations-Settings
 
 - [ ] Konversations-Settings: festlegen, wer beginnt (User oder AI) inkl. Default.
