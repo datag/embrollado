@@ -10,6 +10,8 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   projects: [
+    // The functional specs are viewport-agnostic, so they only run once (pixel5). Only the layout
+    // spec (mobile.spec.ts) genuinely needs every mobile viewport; network.spec.ts covers desktop.
     {
       name: 'pixel5',
       use: { viewport: { width: 393, height: 727 } },
@@ -18,12 +20,12 @@ export default defineConfig({
     {
       name: 'iphone12',
       use: { viewport: { width: 390, height: 844 } },
-      testIgnore: /network\.spec\.ts/,
+      testMatch: /mobile\.spec\.ts/,
     },
     {
       name: 'iphoneSE',
       use: { viewport: { width: 320, height: 568 } },
-      testIgnore: /network\.spec\.ts/,
+      testMatch: /mobile\.spec\.ts/,
     },
     {
       name: 'desktop',

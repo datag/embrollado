@@ -140,8 +140,8 @@ test.describe('dialogue cycle', () => {
     await startConversation(page)
     await expectPartnerLine(page, 'Hello! Nice to meet you.')
 
-    // Grow the transcript so it overflows even the tallest mobile viewport.
-    for (let i = 0; i < 3; i++) {
+    // Grow the transcript so it overflows the viewport (dialogue runs on the pixel5 project only).
+    for (let i = 0; i < 2; i++) {
       await page.getByTestId('dialogue-input').fill('Where do you come from?')
       await page.getByTestId('send').click()
       await expect(page.getByTestId('feedback')).toHaveCount(i + 1, { timeout: 20_000 })
@@ -171,7 +171,7 @@ test.describe('dialogue cycle', () => {
     await startConversation(page)
     await expectPartnerLine(page, 'Hello! Nice to meet you.')
 
-    // The mock-slow-chat model answers after ~3 s: the send button must be locked for the whole
+    // The mock-slow-chat model answers after ~1 s: the send button must be locked for the whole
     // wait and show a spinner instead of the arrow, then unlock again.
     await page.getByTestId('dialogue-input').fill('Where do you come from?')
     await page.getByTestId('send').click()

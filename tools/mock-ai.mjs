@@ -38,10 +38,14 @@ function sendStream(res, content) {
     connection: 'keep-alive',
   })
   // The model streams the strict JSON turn document; the app renders `partnerText` progressively
-  // from the accumulated JSON string (partnerText is the document's first property).
+  // from the accumulated JSON string (partnerText is the document's first property). The whole
+  // document streams in a fixed handful of chunks (~200 ms) so the progressive-rendering path is
+  // exercised without making every e2e turn wait ~0.8 s (the old 12-char chunks) for completion.
   const full = JSON.stringify(content)
+  const STREAM_TICKS = 8
+  const TICK_MS = 25
+  const slice = Math.max(1, Math.ceil(full.length / STREAM_TICKS))
   let offset = 0
-  const slice = 12
   const timer = setInterval(() => {
     if (offset >= full.length) {
       clearInterval(timer)
@@ -70,7 +74,7 @@ function sendStream(res, content) {
       choices: [{ index: 0, delta: { content: piece }, finish_reason: null }],
     }
     res.write(`data: ${JSON.stringify(chunk)}\n\n`)
-  }, 25)
+  }, TICK_MS)
   // Safety net so a stuck client never holds the process forever.
   setTimeout(() => {
     clearInterval(timer)
@@ -132,7 +136,7 @@ const server = http.createServer((req, res) => {
         : TURN
       // The `mock-slow-chat` model answers only after a delay — the e2e tests use it to observe
       // the locked send button / spinner while a request is in flight for a comfortable window.
-      const delayMs = parsed.model === 'mock-slow-chat' ? 3000 : 0
+      const delayMs = parsed.model === 'mock-slow-chat' ? 1000 : 0
       if (stream) {
         if (delayMs) setTimeout(() => sendStream(res, payload), delayMs)
         else sendStream(res, payload)
@@ -172,7 +176,7 @@ const server = http.createServer((req, res) => {
       const sampleRate = 24000
       // `mock-slow-speech` returns a longer clip so the e2e test can observe the Stop control
       // while the partner line plays instead of missing the (too short) window.
-      const seconds = parsed.model === 'mock-slow-speech' ? 3 : 0.3
+      const seconds = parsed.model === 'mock-slow-speech' ? 1.5 : 0.3
       const n = Math.floor(sampleRate * seconds)
       if (parsed.response_format === 'pcm') {
         const raw = Buffer.alloc(n * 2) // silence, 16-bit little-endian
