@@ -18,7 +18,7 @@ const BASE = process.env.BASE ?? '/v1'
 const TURN = {
   partnerText: 'Hello! Nice to meet you. Where do you come from?',
   translation: 'Hallo! Schön, dich zu treffen. Woher kommst du?',
-  explanation: 'Eine höfliche, verständliche Frage.',
+  explanation: 'Deine Antwort ist verständlich und passt zur Frage. Nichts zu korrigieren.',
   correctedText: null,
   interpretation: 'Ist der Waschraum neben den Duschen?',
   assumptions: [],

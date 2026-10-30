@@ -14,7 +14,7 @@ badge) and FR-040…FR-043 (the four-tier badge).
 {
   "partnerText": "¿Puedecriberse dónde está el lavadero?",
   "translation": "Können Sie mir sagen, wo der Waschraum ist?",
-  "explanation": "Die Frage ist höflich; «lavadero» bedeutet Waschraum.",
+  "explanation": "Deine Antwort ist verständlich; etwas natürlicher wäre «¿Puede decirme…?».",
   "correctedText": "¿Puede decirme dónde está el lavadero?",
   "interpretation": "Kann ich neben den Waschräumen warten?",
   "assumptions": [
@@ -39,7 +39,7 @@ badge) and FR-040…FR-043 (the four-tier badge).
 | ---------------- | ------------------ | -------- | ------------------------------------------------------------------------------------ |
 | `partnerText`    | yes                | target   | The partner's next line; one utterance, ≤ 300 characters                             |
 | `translation`    | yes                | native   | The partner's line in the learner's native language (FR-036)                         |
-| `explanation`    | no                 | native   | Optional explanation of the learner's answer (FR-008)                                 |
+| `explanation`    | no                 | native   | Optional explanation of the learner's answer — an objective note, partner in the third person (FR-008, FR-061) |
 | `correctedText`  | no                 | target   | The learner's answer, corrected; `null` when the answer was already correct (FR-036) |
 | `interpretation` | yes                | native   | The learner's answer translated into the native language — what their words mean (FR-008) |
 | `assumptions`    | yes (may be empty) | native   | The gaps that were filled (FR-009)                                                   |
@@ -173,6 +173,12 @@ The system prompt is assembled by `ai/prompts.ts` from:
 7. **Rules** — one utterance per turn; stay in character; never break into a lesson; always answer
    with the JSON turn object; treat `???` and native-language words as gaps and fill them with a
    plausible assumption and state the reason; rate the learner's answer against the selected level.
+   The feedback fields (`explanation`, `issues`, `assumptions[].reason`) are written in an
+   **objective coach voice** (FR-061): addressed to the learner directly ("your answer",
+   "you say"), never in the partner's first person and never reporting the partner's own feelings
+   or opinions; the partner is referenced in the third person. `interpretation` keeps the
+   learner's voice and `translation` keeps the partner's voice — the rule never applies to them.
+   The opening turn has no learner answer, so its `explanation` is `null`.
 8. **Personality and reactions** — the partner is a real person with feelings, dignity and
    boundaries, not a servile assistant. They react authentically and proportionately to what the
    learner says and how they say it, remember how they have been treated so far, push back against

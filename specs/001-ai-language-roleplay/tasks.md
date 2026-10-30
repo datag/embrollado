@@ -303,6 +303,11 @@ learner answers (FR-057).
 
 - [x] T112 Fix the invisible assessment pills found while inspecting the user's sessions via chrome-devtools: `QualityBadge.vue` built the class dynamically as `bg-badge-${tier}`, so Tailwind v4 only generated `bg-badge-perfect` (the sole literal match, in a test file) and `good`/`acceptable`/`unsatisfactory` (and later `unknown`) pills had a transparent background with near-white text → the assessment looked empty. The `TIER_CLASS` map now holds the full literal class names; a component test checks all five tiers, and the dialogue e2e asserts the badge's computed background is not transparent
 
+### Objective feedback voice (FR-061)
+
+- [x] T113 Scope the in-character and the personal rules in `src/ai/prompts.ts` to the `partnerText` field and add the feedback-voice rule: `explanation`, `issues` and `assumptions[].reason` are written as an objective coach's note addressed to the learner directly ("deine Antwort", "du sagst" / "your answer", "you say"), never in the partner's first person ("ich", "mich"; "I", "me") and never reporting the partner's own feelings or opinions; the partner is referenced in the third person — "you had warned ME" becomes "you had warned HER/HIM". `interpretation` keeps the learner's voice and `translation` keeps the partner's voice (the rule never applies to them). The opening turn has no learner answer, so `createOpeningTurn` is now called with `explanation: null` in `src/composables/useSession.ts`. Prompt unit test, component fixture and the mock explanation (`tools/mock-ai.mjs`) updated to coach-style text; the dialogue e2e asserts the objective explanation
+- [x] T114 Document FR-061 in `spec.md` (new requirement + the Explanation key entity rewritten), `contracts/turn-payload.md` (§1 table, example, §4 rules), `contracts/settings-profile.md` (§3) and `data-model.md` (turn/assumption/issue rows; the stale on-demand `### Explanation` entity from FR-010 is removed); TODO entry "Explanation sollte objektiv formuliert sein" checked off
+
 ---
 
 ## Dependencies & Execution Order

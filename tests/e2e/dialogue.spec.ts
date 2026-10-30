@@ -31,6 +31,8 @@ test.describe('dialogue cycle', () => {
     // badge wording and interpretation (the learner's answer, translated into German)
     await expect(feedback).toContainText('Well done!')
     await expect(feedback).toContainText('Ist der Waschraum neben den Duschen?')
+    // The explanation addresses the learner objectively, never in the partner's first person (FR-061).
+    await expect(feedback).toContainText('Deine Antwort ist verständlich')
     // The badge must be a visible coloured pill (its bg utility is not generated otherwise).
     const badgeBg = await page.evaluate(() => {
       const el = document.querySelector('span[class*="bg-badge-"]')

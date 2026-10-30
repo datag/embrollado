@@ -392,6 +392,14 @@ on a service without those capabilities and verify the graceful fallback.
   interpretation, the filled-in assumptions and the quality badge MUST be delivered in the
   learner's native language, while the corrected version of the learner's answer MUST remain in
   the target language.
+- **FR-061**: The explanation of the learner's answer, the issues and the reasons of the
+  filled-in assumptions MUST be written as an objective note that addresses the learner directly
+  ("your answer", "you say") and MUST NOT describe the partner's reactions in the partner's
+  first person or report the partner's own feelings or opinions; references to the partner use
+  the third person ("that she had warned you beforehand", never "you had warned me"). The
+  interpretation keeps the learner's own voice and the translation keeps the partner's voice —
+  the rule does not apply to these two fields. The opening turn has no learner answer and
+  therefore no explanation.
 - **FR-057**: The translation of a partner line MUST arrive with the same request as the line itself
   and MUST be shown muted directly under the line in the learner's native language. While the line
   is still open it MUST be hidden by default; the learner MUST be able to reveal or hide it per
@@ -505,8 +513,10 @@ on a service without those capabilities and verify the graceful fallback.
 - **Illustration**: A generated picture of the current moment of a conversation, produced on the
   learner's request. Attributes: referenced session and turn, the moment it depicts, and the
   locally stored asset, which is kept as long as the session exists.
-- **Explanation**: Additional information about a turn, retrieved on demand. Attributes: referenced
-  turn, content, and the kind of information (meaning of a phrase, a specific error, or both).
+- **Explanation**: The coaching note on the learner's latest answer, delivered with the turn. It
+  says what the answer expresses, how well it fits the situation and what to correct, written in
+  the learner's native language as an objective note that addresses the learner directly — never
+  in the partner's first person (FR-008, FR-061).
 
 ## Success Criteria *(mandatory)*
 

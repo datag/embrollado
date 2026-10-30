@@ -131,6 +131,26 @@ describe('prompt builder (T045, T039, T112)', () => {
     expect(prompt).toContain('which may appear inside the explanation')
   })
 
+  it("writes the feedback in an objective coach voice, not the partner's (FR-061)", () => {
+    const prompt = buildSystemPrompt(base)
+    // The explanatory fields address the learner directly, never the partner in the first person.
+    expect(prompt).toContain('Feedback voice')
+    expect(prompt).toContain('NEVER write yourself — the partner — in the first person')
+    expect(prompt).toContain('Refer to the partner in the third person')
+    // The reported trap: "you had warned ME" becomes "you had warned HER/HIM".
+    expect(prompt).toContain('"you had warned ME" must become "you had warned HER/HIM"')
+    // The example from the TODO, with the partner in the third person ("sie hat dich gewarnt").
+    expect(prompt).toContain('dass sie dich ja vorher gewarnt hat')
+    // Interpretation keeps the learner's voice, translation the partner's — both stay exempt.
+    expect(prompt).toContain("keeps the learner's voice")
+    expect(prompt).toContain("keeps the partner's voice")
+    // The in-character and personal rules apply only to the partner's own line.
+    expect(prompt).toContain('in the "partnerText" field')
+    // The opening turn has no learner answer, so no explanation.
+    expect(prompt).toContain('no learner answer yet')
+    expect(prompt).toContain('"explanation" MUST be null')
+  })
+
   it('gives the partner a human personality with dignity and boundaries, not servility', () => {
     const prompt = buildSystemPrompt(base)
     expect(prompt).toContain('feelings, dignity and boundaries')

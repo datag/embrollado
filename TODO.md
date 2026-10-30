@@ -4,7 +4,6 @@ Offene Punkte, nach Themen gruppiert.
 
 ## Feedback & Bewertung
 
-- [ ] Explanation sollte objektiv formuliert sein und nicht aus der Perspektive der AI („ich“). Beispiel: `Explanation – Deine Antwort ist natürlich und grammatisch korrekt. Du bestätigst, dass du ein Entwickler bist, und sagst dann, dass du mich ja vorher gewarnt hast. Das passt gut zur Situation. Nichts zu korrigieren.`
 - [ ] Bewertung: Akzente mitbewerten; Typografie nur als Anmerkung. Ggf. konfigurierbar machen.
 
 ## Development

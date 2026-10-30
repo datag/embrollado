@@ -12,7 +12,7 @@ function makeTurn(overrides: Partial<Turn> = {}): Turn {
     partnerText: '¿Dónde está el lavadero?',
     partnerTextLanguage: 'es',
     translation: 'Where is the washroom?',
-    explanation: 'A polite question.',
+    explanation: 'Your answer is clear and fits the question.',
     learnerText: 'Is the washroom next?',
     correctedText: 'Is the washroom nearby?',
     interpretation: 'You asked about the washroom.',
@@ -58,11 +58,11 @@ describe('feedback panel (T046, T052)', () => {
 
   it("shows the explanation of the turn's own answer, not a previous turn's", () => {
     // The stored explanation belongs to this turn's learner answer.
-    const turn = makeTurn({ explanation: 'The learner asked a clear question.' })
+    const turn = makeTurn({ explanation: 'You confirm the time and add a polite reason.' })
     const wrapper = mountPanel(turn)
-    expect(wrapper.text()).toContain('The learner asked a clear question.')
+    expect(wrapper.text()).toContain('You confirm the time and add a polite reason.')
     // A previous turn's explanation must not leak into this block.
-    expect(wrapper.text()).not.toContain('A polite question.')
+    expect(wrapper.text()).not.toContain('Your answer is clear and fits the question.')
     // The assessment still comes from the answered turn (FR-040).
     expect(wrapper.text()).toContain('Good!')
   })

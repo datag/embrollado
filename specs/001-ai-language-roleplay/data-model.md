@@ -69,7 +69,7 @@ One cycle step of a session. FR-006…FR-014, FR-040…FR-043.
 | `partnerText`         | string                | Required — the partner's line in the target language                    |
 | `partnerTextLanguage` | ISO 639-1             | Required, always the target language                                    |
 | `translation`         | string                | Required — the partner's line in the learner's native language (FR-036) |
-| `explanation`         | string \| null        | Optional explanation of the learner's answer (FR-008)                   |
+| `explanation`         | string \| null        | Optional — objective coach note on the learner's answer, partner in the third person; null on the opening turn (FR-008, FR-061) |
 | `learnerText`         | string \| null        | Required for turns the learner answered; null for the opening turn      |
 | `correctedText`       | string \| null        | The learner's answer, corrected; stays in the target language (FR-036)  |
 | `interpretation`      | string \| null        | The learner's answer translated into the native language (what their words mean) |
@@ -190,17 +190,6 @@ FR-026, FR-029, FR-050.
 | `bytes`     | Blob            | Required                                                           |
 | `createdAt` | ISO 8601 string | Required — the pruning order (oldest first)                        |
 
-### Explanation
-
-FR-010.
-
-| Field     | Type                               | Rules                            |
-| --------- | ---------------------------------- | -------------------------------- |
-| `id`      | UUID string                        | Required                         |
-| `turnId`  | UUID string                        | Required                         |
-| `kind`    | `"semantics" \| "error" \| "both"` | Required                         |
-| `content` | string                             | Required, in the native language |
-
 ### Assumption (embedded in Turn)
 
 FR-009.
@@ -209,7 +198,7 @@ FR-009.
 | ---------- | ------ | ------------------------------------------------------------------------------------------- |
 | `original` | string | Required — the learner's original text at that position (`???` or the native-language word) |
 | `filled`   | string | Required — the plausible replacement the model assumed                                      |
-| `reason`   | string | Required — why that reading fits the context                                                |
+| `reason`   | string | Required — why that reading fits the context, objectively phrased (FR-061)                  |
 
 ### Badge (embedded in Turn)
 
@@ -226,8 +215,8 @@ FR-040…FR-043.
 | Field        | Type                                                     | Rules                            |
 | ------------ | -------------------------------------------------------- | -------------------------------- |
 | `category`   | `"grammar" \| "vocabulary" \| "usage" \| "completeness"` | Required                         |
-| `detail`     | string                                                   | Required, in the native language |
-| `suggestion` | string                                                   | Optional, in the native language |
+| `detail`     | string                                                   | Required, in the native language, objectively phrased (FR-061) |
+| `suggestion` | string                                                   | Optional, in the native language, objectively phrased (FR-061) |
 
 ## 3. Relationships
 

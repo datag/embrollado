@@ -258,7 +258,9 @@ export function useSession(): UseSessionReturn {
         s,
         parsed.partnerText,
         typeof parsed.translation === 'string' ? parsed.translation : '',
-        typeof parsed.explanation === 'string' ? parsed.explanation : null,
+        // The opening turn has no learner answer yet — an explanation could only refer to the
+        // partner's own line, so the app never stores the model's field here (FR-061).
+        null,
         feedbackLanguage(),
       )
       await saveTurn(opening)
