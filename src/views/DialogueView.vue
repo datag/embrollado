@@ -447,14 +447,6 @@ watch(
           {{ $t(`errors.${statusHint}`) }}
         </p>
         <p
-          v-if="phase === 'generating'"
-          class="mt-1 flex items-center gap-2 text-xs text-fg-muted"
-          data-testid="ai-status"
-        >
-          <SpinnerIcon class="h-3.5 w-3.5" />
-          {{ $t('dialogue.generating') }}
-        </p>
-        <p
           v-if="illustrationHintText"
           class="mt-1 text-xs text-fg-muted"
           data-testid="illustration-hint"
