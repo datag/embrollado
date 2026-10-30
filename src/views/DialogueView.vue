@@ -12,6 +12,7 @@ import TurnBubble from '@/components/TurnBubble.vue'
 import FeedbackPanel from '@/components/FeedbackPanel.vue'
 import SpeechButton from '@/components/SpeechButton.vue'
 import SpinnerIcon from '@/components/SpinnerIcon.vue'
+import ThinkingIndicator from '@/components/ThinkingIndicator.vue'
 import TranslationToggle from '@/components/TranslationToggle.vue'
 import IllustrationPanel from '@/components/IllustrationPanel.vue'
 import ImageModal from '@/components/ImageModal.vue'
@@ -349,12 +350,22 @@ watch(
         </div>
 
         <!-- the partner's next line streams here -->
-        <TurnBubble
-          v-if="streaming"
-          :text="sessionState.partnerProgress.value"
-          side="partner"
-          :streaming="true"
-        />
+        <div v-if="streaming">
+          <ThinkingIndicator
+            v-if="!sessionState.partnerProgress.value"
+            :label="
+              phase === 'generating'
+                ? $t('dialogue.generating')
+                : $t('dialogue.waitingFirstLine')
+            "
+          />
+          <TurnBubble
+            v-else
+            :text="sessionState.partnerProgress.value"
+            side="partner"
+            :streaming="true"
+          />
+        </div>
 
         <!-- failed state -->
         <div
@@ -434,6 +445,14 @@ watch(
         </div>
         <p v-if="statusHint" class="mt-1 text-xs text-fg-muted">
           {{ $t(`errors.${statusHint}`) }}
+        </p>
+        <p
+          v-if="phase === 'generating'"
+          class="mt-1 flex items-center gap-2 text-xs text-fg-muted"
+          data-testid="ai-status"
+        >
+          <SpinnerIcon class="h-3.5 w-3.5" />
+          {{ $t('dialogue.generating') }}
         </p>
         <p
           v-if="illustrationHintText"

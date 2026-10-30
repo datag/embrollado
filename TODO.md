@@ -42,7 +42,6 @@ Offene Punkte, nach Themen gruppiert.
 
 - [ ] Emoji für Stimmungen?
 - [ ] Bildstil (Illustrationen) festlegen.
-- [ ] AJAX-/AI-Request-Loading soll visuell ansprechender sein
 
 ## Profil & Persona
 

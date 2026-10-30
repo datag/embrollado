@@ -177,8 +177,11 @@ test.describe('dialogue cycle', () => {
     await expect(send).toBeDisabled()
     await expect(send.locator('[data-testid="spinner"]')).toBeVisible()
     await expect(page.getByTestId('feedback')).toBeVisible({ timeout: 20_000 })
-    await expect(send).toBeEnabled()
+    // The streaming lock is released once the response landed…
     await expect(send.locator('[data-testid="spinner"]')).toHaveCount(0)
+    // …and the button becomes active again as soon as the learner types.
+    await page.getByTestId('dialogue-input').fill('Anything else?')
+    await expect(send).toBeEnabled()
   })
 
   test('continues a running session after a reload (history rebuilt from stored turns)', async ({
