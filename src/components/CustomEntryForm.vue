@@ -2,20 +2,33 @@
 import { computed, ref } from 'vue'
 import type { Gender, Persona, Situation } from '@/domain/types'
 
-const props = defineProps<{ kind: 'partner' | 'situation' }>()
+const props = withDefaults(
+  defineProps<{
+    kind: 'partner' | 'situation'
+    /** Prefill the form with an existing entry (edit mode). */
+    initial?: Persona | Situation
+    /** Edit mode: the id is kept so saving replaces the entry instead of duplicating it. */
+    editing?: boolean
+  }>(),
+  { editing: false, initial: undefined },
+)
 const emit = defineEmits<{
   saved: [entry: Persona | Situation, saveTemplate: boolean]
   cancel: []
 }>()
 
-const name = ref('')
-const age = ref<number | null>(null)
-const gender = ref<Gender | null>(null)
-const occupation = ref('')
-const text = ref('') // description (partner) or setting (situation)
-const saveTemplate = ref(false)
-
+const initial = props.initial
 const isPartner = computed(() => props.kind === 'partner')
+const isPersona = (v: Persona | Situation): v is Persona => 'occupation' in v
+
+const name = ref(initial ? initial.name : '')
+const age = ref(initial && isPersona(initial) && initial.age != null ? initial.age : null)
+const gender = ref<Gender | null>(
+  initial && isPersona(initial) && initial.gender != null ? initial.gender : null,
+)
+const occupation = ref(initial && isPersona(initial) ? initial.occupation : '')
+const text = ref(initial ? (isPersona(initial) ? initial.description : initial.setting) : '')
+const saveTemplate = ref(false)
 
 const nameLimit = isPartner.value ? 60 : 80
 const textLabel = isPartner.value ? 'customForm.description' : 'customForm.setting'
@@ -37,31 +50,41 @@ const canSave = computed(
 function save() {
   if (!canSave.value) return
   const now = new Date().toISOString()
+  // Edit mode keeps the identity (id, origin, visibility, createdAt) of the entry it prefilled.
+  const id = initial?.id ?? crypto.randomUUID()
+  const origin = initial?.origin ?? 'learner'
+  const visibility = props.editing
+    ? (initial?.visibility ?? 'template')
+    : saveTemplate.value
+      ? 'template'
+      : 'session-only'
+  const createdAt = initial?.createdAt ?? now
   if (isPartner.value) {
     const persona: Persona = {
-      id: crypto.randomUUID(),
+      id,
       name: name.value.trim().slice(0, 60),
       age: age.value,
       gender: gender.value,
       occupation: occupation.value.trim().slice(0, 60),
       description: text.value.trim().slice(0, 400),
-      origin: 'learner',
-      visibility: saveTemplate.value ? 'template' : 'session-only',
-      createdAt: now,
+      origin,
+      visibility,
+      createdAt,
     }
-    emit('saved', persona, saveTemplate.value)
+    emit('saved', persona, props.editing ? false : saveTemplate.value)
   } else {
     const situation: Situation = {
-      id: crypto.randomUUID(),
+      id,
       name: name.value.trim().slice(0, 80),
       setting: text.value.trim().slice(0, 400),
-      keyMoments: ['a key moment in this situation'],
-      suggestedPartners: [],
-      origin: 'learner',
-      visibility: saveTemplate.value ? 'template' : 'session-only',
-      createdAt: now,
+      keyMoments:
+        initial && !isPersona(initial) ? initial.keyMoments : ['a key moment in this situation'],
+      suggestedPartners: initial && !isPersona(initial) ? initial.suggestedPartners : [],
+      origin,
+      visibility,
+      createdAt,
     }
-    emit('saved', situation, saveTemplate.value)
+    emit('saved', situation, props.editing ? false : saveTemplate.value)
   }
 }
 </script>
@@ -69,10 +92,12 @@ function save() {
 <template>
   <form
     class="rounded-lg border border-border bg-surface-raised p-3"
-    :aria-label="$t('customForm.title')"
+    :aria-label="$t(editing ? 'customForm.editTitle' : 'customForm.title')"
     @submit.prevent="save"
   >
-    <h3 class="mb-2 font-medium">{{ $t('customForm.title') }}</h3>
+    <h3 class="mb-2 font-medium">
+      {{ $t(editing ? 'customForm.editTitle' : 'customForm.title') }}
+    </h3>
 
     <label class="mb-2 block">
       <span class="mb-1 block text-sm">
@@ -141,7 +166,7 @@ function save() {
       />
     </label>
 
-    <div class="mb-3 flex items-center gap-2">
+    <div v-if="!editing" class="mb-3 flex items-center gap-2">
       <input
         id="save-template"
         v-model="saveTemplate"
@@ -157,7 +182,7 @@ function save() {
         class="min-h-11 flex-1 rounded-lg bg-accent px-4 font-medium text-accent-fg disabled:opacity-50"
         :disabled="!canSave"
       >
-        {{ $t('customForm.save') }}
+        {{ $t(editing ? 'customForm.saveChanges' : 'customForm.save') }}
       </button>
       <button
         type="button"

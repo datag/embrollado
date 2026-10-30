@@ -94,7 +94,7 @@ FR-003, FR-044, FR-045, FR-046.
 | `occupation`  | string                         | Required, ≤ 60 characters                                                                             |
 | `description` | string                         | Required, ≤ 400 characters — the short biography the model plays                                      |
 | `origin`      | `"builtin" \| "learner"`       | Required                                                                                              |
-| `visibility`  | `"template" \| "session-only"` | Required — a saved template persists; a session-only entry is used for one session and then discarded |
+| `visibility`  | `"template" \| "session-only"` | Required — a saved template persists; a session-only entry lives in the tab's sessionStorage and is gone when the tab closes (FR-046) |
 | `createdAt`   | ISO 8601 string                | Required for learner-defined entries                                                                  |
 
 ### Situation
@@ -109,7 +109,7 @@ FR-003, FR-044, FR-045, FR-046.
 | `keyMoments`        | string[]                       | Required; the situation's key moments — legacy illustration hooks (FR-028 as amended: pictures are on demand) |
 | `suggestedPartners` | string[]                       | Optional hints; not a restriction (FR-044)                                                 |
 | `origin`            | `"builtin" \| "learner"`       | Required                                                                                   |
-| `visibility`        | `"template" \| "session-only"` | Required                                                                                   |
+| `visibility`        | `"template" \| "session-only"` | Required — a saved template persists; a session-only entry lives in the tab's sessionStorage and is gone when the tab closes (FR-046) |
 | `createdAt`         | ISO 8601 string                | Required for learner-defined entries                                                       |
 
 ### LearnerProfile
@@ -248,7 +248,8 @@ sessions (edge case in the spec).
 | A badge tier is one of the four rating values, or `unknown` for an unratable turn | FR-040, FR-058             | `domain/badge.ts`                                                          |
 | A badge label is one of the locale's variants for that tier                      | FR-041, FR-042              | `i18n/badges.ts`                                                           |
 | A learner-defined persona has a name; a learner-defined situation has a setting  | FR-048                      | `views/SetupView.vue` + `data/profile.ts`                                  |
-| A learner-defined entry is either a template or session-only                     | FR-045, FR-046              | `data/profile.ts`                                                          |
+| A learner-defined entry is either a template or session-only                     | FR-045, FR-046              | `data/profile.ts` + `data/oneShots.ts`                                                  |
+| Editing a learner-defined entry keeps its id and replaces the entry              | FR-047                      | `data/profile.ts` + `views/SetupView.vue`                                               |
 | An import file has `format === "embrollado.export"` and an integer `version ≥ 1` | FR-056                      | `data/exportImport.ts` before any write                                    |
 | An import file is not larger than 250 MB                                         | — (denial-of-service guard) | `data/exportImport.ts` before reading                                      |
 | The API base URL is an absolute http(s) URL                                      | FR-021                      | `views/SettingsView.vue`                                                   |

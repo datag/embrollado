@@ -48,6 +48,9 @@ export default {
     partner: 'Partner',
     partnerCustom: 'Write my own',
     partnerSearch: 'Name, occupation, keyword…',
+    editEntry: 'Edit entry',
+    badgeCustomHint: 'Saved as a template — offered again in later sessions',
+    badgeOneTimeHint: 'Only in this browser tab — gone when the tab closes',
     options: 'Conversation options',
     knowsLearner: 'The AI partner already knows you',
     knowsLearnerHint:
@@ -69,6 +72,8 @@ export default {
   },
   customForm: {
     title: 'Your own entry',
+    editTitle: 'Edit entry',
+    saveChanges: 'Save changes',
     partnerName: 'Name',
     partnerNameHint: 'Up to 60 characters',
     age: 'Age (optional)',

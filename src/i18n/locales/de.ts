@@ -48,6 +48,9 @@ export default {
     partner: 'Partner',
     partnerCustom: 'Eigene schreiben',
     partnerSearch: 'Name, Beruf, Stichwort…',
+    editEntry: 'Eintrag bearbeiten',
+    badgeCustomHint: 'Als Vorlage gespeichert — in späteren Sitzungen verfügbar',
+    badgeOneTimeHint: 'Nur in diesem Browser-Tab — weg, sobald der Tab geschlossen wird',
     options: 'Gesprächs-Optionen',
     knowsLearner: 'Die KI-Persona kennt dich bereits',
     knowsLearnerHint:
@@ -70,6 +73,8 @@ export default {
   },
   customForm: {
     title: 'Eigener Eintrag',
+    editTitle: 'Eintrag bearbeiten',
+    saveChanges: 'Änderungen speichern',
     partnerName: 'Name',
     partnerNameHint: 'Bis zu 60 Zeichen',
     age: 'Alter (optional)',

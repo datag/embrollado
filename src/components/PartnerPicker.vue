@@ -18,6 +18,7 @@ const emit = defineEmits<{
   'update:modelValue': [string | null]
   pickCustom: []
   promote: [Persona]
+  edit: [Persona]
   remove: [Persona]
 }>()
 const { t } = useI18n()
@@ -115,6 +116,11 @@ function visibilityBadge(p: Persona): { label: string; cls: string } {
                 v-if="entry.origin === 'learner'"
                 class="ml-1 inline-flex rounded-full px-1.5 py-0.5 align-middle text-[10px] font-semibold tracking-wide"
                 :class="visibilityBadge(entry).cls"
+                :title="
+                  entry.visibility === 'template'
+                    ? $t('setup.badgeCustomHint')
+                    : $t('setup.badgeOneTimeHint')
+                "
               >
                 {{ visibilityBadge(entry).label }}
               </span>
@@ -122,6 +128,16 @@ function visibilityBadge(p: Persona): { label: string; cls: string } {
             <span class="block text-xs text-fg-muted">{{ describe(entry) }}</span>
           </button>
           <template v-if="value === entry.id && entry.origin === 'learner'">
+            <button
+              type="button"
+              class="min-h-11 rounded-lg border border-border px-2.5"
+              :title="$t('setup.editEntry')"
+              :aria-label="$t('setup.editEntry')"
+              data-testid="edit-entry"
+              @click="emit('edit', entry)"
+            >
+              ✎
+            </button>
             <button
               v-if="entry.visibility === 'session-only'"
               type="button"

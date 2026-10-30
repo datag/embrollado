@@ -132,11 +132,14 @@ streaming, complete, failed (with the learner's text kept and a retry), offline,
 
 Own entries are listed inside the same picker list as the built-ins and templates. Every
 learner-defined row carries a badge — `CUSTOM`/`EIGEN` for a saved template and
-`ONE-TIME`/`EINMALIG` for an entry used for this conversation only. The selected row is
-highlighted like any selected entry, and on a selected learner-defined row two actions appear:
-**★** promotes a one-off entry to a template (same id, so the selection survives) and **✕**
-removes the entry (a saved template first asks for confirmation; a one-off entry is discarded
-without one).
+`ONE-TIME`/`EINMALIG` for an entry that lives only for the current browser tab (gone when the
+tab closes). The selected row is highlighted like any selected entry, and on a selected
+learner-defined row three actions appear: **✎** edits the entry (a template keeps its id, so it
+is replaced rather than duplicated — FR-047 "edit including rename"), **★** promotes a one-off
+entry to a template (same id, so the selection survives) and **✕** removes the entry (a saved
+template first asks for confirmation; a one-off entry is discarded without one). One-off entries
+and the in-progress selection survive a reload of the Setup screen through `sessionStorage`;
+starting a conversation clears the selection but keeps the entries.
 
 A session keeps a **snapshot** of the situation and the partner, so later changes to a template
 never rewrite past conversations. The conversation option is snapshotted the same way

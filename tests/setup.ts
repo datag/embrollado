@@ -12,4 +12,6 @@ beforeEach(async () => {
     req.onerror = () => resolve()
     req.onblocked = () => resolve()
   })
+  // One-off (session-only) Setup entries live in sessionStorage — also reset per test.
+  sessionStorage.clear()
 })

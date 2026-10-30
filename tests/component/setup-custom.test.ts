@@ -3,12 +3,14 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { i18n } from '@/i18n'
 import { readTemplates } from '@/data/profile'
+import { readOneShots } from '@/data/oneShots'
 import SetupView from '@/views/SetupView.vue'
 
 /**
  * Learner-defined entries in the Setup screen (FR-045/046/047, SC-017): a custom entry is listed
- * and visibly selected, may be promoted to a template from the selected row, and can be removed.
- * The "save as template" flow also guards the race that used to leave the entry invisible.
+ * and visibly selected, may be promoted to a template or edited from the selected row, and can be
+ * removed. One-off entries live in sessionStorage (FR-046), so they survive a remount in the same
+ * tab and their selection is restored — but starting a conversation clears the selection.
  * fake-indexeddb resolves on macrotasks, so interactions that hit the template store settle
  * through a few macrotask cycles rather than a single flushPromises().
  */
@@ -65,7 +67,7 @@ const startButton = (wrapper: W) =>
   wrapper.findAll('button').find((b) => b.text() === 'Start the conversation')
 
 describe('custom situation in the Setup screen', () => {
-  it('lists a session-only entry, marked ONE-TIME, selected, with promote/remove actions', async () => {
+  it('lists a session-only entry, marked ONE-TIME, selected, with promote/edit/remove actions', async () => {
     const { wrapper } = await mountSetup()
     await createCustomSituation(wrapper)
 
@@ -74,6 +76,7 @@ describe('custom situation in the Setup screen', () => {
     expect(entry!.classes()).toContain('border-accent')
     expect(entry!.text()).toContain('ONE-TIME')
     expect(list(wrapper).find('[data-testid="promote-entry"]').exists()).toBe(true)
+    expect(list(wrapper).find('[data-testid="edit-entry"]').exists()).toBe(true)
     expect(list(wrapper).find('[data-testid="remove-entry"]').exists()).toBe(true)
     // A one-off entry is never stored as a template (FR-046 / SC-017).
     const t = await readTemplates()
@@ -87,8 +90,9 @@ describe('custom situation in the Setup screen', () => {
     const entry = entryButton(wrapper, 'My custom situation')
     expect(entry).toBeTruthy()
     expect(entry!.text()).toContain('CUSTOM')
-    // It is a template now: no promote action, only remove.
+    // It is a template now: no promote action, only edit and remove.
     expect(list(wrapper).find('[data-testid="promote-entry"]').exists()).toBe(false)
+    expect(list(wrapper).find('[data-testid="edit-entry"]').exists()).toBe(true)
     expect(list(wrapper).find('[data-testid="remove-entry"]').exists()).toBe(true)
     const t = await readTemplates()
     expect(
@@ -182,5 +186,89 @@ describe('custom situation in the Setup screen', () => {
     expect(wrapper.text()).not.toContain('Language of this text')
     // The situation form now has no selects at all (gender/age are partner-only).
     expect(wrapper.find('form select').exists()).toBe(false)
+  })
+
+  it('restores a one-off entry and its selection after a remount in the same tab', async () => {
+    const { wrapper } = await mountSetup()
+    await createCustomSituation(wrapper)
+
+    // Simulate a reload: drop the in-memory component state and mount a fresh Setup view —
+    // sessionStorage keeps the one-off entries and the selection (FR-046).
+    wrapper.unmount()
+    const fresh = await mountSetup()
+
+    const entry = entryButton(fresh.wrapper, 'My custom situation')
+    expect(entry).toBeTruthy()
+    expect(entry!.classes()).toContain('border-accent')
+    // The selected row still offers promote — the ★ path stays reachable after a reload.
+    expect(list(fresh.wrapper).find('[data-testid="promote-entry"]').exists()).toBe(true)
+  })
+
+  it('edits a stored template: same id, no duplicate, no re-prompt for save-as-template', async () => {
+    const { wrapper } = await mountSetup()
+    await createCustomSituation(wrapper, { template: true })
+    const original = (await readTemplates()).situations.find(
+      (s) => s.name === 'My custom situation',
+    )
+    expect(original).toBeTruthy()
+
+    await list(wrapper).find('[data-testid="edit-entry"]').trigger('click')
+    await settle()
+
+    // The form opens prefilled and without the "save as a template" toggle (it is already one).
+    const nameInput = wrapper.find('form input[type="text"]')
+    expect((nameInput.element as HTMLInputElement).value).toBe('My custom situation')
+    expect(wrapper.find('#save-template').exists()).toBe(false)
+
+    await nameInput.setValue('Renamed situation')
+    await wrapper.find('form').trigger('submit')
+    await settle()
+
+    const after = (await readTemplates()).situations
+    expect(after).toHaveLength(1)
+    expect(after[0].id).toBe(original!.id)
+    expect(after[0].name).toBe('Renamed situation')
+    expect(after[0].createdAt).toBe(original!.createdAt)
+    expect(entryButton(wrapper, 'Renamed situation')).toBeTruthy()
+    expect(entryButton(wrapper, 'My custom situation')).toBeUndefined()
+  })
+
+  it('edits a one-off entry in place without duplicating it', async () => {
+    const { wrapper } = await mountSetup()
+    await createCustomSituation(wrapper)
+
+    await list(wrapper).find('[data-testid="edit-entry"]').trigger('click')
+    await settle()
+    await wrapper.find('form input[type="text"]').setValue('Improved one-off')
+    await wrapper.find('form').trigger('submit')
+    await settle()
+
+    expect(entryButton(wrapper, 'Improved one-off')).toBeTruthy()
+    expect(entryButton(wrapper, 'My custom situation')).toBeUndefined()
+    const stored = readOneShots()
+    expect(stored.situations).toHaveLength(1)
+    expect(stored.situations[0].name).toBe('Improved one-off')
+    expect(stored.situations[0].visibility).toBe('session-only')
+  })
+
+  it('clears the restored selection when a conversation starts', async () => {
+    const { wrapper } = await mountSetup()
+    await wrapper
+      .find('[data-testid="partner-picker"]')
+      .findAll('button')
+      .find((b) => b.text().includes('Nicole'))
+      ?.trigger('click')
+    await createCustomSituation(wrapper)
+    await settle()
+    expect(readOneShots().selectedSituationId).toBeTruthy()
+
+    await startButton(wrapper)?.trigger('click')
+    await settle()
+
+    // A new conversation must not preselect the one-off entries again (the entries stay).
+    const stored = readOneShots()
+    expect(stored.selectedSituationId).toBeNull()
+    expect(stored.selectedPartnerId).toBeNull()
+    expect(stored.situations).toHaveLength(1)
   })
 })

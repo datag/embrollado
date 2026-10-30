@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { partnerById, situationById } from '@/domain/catalogue'
@@ -12,6 +12,7 @@ import {
   removePersonaTemplate,
   removeSituationTemplate,
 } from '@/data/profile'
+import { readOneShots, writeOneShots, type OneShotsData } from '@/data/oneShots'
 import LanguagePicker from '@/components/LanguagePicker.vue'
 import LevelPicker from '@/components/LevelPicker.vue'
 import SituationPicker from '@/components/SituationPicker.vue'
@@ -31,7 +32,16 @@ const templates = ref<{ personas: Persona[]; situations: Situation[] }>({
   personas: [],
   situations: [],
 })
-const customKind = ref<'none' | 'partner' | 'situation'>('none')
+/** The custom-entry form (create or edit) replaces the picker while it is open. */
+const form = ref<{
+  mode: 'create' | 'edit'
+  kind: 'partner' | 'situation'
+  initial?: Persona | Situation
+} | null>(null)
+/**
+ * One-off (session-only) entries, mirrored to sessionStorage so they survive a reload of this
+ * tab (FR-046) while the actual selection inside the form stays plain in-memory state.
+ */
 const sessionOnly = ref<{ personas: Map<string, Persona>; situations: Map<string, Situation> }>({
   personas: new Map(),
   situations: new Map(),
@@ -55,16 +65,93 @@ const canStart = computed(
 )
 
 onMounted(async () => {
+  const saved = readOneShots()
+  for (const p of saved.personas) sessionOnly.value.personas.set(p.id, p)
+  for (const s of saved.situations) sessionOnly.value.situations.set(s.id, s)
   templates.value = await readTemplates()
+  // A reload halfway through the setup restores the selection — but only if it is still usable.
+  if (saved.selectedSituationId && isResolvableSituation(saved.selectedSituationId)) {
+    situationId.value = saved.selectedSituationId
+  }
+  if (saved.selectedPartnerId && isResolvablePartner(saved.selectedPartnerId)) {
+    partnerId.value = saved.selectedPartnerId
+  }
 })
 
 async function refreshTemplates() {
   templates.value = await readTemplates()
 }
 
+/** Keep the one-off entries and the in-progress selection in sync with sessionStorage. */
+function persistOneShots(
+  overrides: Partial<Pick<OneShotsData, 'selectedSituationId' | 'selectedPartnerId'>> = {},
+) {
+  writeOneShots({
+    personas: partnerSolo.value,
+    situations: situationSolo.value,
+    selectedSituationId:
+      overrides.selectedSituationId !== undefined
+        ? overrides.selectedSituationId
+        : situationId.value,
+    selectedPartnerId:
+      overrides.selectedPartnerId !== undefined ? overrides.selectedPartnerId : partnerId.value,
+  })
+}
+
+// Persist the selection whenever it changes (e.g. picking a built-in partner), not only when a
+// custom entry is created, edited, promoted or removed — so a reload restores the whole setup.
+watch([situationId, partnerId], () => persistOneShots())
+
+function isResolvableSituation(id: string): boolean {
+  return Boolean(
+    situationById(id) ||
+    templates.value.situations.some((s) => s.id === id) ||
+    sessionOnly.value.situations.has(id),
+  )
+}
+
+function isResolvablePartner(id: string): boolean {
+  return Boolean(
+    partnerById(id) ||
+    templates.value.personas.some((p) => p.id === id) ||
+    sessionOnly.value.personas.has(id),
+  )
+}
+
+/** Editing keeps the id, so the corresponding collection write replaces the entry, never copies it. */
 async function handleSaved(entry: Persona | Situation, saveAsTemplate: boolean) {
-  if ('occupation' in entry) {
-    // persona
+  const editing = form.value?.mode === 'edit'
+  if (editing) {
+    if ('occupation' in entry) {
+      if (entry.visibility === 'template') {
+        try {
+          await addPersonaTemplate(entry)
+          saveError.value = false
+        } catch {
+          // The stored template is unchanged — keep the selection and tell the learner.
+          saveError.value = true
+          return
+        }
+      } else {
+        sessionOnly.value.personas.set(entry.id, entry)
+      }
+      partnerId.value = entry.id
+    } else {
+      if (entry.visibility === 'template') {
+        try {
+          await addSituationTemplate(entry)
+          saveError.value = false
+        } catch {
+          saveError.value = true
+          return
+        }
+      } else {
+        sessionOnly.value.situations.set(entry.id, entry)
+      }
+      situationId.value = entry.id
+    }
+  } else if ('occupation' in entry) {
+    // create: partner
     if (saveAsTemplate) {
       try {
         await addPersonaTemplate(entry)
@@ -78,6 +165,7 @@ async function handleSaved(entry: Persona | Situation, saveAsTemplate: boolean) 
     }
     partnerId.value = entry.id
   } else {
+    // create: situation
     if (saveAsTemplate) {
       try {
         await addSituationTemplate(entry)
@@ -91,8 +179,17 @@ async function handleSaved(entry: Persona | Situation, saveAsTemplate: boolean) 
     }
     situationId.value = entry.id
   }
-  customKind.value = 'none'
+  form.value = null
+  persistOneShots()
   await refreshTemplates()
+}
+
+function startEditSituation(entry: Situation) {
+  form.value = { mode: 'edit', kind: 'situation', initial: entry }
+}
+
+function startEditPartner(entry: Persona) {
+  form.value = { mode: 'edit', kind: 'partner', initial: entry }
 }
 
 /** Keep the id stable, so the selection and the badge stay put while the entry becomes a template. */
@@ -105,6 +202,7 @@ async function promoteSituation(entry: Situation) {
     return
   }
   sessionOnly.value.situations.delete(entry.id)
+  persistOneShots()
   await refreshTemplates()
 }
 
@@ -117,6 +215,7 @@ async function promotePartner(entry: Persona) {
     return
   }
   sessionOnly.value.personas.delete(entry.id)
+  persistOneShots()
   await refreshTemplates()
 }
 
@@ -130,10 +229,12 @@ async function removeSituation(entry: Situation) {
       saveError.value = true
       return
     }
+    if (situationId.value === entry.id) situationId.value = null
   } else {
     sessionOnly.value.situations.delete(entry.id)
+    if (situationId.value === entry.id) situationId.value = null
   }
-  if (situationId.value === entry.id) situationId.value = null
+  persistOneShots()
   await refreshTemplates()
 }
 
@@ -147,11 +248,17 @@ async function removePartner(entry: Persona) {
       saveError.value = true
       return
     }
+    if (partnerId.value === entry.id) partnerId.value = null
   } else {
     sessionOnly.value.personas.delete(entry.id)
+    if (partnerId.value === entry.id) partnerId.value = null
   }
-  if (partnerId.value === entry.id) partnerId.value = null
+  persistOneShots()
   await refreshTemplates()
+}
+
+function startCreate(kind: 'partner' | 'situation') {
+  form.value = { mode: 'create', kind }
 }
 
 async function begin() {
@@ -168,6 +275,8 @@ async function begin() {
       partner: par,
       options: { knowsLearner: knowsLearner.value },
     })
+    // A new conversation must not preselect the one-off entries again on the next setup visit.
+    persistOneShots({ selectedSituationId: null, selectedPartnerId: null })
     router.push(`/conversation/${session.id}`)
   } finally {
     starting.value = false
@@ -208,37 +317,43 @@ function resolvePartner() {
     <LevelPicker v-model="level" />
 
     <SituationPicker
-      v-if="customKind !== 'situation'"
+      v-if="!form || form.kind !== 'situation'"
       v-model="situationId"
       :templates="templates.situations"
       :session-only="situationSolo"
       :search-label="$t('setup.situationSearch')"
-      @pick-custom="customKind = 'situation'"
+      @pick-custom="startCreate('situation')"
       @promote="promoteSituation"
+      @edit="startEditSituation"
       @remove="removeSituation"
     />
     <CustomEntryForm
-      v-if="customKind === 'situation'"
+      v-if="form && form.kind === 'situation'"
       kind="situation"
+      :initial="form.mode === 'edit' ? form.initial : undefined"
+      :editing="form.mode === 'edit'"
       @saved="handleSaved"
-      @cancel="customKind = 'none'"
+      @cancel="form = null"
     />
 
     <PartnerPicker
-      v-if="customKind !== 'partner'"
+      v-if="!form || form.kind !== 'partner'"
       v-model="partnerId"
       :templates="templates.personas"
       :session-only="partnerSolo"
       :search-label="$t('setup.partnerSearch')"
-      @pick-custom="customKind = 'partner'"
+      @pick-custom="startCreate('partner')"
       @promote="promotePartner"
+      @edit="startEditPartner"
       @remove="removePartner"
     />
     <CustomEntryForm
-      v-if="customKind === 'partner'"
+      v-if="form && form.kind === 'partner'"
       kind="partner"
+      :initial="form.mode === 'edit' ? form.initial : undefined"
+      :editing="form.mode === 'edit'"
       @saved="handleSaved"
-      @cancel="customKind = 'none'"
+      @cancel="form = null"
     />
 
     <ConversationOptions v-model="knowsLearner" />

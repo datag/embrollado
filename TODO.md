@@ -2,10 +2,6 @@
 
 Offene Punkte, nach Themen gruppiert.
 
-## Feedback & Bewertung
-
-- [ ] Bewertung: Akzente mitbewerten; Typografie nur als Anmerkung. Ggf. konfigurierbar machen.
-
 ## Development
 
 - [ ] AGENTS.md mit /init erzeugen
@@ -21,13 +17,23 @@ Offene Punkte, nach Themen gruppiert.
 
 - [ ] Konversations-Settings: festlegen, wer beginnt (User oder AI) inkl. Default.
 - [x] Custom konfigurierte Situation/Persona ist nicht als „ausgewählt“ erkennbar.
-- [ ] Eigene Vorlagen umbenennen (FR-047: rename fehlt bisher; Delete ist umgesetzt).
+- [x] Eigene Vorlagen bearbeiten/umbenennen (FR-047: edit inkl. rename umgesetzt; Delete bereits).
 
 ## Konversation
 
 - [ ] Beendetes Gespräch: entweder die Beenden-Funktion entfernen oder das Wiedereröffnen erlauben.
 - [ ] Eingabe-Hilfe (Button-Zeile) für Akzente und Zeichen wie ¿ und ¡
+- [ ] Eingabe-Hilfe für eine Gap/Lücke `???`
 - [ ] Emoji für Stimmungen?
+
+### Darstellung
+
+- [ ] Lücken besonders rendern
+
+### Feedback & Bewertung
+
+- [ ] Bewertung: Akzente explizit mitbewerten; Typografie nur als Anmerkung. Ggf. konfigurierbar machen.
+- [ ] Untersuchen: Wenn in Explanation ein Fehler (Rechtschreibfehler in Wort) erwähnt wird, dann sollte dieser Fund auch in den Korrekturen auftauchen.
 
 ## TTS / Audio
 

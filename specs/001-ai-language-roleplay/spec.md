@@ -256,9 +256,9 @@ on a service without those capabilities and verify the graceful fallback.
 - The learner sets a native language that differs from the interface language: the translation, the
   explanation and the badge label are given in the native language, the interface stays in the
   interface language, and the corrected answer stays in the target language.
-- The learner deletes a partner or situation that they saved as a template: the sessions that were
-  practised with it stay readable and still show the partner and situation as they were at the
-  time, because each session keeps its own copy of those details.
+- The learner edits or deletes a partner or situation that they saved as a template: the sessions
+  that were practised with it stay readable and still show the partner and situation as they were
+  at the time, because each session keeps its own copy of those details.
 - The learner names a partner or situation the same as an existing one: the app keeps both entries
   apart, and the one used in a session is always the one shown in the session header.
 - The service delivers the partner's line only in parts and then fails halfway: the app keeps the
@@ -438,10 +438,11 @@ on a service without those capabilities and verify the graceful fallback.
 - **FR-045**: The learner MUST be able to create their own partner and their own situation and
   save them as a template, and a saved template MUST stay available for later sessions.
 - **FR-046**: The learner MUST be able to give a partner or a situation directly when starting a
-  session without saving it. Such an entry MUST apply to that session only, MUST NOT be stored as a
-  template and MUST NOT be offered again in a later session.
-- **FR-047**: The learner MUST be able to rename and delete their own saved templates, and deleting
-  a template MUST NOT delete the sessions that were practised with it.
+  session without saving it. Such an entry MUST NOT be stored as a template and MAY only live for
+  the current browser tab: it remains available after a reload but is gone once the tab closes.
+- **FR-047**: The learner MUST be able to edit (including renaming) and delete their own saved
+  templates, and editing or deleting a template MUST NOT delete or rewrite the sessions that were
+  practised with it.
 - **FR-048**: A learner-defined partner MUST have at least a name, and a learner-defined situation
   MUST have at least a short description. The app MUST say what is missing when either is
   incomplete.
@@ -560,7 +561,7 @@ on a service without those capabilities and verify the graceful fallback.
   combined with every partner, in 100% of combinations.
 - **SC-017**: A partner or situation that the learner saved as a template is still offered after a
   device restart and can be used in a later session, in 100% of cases, and a partner or situation
-  given on the fly is never stored as a template and never offered in a later session.
+  given on the fly is never stored as a template and is gone as soon as the browser tab is closed.
 - **SC-018**: After practising in 50 sessions, the app still starts, lists and opens every one of
   them, and the stored transcripts and pictures are intact, in 100% of cases.
 - **SC-019**: Playing an older line whose audio is no longer cached fetches it again from the AI
@@ -571,6 +572,9 @@ on a service without those capabilities and verify the graceful fallback.
   changed, in 100% of imports.
 - **SC-021**: A file exported on one device and imported on another reproduces every conversation
   with all of its feedback and keeps the same identifiers, in 100% of cases.
+- **SC-022**: A learner can edit (including renaming) and delete their own template; the sessions
+  practised with it stay readable and keep the situation and partner as they were at the time, in
+  100% of cases.
 
 ## Assumptions
 
