@@ -60,6 +60,11 @@ export default defineConfig({
       polyfill: false,
     },
   },
+  server: {
+    watch: {
+      ignored: ['**/*.md']
+    }
+  },
   test: {
     // Vitest 5: config lives in vitest.config.ts; nothing to merge here.
   },
