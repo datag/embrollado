@@ -159,6 +159,7 @@ export default {
     authXApiKey: 'x-api-key',
     authApiKey: 'api-key',
     provider: 'Dienstanbieter-Profil',
+    detectedHint: 'Erkannt: {provider} — Profil übernehmen?',
     chatModel: 'Chat-Modell',
     speechModel: 'Sprachmodell',
     speechModelHint: 'Leer deaktiviert die Wiedergabe-Taste',

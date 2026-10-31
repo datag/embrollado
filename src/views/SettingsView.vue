@@ -3,9 +3,16 @@ import { computed, onMounted, ref } from 'vue'
 import { useSettings, useServiceConfig } from '@/composables/useSettings'
 import { useTheme } from '@/composables/useTheme'
 import { LANGUAGES } from '@/domain/catalogue'
-import { PROVIDER_PROFILES, guessProfileFromUrl, corsHintFor } from '@/ai/providers'
+import {
+  PROVIDER_PROFILES,
+  guessProfileFromUrl,
+  corsHintFor,
+  shouldPrefillAddress,
+  shouldResetAuthMode,
+} from '@/ai/providers'
 import { testConnection, listModels } from '@/ai/aiService'
 import type { ConnectionTestResult } from '@/ai/aiService'
+import type { ServiceConfig } from '@/domain/types'
 import { getStorageEstimate, requestPersistentStorage } from '@/data/db'
 import ProfileForm from '@/components/ProfileForm.vue'
 import ShareMenu from '@/components/ShareMenu.vue'
@@ -39,9 +46,31 @@ onMounted(async () => {
   }
 })
 
+/**
+ * The profile the typed address suggests — offered as a hint only, never applied automatically
+ * (the profile leads, the address follows, not the other way round).
+ */
+const detectedProfile = computed(() => {
+  const detected = guessProfileFromUrl(service.baseUrl)
+  if (detected === 'custom' || detected === service.providerProfile) return null
+  return detected
+})
+
 function onBaseUrl(event: Event) {
-  const value = (event.target as HTMLInputElement).value
-  updateService({ baseUrl: value, providerProfile: guessProfileFromUrl(value) })
+  // The typed address never changes the profile; the detected hint below the field offers to
+  // adopt the guessed profile instead.
+  updateService({ baseUrl: (event.target as HTMLInputElement).value })
+}
+
+function applyDetectedProfile() {
+  const id = detectedProfile.value
+  if (!id) return
+  const profile = PROVIDER_PROFILES[id] ?? PROVIDER_PROFILES.custom
+  const patch: Partial<ServiceConfig> = { providerProfile: id }
+  if (shouldResetAuthMode(service.authMode, service.providerProfile)) {
+    patch.authMode = profile.defaultAuthMode
+  }
+  updateService(patch)
 }
 
 function onAuthMode(event: Event) {
@@ -51,10 +80,20 @@ function onAuthMode(event: Event) {
 function onProvider(event: Event) {
   const id = (event.target as HTMLSelectElement).value
   const profile = PROVIDER_PROFILES[id] ?? PROVIDER_PROFILES.custom
-  updateService({
-    providerProfile: id,
-    authMode: profile.defaultAuthMode,
-  })
+  const oldProfileId = service.providerProfile
+  const patch: Partial<ServiceConfig> = { providerProfile: id }
+  // Pre-fill the address only while it is still auto-filled (empty or the previous default);
+  // a manually entered address is never overwritten, so e.g. an EU-bounded OpenRouter host
+  // survives the switch.
+  if (shouldPrefillAddress(service.baseUrl, oldProfileId) && profile.defaultBaseUrl) {
+    patch.baseUrl = profile.defaultBaseUrl
+  }
+  // Only replace the auth style while it is still the previous profile's default — a manually
+  // chosen x-api-key / api-key must survive a profile switch.
+  if (shouldResetAuthMode(service.authMode, oldProfileId)) {
+    patch.authMode = profile.defaultAuthMode
+  }
+  updateService(patch)
 }
 
 function onChatModel(event: Event) {
@@ -137,6 +176,33 @@ function lowSpaceComputed(): boolean {
     <article class="space-y-3 rounded-xl border border-border bg-surface-raised p-3">
       <h2 class="font-semibold">{{ $t('settings.aiService') }}</h2>
 
+      <div class="grid gap-3 sm:grid-cols-2">
+        <label class="block">
+          <span class="mb-1 block text-sm">{{ $t('settings.provider') }}</span>
+          <select
+            :value="service.providerProfile"
+            data-testid="service-provider"
+            class="min-h-11 w-full rounded-lg border border-border px-3"
+            @change="onProvider"
+          >
+            <option v-for="p in providerOptions" :key="p.id" :value="p.id">{{ p.label }}</option>
+          </select>
+        </label>
+        <label class="block">
+          <span class="mb-1 block text-sm">{{ $t('settings.authMode') }}</span>
+          <select
+            :value="service.authMode"
+            data-testid="service-auth-mode"
+            class="min-h-11 w-full rounded-lg border border-border px-3"
+            @change="onAuthMode"
+          >
+            <option value="bearer">{{ $t('settings.authBearer') }}</option>
+            <option value="x-api-key">{{ $t('settings.authXApiKey') }}</option>
+            <option value="api-key">{{ $t('settings.authApiKey') }}</option>
+          </select>
+        </label>
+      </div>
+
       <label class="block">
         <span class="mb-1 block text-sm">{{ $t('settings.baseUrl') }}</span>
         <input
@@ -149,6 +215,19 @@ function lowSpaceComputed(): boolean {
         />
         <span class="mt-1 block text-xs text-fg-muted">{{ $t('settings.baseUrlHint') }}</span>
       </label>
+      <button
+        v-if="detectedProfile"
+        type="button"
+        data-testid="service-detected-hint"
+        class="min-h-11 w-full rounded-lg border border-accent px-3 text-left text-xs text-accent"
+        @click="applyDetectedProfile"
+      >
+        {{
+          $t('settings.detectedHint', {
+            provider: PROVIDER_PROFILES[detectedProfile]?.label ?? detectedProfile,
+          })
+        }}
+      </button>
 
       <div class="flex items-end gap-2">
         <label class="block flex-1">
@@ -171,33 +250,6 @@ function lowSpaceComputed(): boolean {
         </button>
       </div>
       <p class="text-xs text-fg-muted">{{ $t('settings.apiKeyHint') }}</p>
-
-      <div class="grid gap-3 sm:grid-cols-2">
-        <label class="block">
-          <span class="mb-1 block text-sm">{{ $t('settings.authMode') }}</span>
-          <select
-            :value="service.authMode"
-            data-testid="service-auth-mode"
-            class="min-h-11 w-full rounded-lg border border-border px-3"
-            @change="onAuthMode"
-          >
-            <option value="bearer">{{ $t('settings.authBearer') }}</option>
-            <option value="x-api-key">{{ $t('settings.authXApiKey') }}</option>
-            <option value="api-key">{{ $t('settings.authApiKey') }}</option>
-          </select>
-        </label>
-        <label class="block">
-          <span class="mb-1 block text-sm">{{ $t('settings.provider') }}</span>
-          <select
-            :value="service.providerProfile"
-            data-testid="service-provider"
-            class="min-h-11 w-full rounded-lg border border-border px-3"
-            @change="onProvider"
-          >
-            <option v-for="p in providerOptions" :key="p.id" :value="p.id">{{ p.label }}</option>
-          </select>
-        </label>
-      </div>
 
       <label class="block">
         <span class="mb-1 block text-sm">{{ $t('settings.chatModel') }}</span>

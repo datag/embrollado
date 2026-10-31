@@ -137,7 +137,8 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
   custom: {
     id: 'custom',
     label: 'Custom',
-    defaultBaseUrl: 'http://localhost:8080/v1',
+    // No standard address — the Settings screen leaves the field alone for this profile.
+    defaultBaseUrl: '',
     defaultAuthMode: 'bearer',
     schemaPlacement: 'nested',
     jsonMode: 'json_schema',
@@ -156,16 +157,36 @@ export function profileById(id: string): EndpointProfile {
   return PROVIDER_PROFILES[id] ?? PROVIDER_PROFILES.custom
 }
 
+/** The default service address for a profile id (empty for `custom`). */
+export function addressForProfile(id: string): string {
+  return profileById(id).defaultBaseUrl
+}
+
+/**
+ * Whether the current service address is auto-filled and may be replaced when the profile
+ * changes: it is empty, or it still equals the previous profile's default address. A manually
+ * entered address is never overwritten (settings-profile.md §2.1).
+ */
+export function shouldPrefillAddress(current: string, oldProfileId: string): boolean {
+  const value = current.trim()
+  if (!value) return true
+  const previous = addressForProfile(oldProfileId)
+  if (!previous) return false
+  return value.replace(/\/+$/, '') === previous.replace(/\/+$/, '')
+}
+
+/** Whether the current auth style is still the old profile's default (safe to replace). */
+export function shouldResetAuthMode(current: AuthMode, oldProfileId: string): boolean {
+  return current === profileById(oldProfileId).defaultAuthMode
+}
+
 /**
  * Whether the generate-picture button may be offered (FR-028 as amended). The three conditions
  * must hold: an image model is configured, the current provider profile exposes an images path
  * (ollama/llama.cpp/vLLM/LM Studio never do — a button there would always fail), and the service
  * has not already declined the images endpoint.
  */
-export function canGenerateImages(
-  service: ServiceConfig,
-  imagesAvailable: boolean,
-): boolean {
+export function canGenerateImages(service: ServiceConfig, imagesAvailable: boolean): boolean {
   return (
     !!service.imageModel?.trim() &&
     !!profileById(service.providerProfile).imagesPath &&

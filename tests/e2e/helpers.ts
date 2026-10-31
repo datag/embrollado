@@ -18,10 +18,12 @@ export async function configureService(
 ) {
   await page.goto('/#/settings')
   const baseUrl = page.getByTestId('service-base-url')
+  // Provider first, then the address — mirrors the settings order. The mock address is a manual
+  // entry and therefore survives the profile switch (never overwritten).
+  await page.getByTestId('service-provider').selectOption(opts.profile ?? 'openai')
+  await page.getByTestId('service-auth-mode').selectOption('bearer')
   await baseUrl.fill(MOCK_BASE_URL)
   await page.getByTestId('service-api-key').fill('test')
-  await page.getByTestId('service-auth-mode').selectOption('bearer')
-  await page.getByTestId('service-provider').selectOption(opts.profile ?? 'openai')
   await page.getByTestId('service-chat-model').fill(opts.chatModel ?? 'mock-chat')
   if (opts.speech) {
     await page.getByTestId('service-speech-model').fill(opts.speechModel ?? 'mock-speech')

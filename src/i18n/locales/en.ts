@@ -157,6 +157,7 @@ export default {
     authXApiKey: 'x-api-key',
     authApiKey: 'api-key',
     provider: 'Provider profile',
+    detectedHint: 'Detected: {provider} — apply this profile?',
     chatModel: 'Chat model',
     speechModel: 'Speech model',
     speechModelHint: 'Empty disables the playback button',

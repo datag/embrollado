@@ -25,14 +25,27 @@ Hash routing (`createWebHashHistory`) so the app works on any static host withou
 
 | Field           | Control                                                                           | Validation                                                                  | Where it goes                                                          |
 | --------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Service address | Text input + preset list (OpenAI, OpenRouter, Ollama, llama.cpp, vLLM, LM Studio) | Absolute http(s) URL                                                        | `ServiceConfig.baseUrl`                                                |
-| API key         | Password input, with a reveal toggle                                              | Non-empty                                                                   | `ServiceConfig.apiKey` (local only)                                    |
+| Provider profile | Select: OpenAI, OpenRouter, Ollama, llama.cpp, vLLM, LM Studio, Custom             | —                                                                           | `ServiceConfig.providerProfile`                                        |
 | Auth style      | Select: `Bearer` / `x-api-key` / `api-key`                                        | —                                                                           | `ServiceConfig.authMode`                                               |
+| Service address | Text input                                                                         | Absolute http(s) URL                                                        | `ServiceConfig.baseUrl`                                                |
+| API key         | Password input, with a reveal toggle                                              | Non-empty                                                                   | `ServiceConfig.apiKey` (local only)                                    |
 | Chat model      | Text input, with a "fetch models" action that calls `GET {baseUrl}/models`        | Non-empty                                                                   | `ServiceConfig.chatModel`                                              |
 | Speech model    | Text input, optional                                                              | —                                                                           | `ServiceConfig.speechModel`                                            |
 | Speech voice    | Text input, optional; empty ⇒ provider default                                    | Voices are model-specific — a wrong voice is the usual cause of an HTTP 400 | `ServiceConfig.speechVoice`                                            |
 | Image model     | Text input, optional                                                              | —                                                                           | `ServiceConfig.imageModel`                                             |
 | Test            | Button: "Test the connection"                                                     | —                                                                           | Sends one minimal request; reports success, the CORS hint or the error |
+
+**Rules**
+
+- Selecting a provider profile pre-fills the service address with the profile's standard URL
+  **only while the address is still auto-filled**: it is empty, or it still equals the previous
+  profile's default. A manually entered address is never overwritten (e.g. an EU-bounded
+  `https://eu.openrouter.ai/api/v1` survives a profile switch).
+- The address is edited freely after the pre-fill. The **profile leads**: typing an address never
+  changes the profile. When the typed address matches another profile, a hint below the field
+  offers to switch — the switch is applied only when the learner taps it.
+- The auth style is replaced on a profile switch only while it is still the previous profile's
+  default; a manually chosen `x-api-key` / `api-key` survives.
 
 **Rules**
 

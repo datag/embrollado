@@ -144,8 +144,12 @@ diagnostic before it reaches the UI or the console (FR-022).
 
 ## 7. Provider profiles
 
-The app ships profiles for the common endpoints. The profile is selected from the base URL and can
-be changed manually.
+The app ships profiles for the common endpoints. The profile is chosen in Settings and **leads**:
+selecting one pre-fills the service address with the profile's standard URL while the address is
+still auto-filled (empty or the previous profile's default); a manually entered address is never
+overwritten. Typing an address never changes the profile — when it matches another profile, a
+hint offers to switch, applied only on tap. The auth style is replaced on a profile switch only
+while it still is the previous profile's default.
 
 | Profile      | Base URL                       | Auth                 | Schema placement        | JSON mode     | Audio format                                                                            | Images path           |
 | ------------ | ------------------------------ | -------------------- | ----------------------- | ------------- | --------------------------------------------------------------------------------------- | --------------------- |

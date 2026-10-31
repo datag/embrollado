@@ -52,15 +52,16 @@ pnpm dev
 
 Open <http://localhost:5173> and go to **Settings → AI service**:
 
-| Field           | Value                               |
-| --------------- | ----------------------------------- |
-| Service address | `http://localhost:8787/v1`          |
-| API key         | `test` (the mock ignores it)        |
-| Auth style      | `Bearer`                            |
-| Chat model      | `mock-chat`                         |
-| Speech model    | `mock-speech` (optional)            |
-| Voice (TTS)     | `alloy` — model-specific (optional) |
-| Image model     | `mock-image` (optional)             |
+| Field            | Value                       |
+| ---------------- | --------------------------- |
+| Provider profile | OpenAI (the default)        |
+| Auth style       | `Bearer`                    |
+| Service address  | `http://localhost:8787/v1`  |
+| API key          | `test` (the mock ignores it) |
+| Chat model       | `mock-chat`                 |
+| Speech model     | `mock-speech` (optional)    |
+| Voice (TTS)      | `alloy` — model-specific (optional) |
+| Image model      | `mock-image` (optional)     |
 
 Press **Test the connection**. Then start a conversation from **＋ New conversation**. Back in
 **Conversations**, the most recently active conversation is listed first.
@@ -84,16 +85,20 @@ pnpm test:e2e       # Playwright only (builds first, starts the mock automatical
 
 Embrollado talks to any **OpenAI-compatible** endpoint. In **Settings → AI service**:
 
-1. **Service address** — an absolute http(s) URL including the provider's version prefix,
-   e.g. `https://api.openai.com/v1` or `https://openrouter.ai/api/v1`. The provider profile
-   (OpenAI, OpenRouter, Ollama, llama.cpp, vLLM, LM Studio, custom) is detected from the address
-   and can be changed manually — it controls auth style, schema placement, the speech format and
-   the images path, so pick the row that matches your service.
-2. **API key** — stored locally only. It is never logged, never exported, and sent nowhere except
+1. **Provider profile** — OpenAI, OpenRouter, Ollama, llama.cpp, vLLM, LM Studio or Custom. It
+   controls auth style, schema placement, the speech format and the images path, so pick the row
+   that matches your service. Picking a profile pre-fills the service address with the provider's
+   standard URL; a manually entered address is never overwritten.
+2. **Auth style** — `Bearer` (default), `x-api-key` or `api-key` (Azure-style). A manually chosen
+   style survives a profile switch.
+3. **Service address** — an absolute http(s) URL including the provider's version prefix,
+   e.g. `https://api.openai.com/v1` or `https://openrouter.ai/api/v1`. Typing an address that
+   matches another profile shows a hint to switch the profile (never applied automatically).
+4. **API key** — stored locally only. It is never logged, never exported, and sent nowhere except
    your configured service.
-3. **Chat model** — required. **Speech/Image models** — optional; leaving them empty hides the
+5. **Chat model** — required. **Speech/Image models** — optional; leaving them empty hides the
    playback button and the picture button.
-4. **Test the connection** — one minimal request. If your service blocks the browser (CORS),
+6. **Test the connection** — one minimal request. If your service blocks the browser (CORS),
    Embrollado shows the exact flag for that provider.
 
 The learner profile is split into **perceivable traits** and **other personal data**. What you can

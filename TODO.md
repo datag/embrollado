@@ -63,4 +63,4 @@ Offene Punkte, nach Themen gruppiert.
 
 ## Settings & Konfiguration
 
-- [ ] Auth-style / Provider-Profil – URL als separate Option anbieten?
+- [x] Auth-style / Provider-Profil – URL als separate Option anbieten? — Profil führt, Adresse wird beim Profilwechsel vorbefüllt (sofern noch auto-gefüllt), Auth-Stil bleibt separate Option; getippte Adresse zeigt „Erkannt"-Hinweis statt das Profil zu überschreiben.
