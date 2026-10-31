@@ -58,7 +58,8 @@ Open <http://localhost:5173> and go to **Settings → AI service**:
 | Voice (TTS)     | `alloy` — model-specific (optional) |
 | Image model     | `mock-image` (optional)             |
 
-Press **Test the connection**. Then start a conversation from **＋ New conversation**.
+Press **Test the connection**. Then start a conversation from **＋ New conversation**. Back in
+**Conversations**, the most recently active conversation is listed first.
 
 ## Commands
 

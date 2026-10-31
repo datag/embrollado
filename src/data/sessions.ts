@@ -96,9 +96,37 @@ export async function getSession(id: string): Promise<Session | undefined> {
   return db.get(STORE.sessions, id)
 }
 
+/**
+ * The moment a session was last active: the newest of its last turn, its last update (rename,
+ * end) and its creation. The creation date is the fallback for a session without any activity
+ * yet — it is always present.
+ */
+export function sessionActivityAt(session: Session): string {
+  const stamps = [session.lastTurnAt, session.updatedAt, session.createdAt].filter(
+    (stamp): stamp is string => typeof stamp === 'string' && stamp.length > 0,
+  )
+  if (stamps.length === 0) return session.createdAt
+  return stamps.reduce((newest, stamp) => (stamp > newest ? stamp : newest))
+}
+
+/**
+ * Sort the session list by the last activity, newest first (the conversation the learner touched
+ * last comes first). The store returns the sessions ordered by creation date — the index is
+ * ascending — so the order is reversed here.
+ */
+export function sortSessionsByActivity(sessions: Session[]): Session[] {
+  return [...sessions].sort((a, b) => {
+    const byActivity = sessionActivityAt(b).localeCompare(sessionActivityAt(a))
+    if (byActivity !== 0) return byActivity
+    // Same activity (sessions created in the same millisecond) — keep a stable, predictable order.
+    return b.createdAt.localeCompare(a.createdAt)
+  })
+}
+
 export async function listSessions(): Promise<Session[]> {
   const db = await getDB()
-  return db.getAllFromIndex(STORE.sessions, INDEX.sessionsByCreatedAt)
+  const sessions = await db.getAllFromIndex(STORE.sessions, INDEX.sessionsByCreatedAt)
+  return sortSessionsByActivity(sessions)
 }
 
 export async function searchSessions(query: string): Promise<Session[]> {

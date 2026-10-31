@@ -329,9 +329,10 @@ on a service without those capabilities and verify the graceful fallback.
   number of exchanges and complete transcript, and MUST make it available after a reload or a
   device restart.
 - **FR-016**: The learner MUST be able to list all sessions, open any of them and read the complete
-  transcript including all feedback.
+  transcript including all feedback. The list MUST be ordered by the last activity — the newest of
+  the last turn, the last update and the creation — with the most recent conversation first.
 - **FR-017**: The learner MUST be able to search and filter the session list by language, situation
-  and keyword.
+  and keyword. The filtered list MUST keep the order of FR-016.
 - **FR-018**: The learner MUST be able to rename and delete sessions; deleting a session MUST ask
   for confirmation and MUST be permanent.
 - **FR-019**: The learner MUST be able to export all sessions with their feedback to a portable

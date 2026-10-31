@@ -8,6 +8,7 @@ import {
   deleteSession,
   renameSession,
   getTurns,
+  sessionActivityAt,
 } from '@/data/sessions'
 import { LEVELS } from '@/domain/catalogue'
 import ShareMenu from '@/components/ShareMenu.vue'
@@ -53,6 +54,11 @@ function formatDate(iso: string): string {
   } catch {
     return iso
   }
+}
+
+/** The i18n key for the date shown on a session row: the last activity, else the creation. */
+function activityLabel(s: Session): string {
+  return s.lastTurnAt ? 'sessions.lastTurn' : 'sessions.created'
 }
 
 function openSession(id: string) {
@@ -130,7 +136,7 @@ async function togglePreview(s: Session) {
               {{ levelName(s.level) }}
             </span>
             <span class="block text-xs text-fg-muted">
-              {{ formatDate(s.createdAt) }} ·
+              {{ $t(activityLabel(s)) }}: {{ formatDate(sessionActivityAt(s)) }} ·
               {{
                 s.turnCount === 1
                   ? $t('sessions.oneTurn')

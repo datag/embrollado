@@ -11,7 +11,7 @@ to use (FR-021, FR-034; owner requirement for the name and further personal deta
 
 | Screen   | Route           | Purpose                                                                                   |
 | -------- | --------------- | ----------------------------------------------------------------------------------------- |
-| Sessions | `#/`            | The list of past and running conversations (FR-016)                                       |
+| Sessions | `#/`            | The list of past and running conversations, ordered by the last activity (newest first, FR-016) |
 | Dialogue | `#/session/:id` | One conversation, the cycle of §3 (FR-006…FR-014)                                         |
 | Setup    | `#/new`         | Target language, level, situation, partner — or the learner's own (FR-001…FR-005)         |
 | Settings | `#/settings`    | Service configuration, learner profile, theme, language, storage (FR-021, FR-033, FR-034) |

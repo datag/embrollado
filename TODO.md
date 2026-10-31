@@ -15,7 +15,7 @@ Offene Punkte, nach Themen gruppiert.
 
 ## Conversation List
 
-- [ ] Absteigend nach Datum (oder letzter Aktivität, falls vorhanden) sorieren
+- [x] Absteigend nach Datum (oder letzter Aktivität, falls vorhanden) sorieren
 
 ## Conversations Settings
 
