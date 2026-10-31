@@ -326,6 +326,10 @@ learner answers (FR-057).
 
 - [x] T120 Sort the session list by the last activity, newest first: `sessionActivityAt(session)` in `src/data/sessions.ts` returns the newest of `lastTurnAt`, `updatedAt` and `createdAt`, and `listSessions()` applies `sortSessionsByActivity` (also to filtered results via `searchSessions`); `SessionsView.vue` shows the activity time (the store index stays ascending by creation, so the order is reversed in code — no schema change); FR-016/FR-017 in `spec.md` and the Sessions screen in `contracts/settings-profile.md` document the order; unit tests in `tests/unit/sessions-order.test.ts`; TODO entry "Absteigend nach Datum … sorieren" checked off
 
+### The rating only ever assesses the latest learner answer (FR-040)
+
+- [x] T121 Label the learner messages in the model-side history so a resumed session can never re-rate an old answer: `buildTurnUserMessage(learnerAnswer, kind)` in `src/ai/prompts.ts` with `kind: 'opening' | 'context' | 'current'` — the opening message ("The session is starting…"), every stored answer as `context` ("already assessed — context only, do not assess it again") and the running answer as `current` ("this is the answer you assess"); `src/composables/useSession.ts` passes `'opening'`/`'context'` in `rebuildHistory()` and `'current'` in `requestTurn()` (opening when the message is empty); the assess-only-latest prompt rule now names the marked answer and forbids re-assessing, re-correcting or repeating the feedback of earlier answers; docs: FR-040 in `spec.md`, `contracts/turn-payload.md` §4; prompt unit tests in `tests/unit/prompts.test.ts`; TODO entries "Bewertung wirklich nur auf die letzte User-Antwort …" checked off, "Zu klären: Bewertung geht häufig bereits auf die AI-Antwort ein" stays open (its separate-request option is deliberately not taken)
+
 ---
 
 ## Dependencies & Execution Order

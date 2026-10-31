@@ -154,8 +154,11 @@ export function buildSystemPrompt(input: PromptInput): string {
       'the heading already shows whose words these are. If a part of the answer is a gap ' +
       'marker or unintelligible, translate the rest and keep that part unchanged.',
     '- The feedback fields (explanation, correctedText, interpretation, assumptions, badge, ' +
-      "issues) MUST assess ONLY the learner's answer in the LATEST user message — never an " +
-      "earlier answer, never the partner's lines, and never the feedback of a previous turn.",
+      "issues) MUST assess ONLY the learner's answer in the LATEST user message — the one marked " +
+      '"this is the answer you assess" — never an earlier answer, never the partner\'s lines and ' +
+      'never the feedback of a previous turn. Every earlier learner message is separately marked ' +
+      '"already assessed — context only": use it only to understand the conversation, never assess, ' +
+      'correct or rate it again and never repeat its feedback.',
     `- Feedback voice — the "explanation", "issues" and "assumptions[].reason" fields are a ` +
       "language coach's note about the learner's answer: objective, and addressed to the " +
       'learner directly, in the informal "you" mood the app itself uses ("deine Antwort", ' +
@@ -185,16 +188,41 @@ export function buildSystemPrompt(input: PromptInput): string {
   ].join('\n')
 }
 
-/** The learner-facing message for one turn request. */
-export function buildTurnUserMessage(learnerAnswer: string | null): {
-  role: 'user'
-  content: string
-} {
-  const content =
-    learnerAnswer == null || learnerAnswer.trim() === ''
-      ? 'The session is starting. Say the first line and open the situation.'
-      : `The learner answered:\n\n${learnerAnswer}`
-  return { role: 'user', content }
+export type TurnUserMessageKind = 'opening' | 'context' | 'current'
+
+/**
+ * The learner-facing message for one turn request. `kind` tells the model which user message it
+ * must assess:
+ * - `opening` — the session starts; there is no learner answer yet.
+ * - `current` — the answer it has to assess (the latest one).
+ * - `context` — an earlier answer from the dialogue history, already assessed; context only.
+ * Labelling the earlier answers explicitly prevents a resumed conversation from re-rating an old
+ * answer ("lag by one").
+ */
+export function buildTurnUserMessage(
+  learnerAnswer: string | null,
+  kind: TurnUserMessageKind = 'current',
+): { role: 'user'; content: string } {
+  switch (kind) {
+    case 'opening':
+      return { role: 'user', content: 'The session is starting. Say the first line and open the situation.' }
+    case 'context':
+      return {
+        role: 'user',
+        content:
+          'Earlier in the conversation the learner said (already assessed — this is context ' +
+          'only, do not assess it again):\n\n' +
+          (learnerAnswer ? `${learnerAnswer}` : ''),
+      }
+    case 'current':
+    default:
+      return {
+        role: 'user',
+        content:
+          'The learner answered — this is the answer you assess:\n\n' +
+          (learnerAnswer ? `${learnerAnswer}` : ''),
+      }
+  }
 }
 
 /** The schema text embedded in the prompt for the `json_object` fallback (ai-service.md §3). */

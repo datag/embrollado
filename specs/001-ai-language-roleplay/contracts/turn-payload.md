@@ -191,8 +191,11 @@ prompt — but **none of the stored feedback** (no previous `correctedText`, `in
 `assumptions`, `badge` or `issues`). Storing a previous turn's ratings in the context would anchor
 the model's next rating to the previous answer instead of the latest one ("lag by one"). The same
 minimal history is rebuilt from the stored turns when a session is resumed after a reload, so a
-continued conversation is consistent. The feedback fields must assess **only the answer in the
-latest user message**, never an earlier answer, the partner's lines or a previous turn's feedback.
+continued conversation is consistent. Every learner message is labelled: the latest answer is the
+one to assess ("this is the answer you assess"), every earlier answer is context that was already
+assessed ("already assessed — context only"). The feedback fields assess **only the answer in the
+latest user message** — never an earlier answer, the partner's lines or a previous turn's feedback;
+earlier answers may be used to understand the conversation, never to re-rate or re-correct them.
 
 Only the learner's **perceivable traits** are part of the dialogue prompt by default (FR-059). The
 name and the personal details leave the device only when the per-session option is enabled

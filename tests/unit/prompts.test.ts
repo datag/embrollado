@@ -172,9 +172,31 @@ describe('prompt builder (T045, T039, T112)', () => {
   })
 
   it('builds a user message that opens the session', () => {
-    const msg = buildTurnUserMessage(null)
+    const msg = buildTurnUserMessage(null, 'opening')
     expect(msg.role).toBe('user')
     expect(msg.content).toContain('starting')
+  })
+
+  it('labels the assessable answer and marks earlier answers as context (FR-040)', () => {
+    // The answer to rate: clearly framed as the one to assess.
+    const current = buildTurnUserMessage('Is the washroom nearby?', 'current')
+    expect(current.content).toContain('this is the answer you assess')
+    expect(current.content).toContain('Is the washroom nearby?')
+    // An earlier answer (dialogue history of a resumed session): context only, never re-rated.
+    const context = buildTurnUserMessage('Hello there!', 'context')
+    expect(context.content).toContain('already assessed')
+    expect(context.content).toContain('context only')
+    expect(context.content).toContain('Hello there!')
+    expect(context.content).not.toContain('answer you assess')
+  })
+
+  it('sharpen the assess-only-latest rule so earlier answers are never re-rated', () => {
+    const prompt = buildSystemPrompt(base)
+    // The current answer is marked as the one to assess.
+    expect(prompt).toContain('the one marked "this is the answer you assess"')
+    // Earlier messages are context — use them only for understanding, keep their feedback.
+    expect(prompt).toContain('already assessed — context only')
+    expect(prompt).toContain('never assess, correct or rate it again')
   })
 
   it('keeps the learner context minimal when nothing is perceivable or revealed', () => {

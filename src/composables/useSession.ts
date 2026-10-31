@@ -157,7 +157,9 @@ export function useSession(): UseSessionReturn {
     messages.push({ role: 'system', content: await buildSystemPromptFor(s) })
     let opening = true
     for (const t of turns.value) {
-      messages.push(buildTurnUserMessage(opening ? null : t.learnerText))
+      // Earlier answers travel as explicit context: labelled "already assessed" so a resumed
+      // session never re-rates an old answer (rating = current only, FR-040).
+      messages.push(buildTurnUserMessage(opening ? null : t.learnerText, opening ? 'opening' : 'context'))
       if (t.partnerText) messages.push({ role: 'assistant', content: t.partnerText })
       opening = false
     }
@@ -213,7 +215,10 @@ export function useSession(): UseSessionReturn {
     if (!service.chatModel)
       throw { kind: 'not-configured', message: 'serviceNotConfigured' } as SessionError
     if (messages.length === 0) return {}
-    const userMessage = buildTurnUserMessage(learnerText)
+    const userMessage = buildTurnUserMessage(
+      learnerText,
+      learnerText == null || learnerText.trim() === '' ? 'opening' : 'current',
+    )
     const result = await chatCompletion({
       service,
       messages: [...messages, userMessage],

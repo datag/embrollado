@@ -421,7 +421,9 @@ on a service without those capabilities and verify the graceful fallback.
 **Quality badge**
 
 - **FR-040**: Every rated answer MUST show a quality badge that places the answer in exactly one
-  of four tiers: perfect or very good, good, acceptable, and unsatisfactory.
+  of four tiers: perfect or very good, good, acceptable, and unsatisfactory. The rating (and all
+  feedback fields) MUST assess **only the learner's latest answer** — earlier answers are marked
+  as context that was already assessed and MUST NOT be re-rated, re-corrected or re-badged.
 - **FR-041**: Each tier MUST be shown with a distinct colour and a short label, and the label MUST
   be taken from the wording variants held in the translation files for the learner's language.
 - **FR-042**: Each tier MUST offer several wording variants, and the app MUST be able to show a
