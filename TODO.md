@@ -11,7 +11,7 @@ Offene Punkte, nach Themen gruppiert.
 
 - [x] HTML-Kommentare mit Verweisen auf Specs entfernen – oder sicherstellen, dass sie im finalen Build nicht sichtbar sind.
 - [x] FavIcon ergänzen. Möglicherweise etwas mit einem "E"? SVG?
-- [ ] Datenschutzerklärung-Verlinkung Englisch/Deutsch (zwei Links "Privacy Policy" und "Datenschutzerklärung", selbe URL, aber named anchor #en und #de) mittels Env- bzw. GitHub-Repository-Vars (analog zu anderen Projekten, z.B. ~/projects/wizzy-weasel) im Footer. Sind die Variablen nicht gesetzt, gibt es diese Links nicht im Footer.
+- [x] Datenschutzerklärung-Verlinkung Englisch/Deutsch (zwei Links "Privacy Policy" und "Datenschutzerklärung", selbe URL, aber named anchor #en und #de) mittels Env- bzw. GitHub-Repository-Vars (analog zu anderen Projekten, z.B. ~/projects/wizzy-weasel) im Footer. Sind die Variablen nicht gesetzt, gibt es diese Links nicht im Footer.
 - [x] Zusätzlich eine Env- bzw. GitHub-Repository-Var gestützte Code-Abfrage, die den Zugriff auf die App beschränkt. Es handelt sich hier lediglich um eine weiche Maßnahme "nicht direkt der Öffentlichkeit zugänglich", und nicht um einen Sicherheitsmechanismus. Das Passwort ist "letmein" und ist das Hash im Code hinterlegt. Nur wenn das Setting existiert, kommt unmittelbar vor dem Rendern einer Seite die Code-Abfrage. Ist der Code richtig, so wird ein Marker im localStorage (achte auf den App-Namen-Prefix) hinterlegt, an dem festgestellt werden kann, dass bereits einmal ein gültiger Code eingegeben wurde. In diesem Fall kommt keine Anfrage.
 
 ## Conversation List
