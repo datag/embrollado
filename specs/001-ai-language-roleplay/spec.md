@@ -7,24 +7,25 @@
 **Status**: Draft
 
 **Input**: User description:
+
 > Entwickle die App Embrollado:
 >
-> * eLearning-App (Web-based) mit AI-generierten Dialogen in einer Fremdsprache
-> * App-Name: Embrollado (Partizip von embrollo, verworrene Situation)
-> * Hauptidee ist ein möglichst praxisnahes/realitätsnahes Gespräch mit einer anderen Person (AI) zu führen in einer Sprache, die man üben möchte.
->   * Persona und Themenwahl (z.B. Thema: Auf dem Campingplatz im Waschhaus; Persona: Nicole, 38w, Konditorin)
->   * Idee: Bildgenerierung zu bestimmten Situationen, z.B. zum Start, Key-Points, Ende.
->   * Idee: TTS (AI)
-> * ChatGPT-like
->   * mehrere Unterhaltungen/Sessions
->   * Sprache wählbar
->   * Niveau wählbar
->   * optional: Tokens live einfliegen lassen, sofern möglich (bei structured JSON vermutlich schwierig...?)
-> * Ablauf:
->   1) AI gibt einen Satz/Frage vor.
->   2) User antwortet.
->   3) Urspünglicher Satz/Frage wird nachträglich zusätzlich übersetzt; ggf. mit Erläuterung. Eigene Antwort wird korrigiert und interpretiert (z.B. fehlende Worte (Platzhalter ??? bzw. Angabe Muttersprache) mit Annahmen befüllt und Gesamtinterpretation/Sprachbewertung gegeben. Erkläre-mir-Button, welcher weitere Infos zur Semantik und/oder zum Fehler abruft.
->   4) AI antwortet bzw. Cycle startet von Neuem.
+> - eLearning-App (Web-based) mit AI-generierten Dialogen in einer Fremdsprache
+> - App-Name: Embrollado (Partizip von embrollo, verworrene Situation)
+> - Hauptidee ist ein möglichst praxisnahes/realitätsnahes Gespräch mit einer anderen Person (AI) zu führen in einer Sprache, die man üben möchte.
+>   - Persona und Themenwahl (z.B. Thema: Auf dem Campingplatz im Waschhaus; Persona: Nicole, 38w, Konditorin)
+>   - Idee: Bildgenerierung zu bestimmten Situationen, z.B. zum Start, Key-Points, Ende.
+>   - Idee: TTS (AI)
+> - ChatGPT-like
+>   - mehrere Unterhaltungen/Sessions
+>   - Sprache wählbar
+>   - Niveau wählbar
+>   - optional: Tokens live einfliegen lassen, sofern möglich (bei structured JSON vermutlich schwierig...?)
+> - Ablauf:
+>   1. AI gibt einen Satz/Frage vor.
+>   2. User antwortet.
+>   3. Urspünglicher Satz/Frage wird nachträglich zusätzlich übersetzt; ggf. mit Erläuterung. Eigene Antwort wird korrigiert und interpretiert (z.B. fehlende Worte (Platzhalter ??? bzw. Angabe Muttersprache) mit Annahmen befüllt und Gesamtinterpretation/Sprachbewertung gegeben. Erkläre-mir-Button, welcher weitere Infos zur Semantik und/oder zum Fehler abruft.
+>   4. AI antwortet bzw. Cycle startet von Neuem.
 
 ## Clarifications
 
@@ -36,7 +37,7 @@
 - Q: How long should the spoken audio and the generated pictures be kept on the learner's device? → A: The pictures are kept permanently, while only a bounded number of the most recent spoken lines per session are cached and older ones are requested again from the AI service when they are played
 - Q: When the learner imports a file of conversations they exported earlier, what should happen if a conversation already exists on the device? → A: The import replaces the conversations on the device with the contents of the file; a conversation with the same identifier is overwritten and a warning is shown before the import runs; a conversation is identified by a UUID
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Start a practice conversation with a chosen person and situation (Priority: P1)
 
@@ -102,7 +103,7 @@ verify that all feedback elements appear.
 3. **Given** a turn that is already correct, **When** the feedback is generated, **Then** the
    correction confirms the answer and the quality badge shows the top tier, without inventing
    errors.
-5. **Given** the learner writes a completely empty answer, **When** they attempt to send it,
+4. **Given** the learner writes a completely empty answer, **When** they attempt to send it,
    **Then** the app does not contact the AI service and shows an inline hint instead.
 
 ---
@@ -271,7 +272,7 @@ on a service without those capabilities and verify the graceful fallback.
 - The learner's profile has no perceivable traits at all: the partner relies on the situation and
   on what the learner reveals, and never invents an appearance.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -311,14 +312,20 @@ on a service without those capabilities and verify the graceful fallback.
   so the learner sees the fix in the "things to improve" list, never only as prose. A suggestion
   MUST NOT command the learner to change the answer (there is no way to apply it); a phantom pair
   whose `original` does not appear in the answer or whose `corrected` equals it is dropped.
+- **FR-063**: The feedback of a turn MUST NOT give away the partner line that is created in the
+  same request: the explanation, the interpretation, the reasons of the assumptions, and the
+  issue details/suggestions MUST NOT quote, paraphrase, translate or repeat the new line or its
+  translation, because the learner has not read that line yet and its translation is revealed only
+  after they answer (FR-057). The feedback MAY use as context the question the learner just
+  answered (the previous, already revealed partner line) and the earlier conversation.
 - **FR-009**: Where the learner's answer contains an explicit gap marker (`???`) or a word given in
   the learner's native language, the system MUST fill the gap with a plausible, context-appropriate
   assumption and MUST visibly mark that text as an assumption. The app only shows an assumption
   when the answer contained `???` or the reported original is a single word that differs from the
   fill — a phrase the learner wrote in the target language is never shown as a gap.
-- **FR-010**: *(removed in this iteration — owner decision. The `explanation` field already covers
+- **FR-010**: _(removed in this iteration — owner decision. The `explanation` field already covers
   the learner's answer per turn, so the on-demand "Explain to me" action has been removed along
-  with its button and its separate request.)*
+  with its button and its separate request.)_
 - **FR-011**: The partner MUST react to the learner's answer and continue the conversation, and the
   cycle MUST repeat until the learner ends the session.
 - **FR-012**: The partner's language MUST stay in the target language and MUST respect the selected
@@ -532,7 +539,7 @@ on a service without those capabilities and verify the graceful fallback.
   the learner's native language as an objective note that addresses the learner directly — never
   in the partner's first person (FR-008, FR-061).
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 
@@ -546,7 +553,7 @@ on a service without those capabilities and verify the graceful fallback.
   at least 95% of turns under normal network conditions.
 - **SC-005**: Every session opened after a device restart shows the full transcript including all
   feedback, in 100% of cases.
-- **SC-006**: *(removed with FR-010 — the "Explain to me" action no longer exists.)*
+- **SC-006**: _(removed with FR-010 — the "Explain to me" action no longer exists.)_
 - **SC-007**: In a full practice session, a network trace shows no request to any destination other
   than the configured AI service, and every request reaches that address directly, without any
   intermediary.

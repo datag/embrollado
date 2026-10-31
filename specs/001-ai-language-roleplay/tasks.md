@@ -343,6 +343,10 @@ learner answers (FR-057).
 
 - [x] T125 Fix the misleading worked example for `interpretation` in `src/ai/prompts.ts`: it showed "Hey buddy, are you lost?" → "Hey Kumpel, bist du verloren?" — a PARTNER line rendered into the feedback language, i.e. exactly what `translation` must do, which teaches a weak model to translate the partner's new line into the interpretation/explanation, spoiling its meaning. The example is now a real learner line ("Is the washroom next to the showers?" → "Ist der Waschraum neben den Duschen?", mirroring the mock payload) with the explicit note that a partner question the learner answered is not part of their answer; `contracts/turn-payload.md` §4 clarifies that `interpretation` works on learner lines while `translation` works on partner lines; prompt unit test asserts the learner-line example and the absence of "Hey buddy"/"Hey Kumpel"
 
+### The feedback never previews the partner's new line (FR-063)
+
+- [x] T126 Stop the feedback from giving away the partner line created in the same request: `src/ai/prompts.ts` gains the spoiler rule — `explanation`, `interpretation`, `assumptions[].reason`, `issues[].detail` and `issues[].suggestion` never quote, paraphrase, translate or repeat the NEW `partnerText` of the same document or its `translation` (the learner has not read that line yet; its translation is the after-answering "peek", FR-057); the allowed context is the question the learner just answered (the previous, already revealed assistant line) and the earlier conversation; docs: new FR-063 in `spec.md`, `contracts/turn-payload.md` §4, the feedback block in `contracts/settings-profile.md` §3, the explanation/interpretation rows in `data-model.md`; prompt unit test asserts the rule; TODO entry "Zu klären: Bewertung geht häufig bereits auf die AI-Antwort ein" checked off (decided: the answer that "already looks at the AI answer" is the spoiler; the separate-evaluation-request sub-item stays open as the fallback if prompt-only turns out to be insufficient)
+
 ---
 
 ## Dependencies & Execution Order

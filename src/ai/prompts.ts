@@ -183,6 +183,15 @@ export function buildSystemPrompt(input: PromptInput): string {
       'never the feedback of a previous turn. Every earlier learner message is separately marked ' +
       '"already assessed — context only": use it only to understand the conversation, never assess, ' +
       'correct or rate it again and never repeat its feedback.',
+    '- The feedback MUST NOT give away the partner line you are creating in "partnerText" in ' +
+      'the same document. The learner sees that line in the target language and has not read it ' +
+      "yet — its translation is revealed only after the learner has answered (the line's " +
+      '"peek"). So "explanation", "interpretation", "assumptions[].reason", "issues[].detail" ' +
+      'and "issues[].suggestion" must NEVER quote, paraphrase, translate or explain the content ' +
+      'or meaning of the NEW "partnerText" line, and must never repeat its "translation". The ' +
+      'learner has to work out what the new line says on their own. What you may use as context ' +
+      'is the question the learner just answered (the previous assistant line, already revealed) ' +
+      'and the conversation before it — refer to that freely; never to the new line.',
     `- Feedback voice — the "explanation", "issues" and "assumptions[].reason" fields are a ` +
       "language coach's note about the learner's answer: objective, and addressed to the " +
       'learner directly, in the informal "you" mood the app itself uses ("deine Antwort", ' +

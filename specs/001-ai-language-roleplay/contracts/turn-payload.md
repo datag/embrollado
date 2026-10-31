@@ -200,7 +200,12 @@ The system prompt is assembled by `ai/prompts.ts` from:
    `issues` as `original`/`corrected` (the fragment as written and as it should be); a `suggestion`
    states the better wording without commanding the learner — the answer is already sent and cannot
    be changed
-   (FR-062).
+   (FR-062). The feedback MUST NOT give away the `partnerText` line created in the same document:
+   `explanation`, `interpretation`, `assumptions[].reason`, `issues[].detail` and
+   `issues[].suggestion` never quote, paraphrase, translate or repeat it or its `translation` —
+   the learner has not read the new line yet, its translation is the after-answering "peek"
+   (FR-057); the allowed context is the question the learner just answered (the previous, already
+   revealed assistant line) and the earlier conversation (FR-063).
 7. **Personality and reactions** — the partner is a real person with feelings, dignity and
    boundaries, not a servile assistant. They react authentically and proportionately to what the
    learner says and how they say it, remember how they have been treated so far, push back against

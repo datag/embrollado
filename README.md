@@ -7,8 +7,10 @@ Embrollado is a browser-only single-page app. You choose a target language, a le
 and a partner, and then you talk: the partner replies in the target language with the translation
 sitting muted under each line — hidden until you peek or until you have answered — and after every
 answer you get an explanation, a correction, an interpretation, filled-in gaps, a quality badge
-and concrete things to improve (a wrong word is shown as «as written» → «as it should be»).
-Whenever you want, you can have the partner's line read aloud and
+and concrete things to improve (a wrong word is shown as «as written» → «as it should be»). The
+feedback always concerns only your latest answer and never reveals the meaning of the partner's
+new line — you work that out yourself, with the translation appearing after you answer. Whenever
+you want, you can have the partner's line read aloud and
 generate an illustration of the current moment of the conversation (a picture button next to the
 input box; the button only appears when an image model is configured). Click any picture in the
 chat to view it at full resolution in a lightbox.
@@ -159,10 +161,10 @@ dialogue itself reports the missing connection.
 
 `pnpm test` runs:
 
-| Suite              | Covers                                                                                                                                                                                                       |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Unit (Vitest)      | badge tiers, catalogue, SSE parser, error normaliser, prompt builder, export envelope, migrations, settings, speech-cache pruning, translation visibility (FR-057) |
-| Component (Vitest) | the setup pickers, the feedback block (fixed element order, explanation added without hiding feedback), the muted line translation and its toggle                                                                                   |
+| Suite              | Covers                                                                                                                                                                                                                                                         |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unit (Vitest)      | badge tiers, catalogue, SSE parser, error normaliser, prompt builder, export envelope, migrations, settings, speech-cache pruning, translation visibility (FR-057)                                                                                             |
+| Component (Vitest) | the setup pickers, the feedback block (fixed element order, explanation added without hiding feedback), the muted line translation and its toggle                                                                                                              |
 | E2E (Playwright)   | the dialogue cycle against the local mock (incl. the hidden/revealed line translation), conversation list (search/rename/delete), export/import round trip, offline reload, speech + illustrations, network isolation, and the mobile layout at 393/390/320 px |
 
 The e2e suite asserts the constitution's hard promises directly: no horizontal scrolling at

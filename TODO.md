@@ -39,7 +39,7 @@ Offene Punkte, nach Themen gruppiert.
 - [ ] Bewertung: Akzente explizit mitbewerten; Typografie nur als Anmerkung. Ggf. konfigurierbar machen.
 - [x] Untersuchen: Wenn in Explanation ein Fehler (Rechtschreibfehler in Wort) erwähnt wird, dann sollte dieser Fund auch in den Korrekturen auftauchen.
 - [x] Bei Verbesserungsvorschlägen kein Imperativ wie "bitte korrigieren", denn diese Funktion ist nicht vorgesehen.
-- [ ] Zu klären: Bewertung geht häufig bereits auf die AI-Antwort ein. Unsicher, ob wir das wollen.
+- [x] Zu klären: Bewertung geht häufig bereits auf die AI-Antwort ein. Unsicher, ob wir das wollen.
   - [ ] Nochmals erwägen, die Evaluation in einen separaten Request zu machen, um das zu verhindern.
 - [x] Bewertung wirklich nur auf die letzte User-Antwort, niemals das zuvor korrigieren/bewerten, jedoch ggf. als zusätzlich Kontext verwenden.
 

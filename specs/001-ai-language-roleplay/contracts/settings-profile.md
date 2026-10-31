@@ -9,13 +9,13 @@ to use (FR-021, FR-034; owner requirement for the name and further personal deta
 
 ## 1. Screens
 
-| Screen   | Route           | Purpose                                                                                   |
-| -------- | --------------- | ----------------------------------------------------------------------------------------- |
+| Screen   | Route           | Purpose                                                                                         |
+| -------- | --------------- | ----------------------------------------------------------------------------------------------- |
 | Sessions | `#/`            | The list of past and running conversations, ordered by the last activity (newest first, FR-016) |
-| Dialogue | `#/session/:id` | One conversation, the cycle of §3 (FR-006…FR-014)                                         |
-| Setup    | `#/new`         | Target language, level, situation, partner — or the learner's own (FR-001…FR-005)         |
-| Settings | `#/settings`    | Service configuration, learner profile, theme, language, storage (FR-021, FR-033, FR-034) |
-| About    | `#/about`       | Licence, font attribution, privacy notes (OFL obligations)                                |
+| Dialogue | `#/session/:id` | One conversation, the cycle of §3 (FR-006…FR-014)                                               |
+| Setup    | `#/new`         | Target language, level, situation, partner — or the learner's own (FR-001…FR-005)               |
+| Settings | `#/settings`    | Service configuration, learner profile, theme, language, storage (FR-021, FR-033, FR-034)       |
+| About    | `#/about`       | Licence, font attribution, privacy notes (OFL obligations)                                      |
 
 Hash routing (`createWebHashHistory`) so the app works on any static host without a rewrite rule.
 
@@ -44,18 +44,18 @@ Hash routing (`createWebHashHistory`) so the app works on any static host withou
 
 ### 2.2 The learner
 
-| Field               | Control                                                 | Validation                 | Where it goes                                                         |
-| ------------------- | ------------------------------------------------------- | -------------------------- | --------------------------------------------------------------------- |
-| Appearance          | Text area                                               | ≤ 500 characters, optional | `LearnerProfile.appearance` — perceivable, sent with every dialogue  |
-| Voice               | Text area                                               | ≤ 300 characters, optional | `LearnerProfile.voice` — perceivable, sent with every dialogue       |
-| Age                 | Number                                                  | 0…120, optional            | `LearnerProfile.age` — sent as an approximate band                   |
-| Gender              | Select: not specified / female / male / other           | —                          | `LearnerProfile.gender`                                               |
-| Name                | Text input                                              | ≤ 60 characters, optional  | `LearnerProfile.name` — pictures always; dialogue only via the "already knows you" option |
+| Field               | Control                                                 | Validation                 | Where it goes                                                                                |
+| ------------------- | ------------------------------------------------------- | -------------------------- | -------------------------------------------------------------------------------------------- |
+| Appearance          | Text area                                               | ≤ 500 characters, optional | `LearnerProfile.appearance` — perceivable, sent with every dialogue                          |
+| Voice               | Text area                                               | ≤ 300 characters, optional | `LearnerProfile.voice` — perceivable, sent with every dialogue                               |
+| Age                 | Number                                                  | 0…120, optional            | `LearnerProfile.age` — sent as an approximate band                                           |
+| Gender              | Select: not specified / female / male / other           | —                          | `LearnerProfile.gender`                                                                      |
+| Name                | Text input                                              | ≤ 60 characters, optional  | `LearnerProfile.name` — pictures always; dialogue only via the "already knows you" option    |
 | About me            | Text area                                               | ≤ 500 characters, optional | `LearnerProfile.details` — pictures always; dialogue only via the "already knows you" option |
-| Native language     | Select from the language list + "same as the interface" | —                          | `LearnerProfile.nativeLanguage` (`null` ⇒ interface language, FR-034) |
-| Interface language  | Select: English / Deutsch                               | —                          | `LearnerProfile.interfaceLanguage` (FR-033)                           |
-| Theme               | Select: light / dark / follow the system                | —                          | `LearnerProfile.theme`                                                |
-| Cached spoken lines | Number input                                            | 0…200, default 20          | `LearnerProfile.cachedSpeechLines` (FR-050)                           |
+| Native language     | Select from the language list + "same as the interface" | —                          | `LearnerProfile.nativeLanguage` (`null` ⇒ interface language, FR-034)                        |
+| Interface language  | Select: English / Deutsch                               | —                          | `LearnerProfile.interfaceLanguage` (FR-033)                                                  |
+| Theme               | Select: light / dark / follow the system                | —                          | `LearnerProfile.theme`                                                                       |
+| Cached spoken lines | Number input                                            | 0…200, default 20          | `LearnerProfile.cachedSpeechLines` (FR-050)                                                  |
 
 **Rules**
 
@@ -86,12 +86,12 @@ Hash routing (`createWebHashHistory`) so the app works on any static host withou
 
 ## 3. The dialogue cycle in the UI
 
-| Step | What the learner sees                                                                                                                                                                             | Requirement            |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
-| 1    | The partner's line appears — progressively while it is generated (FR-035). Its translation sits muted directly under the line, hidden by default; a per-line toggle reveals or hides it, and once the learner answers the line the translation becomes visible immediately | FR-006, FR-057         |
-| 2    | The learner's input field with a send button of at least 44 × 44 px                                                                                                                               | FR-007                 |
-| 3    | One feedback block, always in this order: explanation (optional) → correction → interpretation → assumptions → quality badge → issues. Every field concerns the learner's own latest answer — the explanation clarifies it, the correction fixes it, the interpretation translates it. The feedback texts address the learner objectively; the partner is referenced in the third person (FR-061). An issue carries a concrete error pair — «original» → «corrected», the wrong fragment as written and its fix — whenever the explanation names one (FR-062) | FR-008, FR-014, FR-061, FR-062 |
-| 4    | The partner's next line (or the cycle ends when the learner ends the session)                                                                                                                     | FR-011                 |
+| Step | What the learner sees                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Requirement                            |
+| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| 1    | The partner's line appears — progressively while it is generated (FR-035). Its translation sits muted directly under the line, hidden by default; a per-line toggle reveals or hides it, and once the learner answers the line the translation becomes visible immediately                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | FR-006, FR-057                         |
+| 2    | The learner's input field with a send button of at least 44 × 44 px                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | FR-007                                 |
+| 3    | One feedback block, always in this order: explanation (optional) → correction → interpretation → assumptions → quality badge → issues. Every field concerns the learner's own latest answer — the explanation clarifies it, the correction fixes it, the interpretation translates it. The feedback texts address the learner objectively; the partner is referenced in the third person (FR-061). An issue carries a concrete error pair — «original» → «corrected», the wrong fragment as written and its fix — whenever the explanation names one (FR-062). The block never gives away the partner's NEW next line: explanation, interpretation, assumptions-reasons and issues neither quote nor translate it, because the learner reads the feedback before that line (FR-063) | FR-008, FR-014, FR-061, FR-062, FR-063 |
+| 4    | The partner's next line (or the cycle ends when the learner ends the session)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | FR-011                                 |
 
 Feedback block details:
 
@@ -111,24 +111,24 @@ streaming, complete, failed (with the learner's text kept and a retry), offline,
 
 ## 4. Setup screen contract
 
-| Control         | Options                                                                       | Requirement    |
-| --------------- | ----------------------------------------------------------------------------- | -------------- |
-| Target language | The catalogue's language list                                                 | FR-002         |
-| Level           | beginner / intermediate / expert, each with a one-line explanation            | FR-002         |
-| Situation       | The 13 predefined situations + the learner's templates + own one-off entries + "write my own" | FR-003, FR-044, FR-045, FR-046 |
-| Partner         | The 5 predefined partners + the learner's templates + own one-off entries + "write my own"    | FR-003, FR-044, FR-045, FR-046 |
-| Conversation option | "The AI partner already knows you" — checkbox, default off                 | FR-060         |
+| Control             | Options                                                                                       | Requirement                    |
+| ------------------- | --------------------------------------------------------------------------------------------- | ------------------------------ |
+| Target language     | The catalogue's language list                                                                 | FR-002                         |
+| Level               | beginner / intermediate / expert, each with a one-line explanation                            | FR-002                         |
+| Situation           | The 13 predefined situations + the learner's templates + own one-off entries + "write my own" | FR-003, FR-044, FR-045, FR-046 |
+| Partner             | The 5 predefined partners + the learner's templates + own one-off entries + "write my own"    | FR-003, FR-044, FR-045, FR-046 |
+| Conversation option | "The AI partner already knows you" — checkbox, default off                                    | FR-060                         |
 
 "Write my own" opens a small form:
 
-| Field                             | Validation                           | Persistence |
-| --------------------------------- | ------------------------------------ | ----------- |
-| Name (partner) / Name (situation) | Required, ≤ 60 / 80 characters       | FR-048      |
-| Age (partner), optional           | 0…120                                | —           |
-| Occupation (partner)              | Required, ≤ 60 characters            | FR-048      |
-| Description / Setting             | Required, ≤ 400 characters           | FR-048      |
-| Save as a template                | Toggle                               | FR-045      |
-| Use for this session only         | The default when not saving          | FR-046      |
+| Field                             | Validation                     | Persistence |
+| --------------------------------- | ------------------------------ | ----------- |
+| Name (partner) / Name (situation) | Required, ≤ 60 / 80 characters | FR-048      |
+| Age (partner), optional           | 0…120                          | —           |
+| Occupation (partner)              | Required, ≤ 60 characters      | FR-048      |
+| Description / Setting             | Required, ≤ 400 characters     | FR-048      |
+| Save as a template                | Toggle                         | FR-045      |
+| Use for this session only         | The default when not saving    | FR-046      |
 
 Own entries are listed inside the same picker list as the built-ins and templates. Every
 learner-defined row carries a badge — `CUSTOM`/`EIGEN` for a saved template and

@@ -50,7 +50,7 @@ A single practice conversation. FR-015, FR-016, FR-053.
 | `situation`         | `SituationRef`                             | Required                                                                                                                                                              |
 | `partner`           | `PartnerRef`                               | Required                                                                                                                                                              |
 | `situationSnapshot` | `SituationSnapshot`                        | Required — the situation and partner as they were described when the session started, so later edits or deletions of a learner-defined template never rewrite history |
-| `options`           | `SessionOptions`                           | Required — the conversation options chosen when the session started (e.g. `{ knowsLearner }`), snapshotted like the situation (FR-060) |
+| `options`           | `SessionOptions`                           | Required — the conversation options chosen when the session started (e.g. `{ knowsLearner }`), snapshotted like the situation (FR-060)                                |
 | `state`             | `"active" \| "ended"`                      | Required                                                                                                                                                              |
 | `createdAt`         | ISO 8601 string                            | Required                                                                                                                                                              |
 | `updatedAt`         | ISO 8601 string                            | Required                                                                                                                                                              |
@@ -61,81 +61,81 @@ A single practice conversation. FR-015, FR-016, FR-053.
 
 One cycle step of a session. FR-006…FR-014, FR-040…FR-043.
 
-| Field                 | Type                  | Rules                                                                   |
-| --------------------- | --------------------- | ----------------------------------------------------------------------- |
-| `id`                  | UUID string           | Required                                                                |
-| `sessionId`           | UUID string           | Required, references a Session                                          |
-| `position`            | number                | Required, ≥ 1, unique per session                                       |
-| `partnerText`         | string                | Required — the partner's line in the target language                    |
-| `partnerTextLanguage` | ISO 639-1             | Required, always the target language                                    |
-| `translation`         | string                | Required — the partner's line in the learner's native language (FR-036) |
-| `explanation`         | string \| null        | Optional — objective coach note on the learner's answer, partner in the third person; null on the opening turn (FR-008, FR-061) |
-| `learnerText`         | string \| null        | Required for turns the learner answered; null for the opening turn      |
-| `correctedText`       | string \| null        | The learner's answer, corrected; stays in the target language (FR-036)  |
-| `interpretation`      | string \| null        | The learner's answer translated into the native language (what their words mean) |
-| `assumptions`         | `Assumption[]`        | The gaps that were filled (FR-009)                                      |
-| `badge`               | `Badge \| null`       | The four-tier rating (FR-040); `unknown` when the model gave no usable rating |
-| `issues`              | `Issue[]`             | Concrete things to improve, derived from the model's issue list         |
-| `illustrationId`      | UUID \| null          | FK → Illustration                                                       |
-| `audioId`             | UUID \| null          | FK → the cached AudioEntry for this line                                |
-| `createdAt`           | ISO 8601 string       | Required                                                                |
-| `feedbackLanguage`    | ISO 639-1             | Required — the language the feedback was delivered in (FR-036)          |
+| Field                 | Type            | Rules                                                                                                                                                                                                     |
+| --------------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                  | UUID string     | Required                                                                                                                                                                                                  |
+| `sessionId`           | UUID string     | Required, references a Session                                                                                                                                                                            |
+| `position`            | number          | Required, ≥ 1, unique per session                                                                                                                                                                         |
+| `partnerText`         | string          | Required — the partner's line in the target language                                                                                                                                                      |
+| `partnerTextLanguage` | ISO 639-1       | Required, always the target language                                                                                                                                                                      |
+| `translation`         | string          | Required — the partner's line in the learner's native language (FR-036)                                                                                                                                   |
+| `explanation`         | string \| null  | Optional — objective coach note on the learner's answer, partner in the third person; null on the opening turn; never quotes or translates the new partner line of the same turn (FR-008, FR-061, FR-063) |
+| `learnerText`         | string \| null  | Required for turns the learner answered; null for the opening turn                                                                                                                                        |
+| `correctedText`       | string \| null  | The learner's answer, corrected; stays in the target language (FR-036)                                                                                                                                    |
+| `interpretation`      | string \| null  | The learner's answer translated into the native language (what their words mean); never the partner's line (FR-008, FR-063)                                                                               |
+| `assumptions`         | `Assumption[]`  | The gaps that were filled (FR-009)                                                                                                                                                                        |
+| `badge`               | `Badge \| null` | The four-tier rating (FR-040); `unknown` when the model gave no usable rating                                                                                                                             |
+| `issues`              | `Issue[]`       | Concrete things to improve, derived from the model's issue list                                                                                                                                           |
+| `illustrationId`      | UUID \| null    | FK → Illustration                                                                                                                                                                                         |
+| `audioId`             | UUID \| null    | FK → the cached AudioEntry for this line                                                                                                                                                                  |
+| `createdAt`           | ISO 8601 string | Required                                                                                                                                                                                                  |
+| `feedbackLanguage`    | ISO 639-1       | Required — the language the feedback was delivered in (FR-036)                                                                                                                                            |
 
 ### Persona (conversation partner)
 
 FR-003, FR-044, FR-045, FR-046.
 
-| Field         | Type                           | Rules                                                                                                 |
-| ------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| `id`          | string                         | Required; `builtin:<slug>` for the 5 predefined partners, UUID for learner-defined ones               |
-| `name`        | string                         | Required, ≤ 60 characters                                                                             |
-| `age`         | number \| null                 | Optional, 0…120                                                                                       |
-| `gender`      | `"female" \| "male" \| "other" \| null` | Optional — used to describe the person in generated pictures (FR-028)                        |
-| `occupation`  | string                         | Required, ≤ 60 characters                                                                             |
-| `description` | string                         | Required, ≤ 400 characters — the short biography the model plays                                      |
-| `origin`      | `"builtin" \| "learner"`       | Required                                                                                              |
-| `visibility`  | `"template" \| "session-only"` | Required — a saved template persists; a session-only entry lives in the tab's sessionStorage and is gone when the tab closes (FR-046) |
-| `createdAt`   | ISO 8601 string                | Required for learner-defined entries                                                                  |
+| Field         | Type                                    | Rules                                                                                                                                 |
+| ------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`          | string                                  | Required; `builtin:<slug>` for the 5 predefined partners, UUID for learner-defined ones                                               |
+| `name`        | string                                  | Required, ≤ 60 characters                                                                                                             |
+| `age`         | number \| null                          | Optional, 0…120                                                                                                                       |
+| `gender`      | `"female" \| "male" \| "other" \| null` | Optional — used to describe the person in generated pictures (FR-028)                                                                 |
+| `occupation`  | string                                  | Required, ≤ 60 characters                                                                                                             |
+| `description` | string                                  | Required, ≤ 400 characters — the short biography the model plays                                                                      |
+| `origin`      | `"builtin" \| "learner"`                | Required                                                                                                                              |
+| `visibility`  | `"template" \| "session-only"`          | Required — a saved template persists; a session-only entry lives in the tab's sessionStorage and is gone when the tab closes (FR-046) |
+| `createdAt`   | ISO 8601 string                         | Required for learner-defined entries                                                                                                  |
 
 ### Situation
 
 FR-003, FR-044, FR-045, FR-046.
 
-| Field               | Type                           | Rules                                                                                      |
-| ------------------- | ------------------------------ | ------------------------------------------------------------------------------------------ |
-| `id`                | string                         | Required; `builtin:<slug>` for the 13 predefined situations, UUID for learner-defined ones |
-| `name`              | string                         | Required, ≤ 80 characters                                                                  |
-| `setting`           | string                         | Required, ≤ 400 characters — where and what is happening                                   |
-| `keyMoments`        | string[]                       | Required; the situation's key moments — legacy illustration hooks (FR-028 as amended: pictures are on demand) |
-| `suggestedPartners` | string[]                       | Optional hints; not a restriction (FR-044)                                                 |
-| `origin`            | `"builtin" \| "learner"`       | Required                                                                                   |
+| Field               | Type                           | Rules                                                                                                                                 |
+| ------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                | string                         | Required; `builtin:<slug>` for the 13 predefined situations, UUID for learner-defined ones                                            |
+| `name`              | string                         | Required, ≤ 80 characters                                                                                                             |
+| `setting`           | string                         | Required, ≤ 400 characters — where and what is happening                                                                              |
+| `keyMoments`        | string[]                       | Required; the situation's key moments — legacy illustration hooks (FR-028 as amended: pictures are on demand)                         |
+| `suggestedPartners` | string[]                       | Optional hints; not a restriction (FR-044)                                                                                            |
+| `origin`            | `"builtin" \| "learner"`       | Required                                                                                                                              |
 | `visibility`        | `"template" \| "session-only"` | Required — a saved template persists; a session-only entry lives in the tab's sessionStorage and is gone when the tab closes (FR-046) |
-| `createdAt`         | ISO 8601 string                | Required for learner-defined entries                                                       |
+| `createdAt`         | ISO 8601 string                | Required for learner-defined entries                                                                                                  |
 
 ### LearnerProfile
 
 The learner as the app knows them. FR-021, FR-034; owner requirement (settings: name and further
 details about their own person). Only the perceivable traits travel by default — FR-059.
 
-| Field                  | Type                          | Rules                                                                                                                       |
-| ---------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `appearance`           | string                        | Optional, ≤ 500 characters — what someone sees (hair, height, clothing); perceivable, part of every dialogue and of pictures |
-| `voice`                | string                        | Optional, ≤ 300 characters — what someone hears (voice, laugh, accent); perceivable, part of every dialogue                 |
-| `age`                  | number \| null                | Optional, 0…120; sent to the model as an approximate band ("somewhere in their thirties")                                  |
-| `gender`               | `"female" \| "male" \| "other" \| null` | Optional; perceivable                                                           |
-| `name`                 | string                        | Optional, ≤ 60 characters; pictures always, dialogue only with the "already knows you" option (FR-060)                     |
-| `details`              | string                        | Optional, ≤ 500 characters — job, hobbies, family, …; pictures always, dialogue only with the "already knows you" option    |
-| `nativeLanguage`       | ISO 639-1 \| null             | Optional; `null` means "fall back to the interface language" (FR-034)                                                       |
-| `interfaceLanguage`    | `"en" \| "de"`                | Required, default `"en"` (FR-033)                                                                                           |
-| `theme`                | `"light" \| "dark" \| "auto"` | Required, default `"auto"`                                                                                                  |
-| `cachedSpeechLines`    | number                        | Required, default 20, range 0…200 (FR-050)                                                                                  |
+| Field               | Type                                    | Rules                                                                                                                        |
+| ------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `appearance`        | string                                  | Optional, ≤ 500 characters — what someone sees (hair, height, clothing); perceivable, part of every dialogue and of pictures |
+| `voice`             | string                                  | Optional, ≤ 300 characters — what someone hears (voice, laugh, accent); perceivable, part of every dialogue                  |
+| `age`               | number \| null                          | Optional, 0…120; sent to the model as an approximate band ("somewhere in their thirties")                                    |
+| `gender`            | `"female" \| "male" \| "other" \| null` | Optional; perceivable                                                                                                        |
+| `name`              | string                                  | Optional, ≤ 60 characters; pictures always, dialogue only with the "already knows you" option (FR-060)                       |
+| `details`           | string                                  | Optional, ≤ 500 characters — job, hobbies, family, …; pictures always, dialogue only with the "already knows you" option     |
+| `nativeLanguage`    | ISO 639-1 \| null                       | Optional; `null` means "fall back to the interface language" (FR-034)                                                        |
+| `interfaceLanguage` | `"en" \| "de"`                          | Required, default `"en"` (FR-033)                                                                                            |
+| `theme`             | `"light" \| "dark" \| "auto"`           | Required, default `"auto"`                                                                                                   |
+| `cachedSpeechLines` | number                                  | Required, default 20, range 0…200 (FR-050)                                                                                   |
 
 ### SessionOptions
 
 A per-session snapshot chosen when the conversation starts (FR-060).
 
-| Field          | Type    | Rules                                                             |
-| -------------- | ------- | ----------------------------------------------------------------- |
+| Field          | Type    | Rules                                                                                           |
+| -------------- | ------- | ----------------------------------------------------------------------------------------------- |
 | `knowsLearner` | boolean | Default `false`. True releases the stored name + details to the partner from the first line on. |
 
 ### ServiceConfig
@@ -157,17 +157,17 @@ The AI service the learner brings. FR-021, FR-022, FR-038.
 
 FR-028, FR-029, FR-052.
 
-| Field              | Type                        | Rules                                                                        |
-| ------------------ | --------------------------- | ---------------------------------------------------------------------------- |
-| `id`               | UUID string                 | Required                                                                     |
-| `sessionId`        | UUID string                 | Required, references a Session                                               |
+| Field              | Type                        | Rules                                                                            |
+| ------------------ | --------------------------- | -------------------------------------------------------------------------------- |
+| `id`               | UUID string                 | Required                                                                         |
+| `sessionId`        | UUID string                 | Required, references a Session                                                   |
 | `turnId`           | UUID \| null                | The turn the picture was requested on; `null` only for legacy situation pictures |
-| `moment`           | `"start" \| "key" \| "end"` | Required — on-demand pictures use `"key"`                                     |
-| `prompt`           | string                      | Required, ≤ 1000 characters — the scene narration sent to the model           |
-| `mimeType`         | string                      | Required, e.g. `image/webp`                                                  |
-| `bytes`            | Blob                        | Required — stored locally, never fetched from a third-party address (FR-029) |
-| `width` / `height` | number                      | Required                                                                     |
-| `createdAt`        | ISO 8601 string             | Required                                                                     |
+| `moment`           | `"start" \| "key" \| "end"` | Required — on-demand pictures use `"key"`                                        |
+| `prompt`           | string                      | Required, ≤ 1000 characters — the scene narration sent to the model              |
+| `mimeType`         | string                      | Required, e.g. `image/webp`                                                      |
+| `bytes`            | Blob                        | Required — stored locally, never fetched from a third-party address (FR-029)     |
+| `width` / `height` | number                      | Required                                                                         |
+| `createdAt`        | ISO 8601 string             | Required                                                                         |
 
 On-demand pictures are bound to a turn and replace a previous picture of the same turn on a
 second request. `PartnerRef` (the snapshot copied into the session) carries the partner's `age`
@@ -202,21 +202,21 @@ FR-009.
 
 FR-040…FR-043.
 
-| Field      | Type                                                      | Rules                                                                                                       |
-| ---------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `tier`     | `"perfect" \| "good" \| "acceptable" \| "unsatisfactory" \| "unknown"` | Required; the four rating values, plus the app-side `unknown` state (missing/malformed rating, grey) |
-| `labelKey` | string                                                    | Required — the key of the wording variant shown; the wording itself lives in the translation files (FR-041) |
-| `label`    | string                                                    | The rendered label, stored so a stored transcript keeps the wording it was shown with                       |
+| Field      | Type                                                                   | Rules                                                                                                       |
+| ---------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `tier`     | `"perfect" \| "good" \| "acceptable" \| "unsatisfactory" \| "unknown"` | Required; the four rating values, plus the app-side `unknown` state (missing/malformed rating, grey)        |
+| `labelKey` | string                                                                 | Required — the key of the wording variant shown; the wording itself lives in the translation files (FR-041) |
+| `label`    | string                                                                 | The rendered label, stored so a stored transcript keeps the wording it was shown with                       |
 
 ### Issue (embedded in Turn)
 
-| Field        | Type                                                     | Rules                            |
-| ------------ | -------------------------------------------------------- | -------------------------------- |
-| `category`   | `"grammar" \| "vocabulary" \| "usage" \| "completeness"` | Required                         |
-| `detail`     | string                                                   | Required, in the native language, objectively phrased (FR-061) |
-| `suggestion` | string \| null                                           | Optional, in the native language, objectively phrased, never a command to change the answer (FR-062) |
+| Field        | Type                                                     | Rules                                                                                                                                                                                                                      |
+| ------------ | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `category`   | `"grammar" \| "vocabulary" \| "usage" \| "completeness"` | Required                                                                                                                                                                                                                   |
+| `detail`     | string                                                   | Required, in the native language, objectively phrased (FR-061)                                                                                                                                                             |
+| `suggestion` | string \| null                                           | Optional, in the native language, objectively phrased, never a command to change the answer (FR-062)                                                                                                                       |
 | `original`   | string \| null                                           | Optional — the wrong fragment exactly as the learner wrote it; set only for a concrete wrong form and only together with `corrected` (FR-062); optional in the type so stored turns from before this field keep validating |
-| `corrected`  | string \| null                                           | Optional — the same fragment as it should be; must differ from `original`; the app drops phantom pairs whose `original` does not appear in the answer (FR-062) |
+| `corrected`  | string \| null                                           | Optional — the same fragment as it should be; must differ from `original`; the app drops phantom pairs whose `original` does not appear in the answer (FR-062)                                                             |
 
 ## 3. Relationships
 
@@ -240,22 +240,22 @@ sessions (edge case in the spec).
 
 ## 4. Validation rules
 
-| Rule                                                                             | Source                      | Where it is enforced                                                       |
-| -------------------------------------------------------------------------------- | --------------------------- | -------------------------------------------------------------------------- |
-| `session.id` is a valid UUID and unique                                          | FR-053                      | `data/sessions.ts` on write; the store key is the UUID                     |
-| `turn.position` is unique and consecutive within a session                       | FR-014                      | `data/sessions.ts`                                                         |
-| `session.language` is in the catalogue's language list                           | FR-002                      | `domain/catalogue.ts`                                                      |
-| `session.level` ∈ {beginner, intermediate, expert}                               | FR-002                      | `domain/catalogue.ts`                                                      |
-| A turn always has a badge unless the learner has not answered yet                | FR-040                      | `domain/session.ts`                                                        |
-| A badge tier is one of the four rating values, or `unknown` for an unratable turn | FR-040, FR-058             | `domain/badge.ts`                                                          |
-| A badge label is one of the locale's variants for that tier                      | FR-041, FR-042              | `i18n/badges.ts`                                                           |
-| A learner-defined persona has a name; a learner-defined situation has a setting  | FR-048                      | `views/SetupView.vue` + `data/profile.ts`                                  |
-| A learner-defined entry is either a template or session-only                     | FR-045, FR-046              | `data/profile.ts` + `data/oneShots.ts`                                                  |
-| Editing a learner-defined entry keeps its id and replaces the entry              | FR-047                      | `data/profile.ts` + `views/SetupView.vue`                                               |
-| An import file has `format === "embrollado.export"` and an integer `version ≥ 1` | FR-056                      | `data/exportImport.ts` before any write                                    |
-| An import file is not larger than 250 MB                                         | — (denial-of-service guard) | `data/exportImport.ts` before reading                                      |
-| The API base URL is an absolute http(s) URL                                      | FR-021                      | `views/SettingsView.vue`                                                   |
-| The API key is never written to a log, an export or an error message             | FR-022                      | `ai/errors.ts` redaction + `data/exportImport.ts` excludes `ServiceConfig` |
+| Rule                                                                              | Source                      | Where it is enforced                                                       |
+| --------------------------------------------------------------------------------- | --------------------------- | -------------------------------------------------------------------------- |
+| `session.id` is a valid UUID and unique                                           | FR-053                      | `data/sessions.ts` on write; the store key is the UUID                     |
+| `turn.position` is unique and consecutive within a session                        | FR-014                      | `data/sessions.ts`                                                         |
+| `session.language` is in the catalogue's language list                            | FR-002                      | `domain/catalogue.ts`                                                      |
+| `session.level` ∈ {beginner, intermediate, expert}                                | FR-002                      | `domain/catalogue.ts`                                                      |
+| A turn always has a badge unless the learner has not answered yet                 | FR-040                      | `domain/session.ts`                                                        |
+| A badge tier is one of the four rating values, or `unknown` for an unratable turn | FR-040, FR-058              | `domain/badge.ts`                                                          |
+| A badge label is one of the locale's variants for that tier                       | FR-041, FR-042              | `i18n/badges.ts`                                                           |
+| A learner-defined persona has a name; a learner-defined situation has a setting   | FR-048                      | `views/SetupView.vue` + `data/profile.ts`                                  |
+| A learner-defined entry is either a template or session-only                      | FR-045, FR-046              | `data/profile.ts` + `data/oneShots.ts`                                     |
+| Editing a learner-defined entry keeps its id and replaces the entry               | FR-047                      | `data/profile.ts` + `views/SetupView.vue`                                  |
+| An import file has `format === "embrollado.export"` and an integer `version ≥ 1`  | FR-056                      | `data/exportImport.ts` before any write                                    |
+| An import file is not larger than 250 MB                                          | — (denial-of-service guard) | `data/exportImport.ts` before reading                                      |
+| The API base URL is an absolute http(s) URL                                       | FR-021                      | `views/SettingsView.vue`                                                   |
+| The API key is never written to a log, an export or an error message              | FR-022                      | `ai/errors.ts` redaction + `data/exportImport.ts` excludes `ServiceConfig` |
 
 ## 5. State transitions
 

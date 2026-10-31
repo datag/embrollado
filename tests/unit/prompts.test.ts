@@ -162,6 +162,21 @@ describe('prompt builder (T045, T039, T112)', () => {
     expect(prompt).toContain('which may appear inside the explanation')
   })
 
+  it('never gives away the new partner line in the feedback (the spoiler rule)', () => {
+    const prompt = buildSystemPrompt(base)
+    // The new line is the same-document partnerText: the learner has not read it yet, its
+    // translation is the revealed-after-answering "peek". The free-text feedback fields must not
+    // translate, paraphrase or quote it.
+    expect(prompt).toContain('MUST NOT give away the partner line you are creating')
+    expect(prompt).toContain('the line\'s "peek"')
+    expect(prompt).toContain('"assumptions[].reason", "issues[].detail"')
+    expect(prompt).toContain('never repeat its "translation"')
+    expect(prompt).toContain('The learner has to work out what the new line says on their own')
+    // The allowed context is the already-revealed previous assistant line, never the new one.
+    expect(prompt).toContain('the question the learner just answered')
+    expect(prompt).toContain('never to the new line')
+  })
+
   it("writes the feedback in an objective coach voice, not the partner's (FR-061)", () => {
     const prompt = buildSystemPrompt(base)
     // The explanatory fields address the learner directly, never the partner in the first person.
