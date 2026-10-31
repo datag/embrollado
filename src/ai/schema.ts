@@ -50,11 +50,13 @@ export const TURN_SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['category', 'detail', 'suggestion'],
+        required: ['category', 'detail', 'suggestion', 'original', 'corrected'],
         properties: {
           category: { type: 'string', enum: ['grammar', 'vocabulary', 'usage', 'completeness'] },
           detail: { type: 'string' },
           suggestion: { type: ['string', 'null'] },
+          original: { type: ['string', 'null'] },
+          corrected: { type: ['string', 'null'] },
         },
       },
     },

@@ -306,6 +306,11 @@ on a service without those capabilities and verify the graceful fallback.
 - **FR-008**: After each answer, the system MUST show, in one place: an optional explanation of the
   learner's answer, a corrected version of the learner's answer, an interpretation of the learner's
   answer, the gaps that were filled with assumptions, and a quality badge that rates the answer.
+- **FR-062**: Every concrete error the explanation names (a spelling, an inflection, a wrong word)
+  MUST also appear as an issue with the wrong form and the right form (`original` / `corrected`),
+  so the learner sees the fix in the "things to improve" list, never only as prose. A suggestion
+  MUST NOT command the learner to change the answer (there is no way to apply it); a phantom pair
+  whose `original` does not appear in the answer or whose `corrected` equals it is dropped.
 - **FR-009**: Where the learner's answer contains an explicit gap marker (`???`) or a word given in
   the learner's native language, the system MUST fill the gap with a plausible, context-appropriate
   assumption and MUST visibly mark that text as an assumption. The app only shows an assumption

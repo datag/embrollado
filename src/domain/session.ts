@@ -62,7 +62,32 @@ export function validateAssumptions(value: unknown, learnerText: string | null):
 
 const ISSUE_CATEGORIES = ['grammar', 'vocabulary', 'usage', 'completeness']
 
-function sanitizeIssues(value: unknown): Issue[] {
+/**
+ * Validate one error pair. The concrete fix is only trustworthy when the fragment the model
+ * claims is wrong actually appears in the learner's answer (case-insensitive) and the correction
+ * really differs from it — otherwise the pair is dropped so the UI never shows a phantom
+ * correction (the same defence as for gaps, FR-009).
+ */
+function sanitizeIssuePair(
+  raw: Record<string, unknown>,
+  learnerText: string | null,
+): { original: string | null; corrected: string | null } {
+  const original = typeof raw.original === 'string' ? raw.original.trim() : ''
+  const corrected = typeof raw.corrected === 'string' ? raw.corrected.trim() : ''
+  const appearsInAnswer =
+    original.length > 0 &&
+    learnerText != null &&
+    learnerText.toLowerCase().includes(original.toLowerCase())
+  // A capitalisation or accent fix ("spain" → "Spain") is a real fix; only a byte-identical pair
+  // (after trimming) is a no-op.
+  const isRealFix = original.length > 0 && corrected.length > 0 && corrected !== original
+  if (!appearsInAnswer || !isRealFix) {
+    return { original: null, corrected: null }
+  }
+  return { original, corrected }
+}
+
+function sanitizeIssues(value: unknown, learnerText: string | null): Issue[] {
   if (!Array.isArray(value)) return []
   const issues: Issue[] = []
   for (const item of value) {
@@ -77,6 +102,7 @@ function sanitizeIssues(value: unknown): Issue[] {
         : 'grammar',
       detail,
       suggestion: typeof raw.suggestion === 'string' ? raw.suggestion : null,
+      ...sanitizeIssuePair(raw, learnerText),
     })
   }
   return issues
@@ -101,7 +127,7 @@ export function assembleFeedback(raw: unknown, ctx: AssembleContext): TurnFeedba
   const correctedText = typeof value.correctedText === 'string' ? value.correctedText : null
   const interpretation = typeof value.interpretation === 'string' ? value.interpretation : null
   const assumptions = validateAssumptions(value.assumptions, learnerText)
-  const issues = sanitizeIssues(value.issues)
+  const issues = sanitizeIssues(value.issues, learnerText)
 
   let badge: Badge | null = null
   let badgeIndex = ctx.previousBadgeIndex

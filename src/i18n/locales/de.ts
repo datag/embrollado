@@ -123,6 +123,7 @@ export default {
     assumption: 'Du schriebst „{original}“ → {filled}',
     badge: 'Bewertung',
     issues: 'Was du verbessern kannst',
+    issueCorrection: '„{original}“ → „{corrected}“',
     noIssues: 'Nichts Bestimmtes zu verbessern.',
     marks: 'markdown',
   },

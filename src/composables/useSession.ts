@@ -159,7 +159,9 @@ export function useSession(): UseSessionReturn {
     for (const t of turns.value) {
       // Earlier answers travel as explicit context: labelled "already assessed" so a resumed
       // session never re-rates an old answer (rating = current only, FR-040).
-      messages.push(buildTurnUserMessage(opening ? null : t.learnerText, opening ? 'opening' : 'context'))
+      messages.push(
+        buildTurnUserMessage(opening ? null : t.learnerText, opening ? 'opening' : 'context'),
+      )
       if (t.partnerText) messages.push({ role: 'assistant', content: t.partnerText })
       opening = false
     }

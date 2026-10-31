@@ -81,6 +81,13 @@ export interface Issue {
   category: IssueCategory
   detail: string
   suggestion: string | null
+  /**
+   * The wrong fragment exactly as the learner wrote it (a word or short phrase), for the concrete
+   * fix shown in the UI. Optional so stored turns from before this field keep validating.
+   */
+  original?: string | null
+  /** The same fragment as it should be written. Optional for the same reason as `original`. */
+  corrected?: string | null
 }
 
 export interface Turn {

@@ -14,7 +14,7 @@ badge) and FR-040…FR-043 (the four-tier badge).
 {
   "partnerText": "¿Puedecriberse dónde está el lavadero?",
   "translation": "Können Sie mir sagen, wo der Waschraum ist?",
-  "explanation": "Deine Antwort ist verständlich; etwas natürlicher wäre «¿Puede decirme…?».",
+  "explanation": "Deine Antwort ist verständlich; der Akzent in «esta» fehlt, richtig ist «está».",
   "correctedText": "¿Puede decirme dónde está el lavadero?",
   "interpretation": "Kann ich neben den Waschräumen warten?",
   "assumptions": [
@@ -28,8 +28,10 @@ badge) and FR-040…FR-043 (the four-tier badge).
   "issues": [
     {
       "category": "grammar",
-      "detail": "«¿Puede decirse?» is not idiomatic here.",
-      "suggestion": "Use «¿Puede decirme…?»."
+      "detail": "Der Akzent in «esta» fehlt.",
+      "original": "esta",
+      "corrected": "está",
+      "suggestion": null
     }
   ]
 }
@@ -44,7 +46,7 @@ badge) and FR-040…FR-043 (the four-tier badge).
 | `interpretation` | yes                | native   | The learner's answer translated into the native language — what their words mean (FR-008) |
 | `assumptions`    | yes (may be empty) | native   | The gaps that were filled (FR-009)                                                   |
 | `badge`          | yes                | —        | The four-tier rating (FR-040)                                                        |
-| `issues`         | yes (may be empty) | native   | Concrete things to improve                                                           |
+| `issues`         | yes (may be empty) | native   | Concrete things to improve, each with an optional error pair: `original` (the wrong fragment as written) and `corrected` (the same fragment fixed), and a non-commanding suggestion (FR-062) |
 
 `partnerText` and `translation` are produced by the **same** model call — the app renders the
 translation muted under the line it belongs to without a second request (FR-057).
@@ -101,14 +103,16 @@ Sent as `response_format.json_schema` with `strict: true`. Every property is lis
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["category", "detail", "suggestion"],
+        "required": ["category", "detail", "suggestion", "original", "corrected"],
         "properties": {
           "category": {
             "type": "string",
             "enum": ["grammar", "vocabulary", "usage", "completeness"]
           },
           "detail": { "type": "string" },
-          "suggestion": { "type": ["string", "null"] }
+          "suggestion": { "type": ["string", "null"] },
+          "original": { "type": ["string", "null"] },
+          "corrected": { "type": ["string", "null"] }
         }
       }
     }
@@ -130,6 +134,9 @@ Sent as `response_format.json_schema` with `strict: true`. Every property is lis
   in the target language is never a gap — the model sometimes lists one anyway, and the app drops
   it (FR-009).
 - The number of assumptions is capped at 5; the rest are dropped.
+- `issues[].original` does not appear in the learner's answer (case-insensitive), or
+  `issues[].corrected` equals `original` ⇒ both fields are dropped for that issue (the descriptive
+  `detail` and the `suggestion` stay). A phantom correction is never shown (FR-062).
 - Unknown keys are ignored.
 
 ## 3. The badge
@@ -187,7 +194,10 @@ The system prompt is assembled by `ai/prompts.ts` from:
    reporting the partner's own feelings or opinions; the partner is referenced in the third person.
    `interpretation` keeps the learner's voice and `translation` keeps the partner's voice — the
    rule never applies to them. The opening turn has no learner answer, so its `explanation` is
-   `null`.
+   `null`. Every concrete error named in the `explanation` MUST also appear in `issues` as
+   `original`/`corrected` (the fragment as written and as it should be); a `suggestion` states the
+   better wording without commanding the learner — the answer is already sent and cannot be changed
+   (FR-062).
 8. **Personality and reactions** — the partner is a real person with feelings, dignity and
    boundaries, not a servile assistant. They react authentically and proportionately to what the
    learner says and how they say it, remember how they have been treated so far, push back against

@@ -214,7 +214,9 @@ FR-040…FR-043.
 | ------------ | -------------------------------------------------------- | -------------------------------- |
 | `category`   | `"grammar" \| "vocabulary" \| "usage" \| "completeness"` | Required                         |
 | `detail`     | string                                                   | Required, in the native language, objectively phrased (FR-061) |
-| `suggestion` | string                                                   | Optional, in the native language, objectively phrased (FR-061) |
+| `suggestion` | string \| null                                           | Optional, in the native language, objectively phrased, never a command to change the answer (FR-062) |
+| `original`   | string \| null                                           | Optional — the wrong fragment exactly as the learner wrote it; set only for a concrete wrong form and only together with `corrected` (FR-062); optional in the type so stored turns from before this field keep validating |
+| `corrected`  | string \| null                                           | Optional — the same fragment as it should be; must differ from `original`; the app drops phantom pairs whose `original` does not appear in the answer (FR-062) |
 
 ## 3. Relationships
 

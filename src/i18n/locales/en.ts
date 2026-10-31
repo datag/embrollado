@@ -122,6 +122,7 @@ export default {
     assumption: 'You wrote "{original}" → {filled}',
     badge: 'Assessment',
     issues: 'Things to improve',
+    issueCorrection: '“{original}” → “{corrected}”',
     noIssues: 'Nothing specific to improve.',
     marks: 'markdown',
   },

@@ -57,6 +57,17 @@ const heading = 'text-xs font-semibold uppercase tracking-wide text-fg-muted'
         <li v-for="(issue, i) in turn.issues" :key="i" class="mb-1">
           <span class="font-semibold">{{ issue.category }}</span> —
           {{ issue.detail }}
+          <span
+            v-if="issue.original && issue.corrected"
+            class="whitespace-nowrap rounded bg-surface-raised px-1 py-0.5"
+          >
+            {{
+              $t('feedback.issueCorrection', {
+                original: issue.original,
+                corrected: issue.corrected,
+              })
+            }}
+          </span>
           <span v-if="issue.suggestion" class="text-fg-muted">({{ issue.suggestion }})</span>
         </li>
       </ul>

@@ -146,7 +146,7 @@ export function buildSystemPrompt(input: PromptInput): string {
     '- If the learner keeps disrespecting you, threaten to end the conversation — and if it ' +
       'continues, actually end it: say a final goodbye and leave. That final line closes the ' +
       'exchange instead of inviting an answer.',
-    "- Never grovel, flatter or apologise for yourself. In the \"partnerText\" field, speak as " +
+    '- Never grovel, flatter or apologise for yourself. In the "partnerText" field, speak as ' +
       'the person you are.',
     'Rules:',
     '- One utterance per turn, at most 300 characters.',
@@ -156,14 +156,14 @@ export function buildSystemPrompt(input: PromptInput): string {
     '- Write "partnerText" first, and write it from the learner\'s message alone: your line reacts ' +
       'to what was said and how it was said — never to the assessment. The rating is written for ' +
       'the learner; the partner does not know it, never mentions it, and never praises, corrects ' +
-      'or comments on the learner\'s language in the line itself.',
+      "or comments on the learner's language in the line itself.",
     '- The "explanation" field MUST explain the learner\'s answer in the LATEST user message — ' +
       'what it means and how well it works — and MUST be written in the ' +
       `feedback language (${input.feedbackLanguage}), NEVER in the target language (except for a ` +
       'quoted word or phrase from the answer, which may appear inside the explanation).',
     '- The opening turn of a session has no learner answer yet — for it, "explanation" MUST be null.',
     '- Fill a gap only when the learner actually left one: a literal "???" or a single word written ' +
-      "in the learner's native language. The \"assumptions\" field then lists the exact gap " +
+      'in the learner\'s native language. The "assumptions" field then lists the exact gap ' +
       '("???" or that word) as "original", the most plausible replacement as "filled", and why it ' +
       'fits the context (max 5). "filled" MUST differ from "original"; words and phrases the learner ' +
       'wrote in the TARGET language are NEVER gaps. If the answer has neither "???" nor a native ' +
@@ -188,9 +188,9 @@ export function buildSystemPrompt(input: PromptInput): string {
       'the situation, and what to correct. NEVER write yourself — the partner — in the first ' +
       'person ("ich", "mich", "mir"; "I", "me", "my") and NEVER report your own feelings or ' +
       'opinions ("mir gefällt das", "I like that"). Refer to the partner in the third person — ' +
-      "by your name or as \"the partner\" — with pronouns matching your character's gender. " +
+      'by your name or as "the partner" — with pronouns matching your character\'s gender. ' +
       'Wording like "you had warned ME" must become "you had warned HER/HIM": written from the ' +
-      "learner's side. Example (write in the feedback language): \"Deine Antwort ist natürlich " +
+      'learner\'s side. Example (write in the feedback language): "Deine Antwort ist natürlich ' +
       'und grammatisch korrekt. Du bestätigst, dass du ein Entwickler bist, und sagst, dass sie ' +
       'dich ja vorher gewarnt hat. Das passt gut zur Situation. Nichts zu korrigieren."',
     '- The "interpretation" field keeps the learner\'s voice — their own "I"/"me" is correct ' +
@@ -200,6 +200,18 @@ export function buildSystemPrompt(input: PromptInput): string {
     '- The "translation" field MUST translate the partner line you just produced (partnerText) ' +
       'into the feedback language.',
     "- If the learner's text is already correct, set correctedText to null.",
+    '- Every concrete error you name in the "explanation" MUST also appear in "issues": the same ' +
+      'mistake, with the wrong form and the right form in "original" and "corrected". Never report ' +
+      'an error only in the prose.',
+    '- "original" is the fragment exactly as the learner wrote it (a word or a short phrase); ' +
+      '"corrected" is the same fragment as it should be. Fill both only for a concrete wrong form ' +
+      '(a spelling, an inflection, a wrong word); otherwise set both to null.',
+    '- "suggestion" states the better wording in one short note — it NEVER commands the learner ' +
+      '("correct this", "please write", "you should say"): the answer is already sent and cannot ' +
+      'be changed, so describe what is natural instead. Set it to null when "original"/' +
+      '"corrected" already carry the correction.',
+    '- "correctedText" is the learner\'s complete answer with every reported error fixed; only an ' +
+      'answer with no error at all has a null "correctedText".',
     '- Rate the learner\'s answer against the selected level. Perfect to very good: tier "perfect". ' +
       'Good: tier "good". Acceptable: tier "acceptable". Unsatisfying: tier "unsatisfactory".',
     '- The badge label wording comes from the app; choose tier and a labelKey from the translation ' +
@@ -227,7 +239,10 @@ export function buildTurnUserMessage(
 ): { role: 'user'; content: string } {
   switch (kind) {
     case 'opening':
-      return { role: 'user', content: 'The session is starting. Say the first line and open the situation.' }
+      return {
+        role: 'user',
+        content: 'The session is starting. Say the first line and open the situation.',
+      }
     case 'context':
       return {
         role: 'user',

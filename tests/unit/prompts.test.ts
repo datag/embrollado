@@ -62,10 +62,10 @@ describe('prompt builder (T045, T039, T112)', () => {
   it('keeps the partner line free of the assessment (the partner does not know it)', () => {
     const prompt = buildSystemPrompt(base)
     expect(prompt).toContain('Write "partnerText" first')
-    expect(prompt).toContain('from the learner\'s message alone')
+    expect(prompt).toContain("from the learner's message alone")
     expect(prompt).toContain('never to the assessment')
     expect(prompt).toContain('the partner does not know it')
-    expect(prompt).toContain('never praises, corrects or comments on the learner\'s language')
+    expect(prompt).toContain("never praises, corrects or comments on the learner's language")
   })
 
   it('keeps the learner name and details out of the prompt by default (knowsLearner off)', () => {

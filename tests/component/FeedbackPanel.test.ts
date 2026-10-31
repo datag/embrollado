@@ -67,12 +67,44 @@ describe('feedback panel (T046, T052)', () => {
     expect(wrapper.text()).toContain('Good!')
   })
 
+  it('renders a concrete error fix as "original" → "corrected" (FR-062)', () => {
+    const turn = makeTurn({
+      learnerText: 'I will recieve the package.',
+      issues: [
+        {
+          category: 'grammar',
+          detail: 'Wrong spelling of "receive".',
+          suggestion: 'Spelling',
+          original: 'recieve',
+          corrected: 'receive',
+        },
+      ],
+    })
+    const wrapper = mountPanel(turn)
+    expect(wrapper.text()).toContain('Wrong spelling of "receive".')
+    // The concrete fix cell inside the issues list shows wrong form → fixed form.
+    const issuesList = wrapper.findAll('ul').at(-1)
+    expect(issuesList?.text()).toContain('recieve')
+    expect(issuesList?.text()).toContain('receive')
+    expect(issuesList?.text()).toContain('→')
+  })
+
+  it('does not show an error-pair arrow when an issue has no error pair', () => {
+    const turn = makeTurn({
+      assumptions: [], // isolate the issues section from the gap-arrow in the assumptions block
+      issues: [{ category: 'usage', detail: 'Natural wording.', suggestion: null }],
+    })
+    const wrapper = mountPanel(turn)
+    expect(wrapper.text()).toContain('Natural wording.')
+    // No pair → no arrow between two fragments in the issues list (the concrete fix cell).
+    const issuesList = wrapper.findAll('ul').at(-1)
+    expect(issuesList?.text()).not.toContain('→')
+  })
+
   it('has a distinct full-literal badge class per tier (visible in the compiled CSS)', () => {
     const tiers = ['perfect', 'good', 'acceptable', 'unsatisfactory', 'unknown'] as const
     for (const tier of tiers) {
-      const wrapper = mountPanel(
-        makeTurn({ badge: { tier, labelKey: `${tier}.0`, label: tier } }),
-      )
+      const wrapper = mountPanel(makeTurn({ badge: { tier, labelKey: `${tier}.0`, label: tier } }))
       const badgeEl = wrapper
         .findAll('span')
         .find((s) => s.classes().some((c) => c.startsWith('bg-badge-')))
