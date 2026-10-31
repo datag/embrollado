@@ -45,10 +45,24 @@ test('the detected profile hint can be applied', async ({ page }) => {
 
 test('fetch models fills the chat, speech and image suggestions', async ({ page }) => {
   await page.goto('/#/settings')
-  await page.getByTestId('service-provider').selectOption('custom')
+  await page.getByTestId('service-provider').selectOption('openrouter')
   await page.getByTestId('service-base-url').fill('http://localhost:8787/v1')
   await page.getByTestId('service-api-key').fill('test')
+  // The fetch button lives in its own row above the model fields, not next to the chat model.
+  const fetchBox = await page.getByTestId('fetch-models').boundingBox()
+  const chatBox = await page.getByTestId('service-chat-model').boundingBox()
+  expect(fetchBox!.y + fetchBox!.height).toBeLessThanOrEqual(chatBox!.y + 4)
+
+  const modelsRequests: string[] = []
+  page.on('request', (req) => {
+    if (req.url().includes('/models')) modelsRequests.push(req.url())
+  })
   await page.getByTestId('fetch-models').click()
+  // OpenRouter is asked for ALL output modalities — TTS models declare "speech" and are hidden
+  // from the unfiltered listing.
+  await expect.poll(() => modelsRequests.length, { timeout: 15_000 }).toBeGreaterThan(0)
+  expect(modelsRequests[0]).toContain('output_modalities=all')
+
   const chat = page.getByTestId('model-list-chat')
   await expect(chat).toContainText('mock-chat')
   await expect(page.getByTestId('model-list-speech')).toContainText('mock-speech')

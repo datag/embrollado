@@ -5,16 +5,16 @@ Embrollado talks to any OpenAI-compatible service. Everything below happens in
 
 ## The fields
 
-| Field                | Meaning                                                                                                                                                                                                                                                                                           |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Field                | Meaning                                                                                                                                                                                                                                                                                                                                       |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Provider profile** | Selects the endpoint behaviour: auth style default, where the structured-output schema goes, the speech `response_format` and the images path. Picking a profile pre-fills the service address with the provider's standard URL (only while the address is still empty or was auto-filled — a manually entered address is never overwritten). |
-| **Auth style**       | `Bearer` (default), `x-api-key`, or `api-key` (Azure-style). A manually chosen style survives a profile switch.                                                                                                                                                                                   |
-| **Service address**  | Absolute http(s) URL including the version prefix. `https://api.openai.com/v1`, `https://openrouter.ai/api/v1`, `http://localhost:11434/v1`, … When you type an address that matches another profile, a hint below the field offers to switch the profile — it is never applied automatically. |
-| **API key**          | Stored locally only; sent nowhere except your service; never exported or logged.                                                                                                                                                                                                                  |
-| **Chat model**       | The model used for every turn.                                                                                                                                                                                                                                                                      |
-| **Speech model**     | Optional — empty hides the playback button.                                                                                                                                                                                                                                                       |
-| **Voice (TTS)**      | Optional — the voice for your speech model. Voices are model-specific (OpenAI: `alloy`…; Gemini TTS: `Kore`, `Zephyr`, …; Mistral TTS: `en_paul_neutral`, …); empty uses the profile default. A voice your model does not know is the most common cause of an HTTP 400 ("Provider returned 400"). |
-| **Image model**      | Optional — empty hides the picture button beside the input box. The button only appears when the provider profile supports images (OpenAI/OpenRouter/Custom). Pressing it narrates the current moment with the chat model — situation, partner, your profile and the conversation so far — and then asks the image model to render it. |
+| **Auth style**       | `Bearer` (default), `x-api-key`, or `api-key` (Azure-style). A manually chosen style survives a profile switch.                                                                                                                                                                                                                               |
+| **Service address**  | Absolute http(s) URL including the version prefix. `https://api.openai.com/v1`, `https://openrouter.ai/api/v1`, `http://localhost:11434/v1`, … When you type an address that matches another profile, a hint below the field offers to switch the profile — it is never applied automatically.                                                |
+| **API key**          | Stored locally only; sent nowhere except your service; never exported or logged.                                                                                                                                                                                                                                                              |
+| **Chat model**       | The model used for every turn.                                                                                                                                                                                                                                                                                                                |
+| **Speech model**     | Optional — empty hides the playback button.                                                                                                                                                                                                                                                                                                   |
+| **Voice (TTS)**      | Optional — the voice for your speech model. Voices are model-specific (OpenAI: `alloy`…; Gemini TTS: `Kore`, `Zephyr`, …; Mistral TTS: `en_paul_neutral`, …); empty uses the profile default. A voice your model does not know is the most common cause of an HTTP 400 ("Provider returned 400").                                             |
+| **Image model**      | Optional — empty hides the picture button beside the input box. The button only appears when the provider profile supports images (OpenAI/OpenRouter/Custom). Pressing it narrates the current moment with the chat model — situation, partner, your profile and the conversation so far — and then asks the image model to render it.        |
 
 ## Provider notes
 
@@ -47,13 +47,17 @@ button.
 
 "Fetch models" sends **one** `GET {baseUrl}/models` and fills three suggestion lists — one under
 the chat, speech and image fields. Tapping a suggestion applies it to that field; you can always
-type any name instead. The classification is a suggestion, not a promise:
+type any name instead. The classification is a suggestion, not a promise, and every list is sorted
+naturally (`3.8` before `3.10`, `gpt-4` before `gpt-10`):
 
-- **OpenRouter** declares capabilities per model, so the split is exact: models with `audio`
-  output go to speech, `image` output to image, everything else to chat.
+- **OpenRouter** declares capabilities per model and is asked for **all** output modalities
+  (`?output_modalities=all`) — the default listing would hide every TTS model, because they declare
+  `"speech"` rather than `"audio"` (which is chat-with-audio-output, not text-to-speech). Models
+  with `speech` output go to speech, `image` output to image, `text` output to chat, and anything
+  else (embeddings, rerank, video, transcription, …) is dropped — it cannot be used here.
 - **OpenAI, Ollama, Custom** declare nothing, so the split is by name: names containing
-  `tts`/`speech` go to speech (never `whisper`), names containing `image`/`dall-e`/`flux`/
-  `imagen`/`sdxl` go to image.
+  `tts`/`speech`/`voice` go to speech (never `whisper`/`transcribe`, those are speech-to-text),
+  names containing `image`/`dall-e`/`flux`/`imagen`/`sdxl` go to image.
 - **llama.cpp, vLLM, LM Studio** serve chat models only — speech and image stay empty, because
   these servers have no `/audio/speech` or `/images` endpoint at all.
 

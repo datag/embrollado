@@ -114,9 +114,25 @@ const server = http.createServer((req, res) => {
     sendJson(res, 200, {
       object: 'list',
       data: [
-        { id: 'mock-chat', object: 'model', owned_by: 'mock' },
-        { id: 'mock-speech', object: 'model', owned_by: 'mock' },
-        { id: 'mock-image', object: 'model', owned_by: 'mock' },
+        // Declared output modalities exercise the modality-based classification (OpenRouter).
+        {
+          id: 'mock-chat',
+          object: 'model',
+          owned_by: 'mock',
+          architecture: { output_modalities: ['text'] },
+        },
+        {
+          id: 'mock-speech',
+          object: 'model',
+          owned_by: 'mock',
+          architecture: { output_modalities: ['speech'] },
+        },
+        {
+          id: 'mock-image',
+          object: 'model',
+          owned_by: 'mock',
+          architecture: { output_modalities: ['image'] },
+        },
       ],
     })
     return

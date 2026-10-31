@@ -30,6 +30,8 @@ export interface EndpointProfile {
   sendRealKey: boolean
   /** Cross-origin workaround hint shown when a request fails with a TypeError (FR-039). */
   corsHint: string | null
+  /** Optional query string appended to `GET {baseUrl}/models` (OpenRouter: output_modalities=all). */
+  modelsFilter: string | null
 }
 
 export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
@@ -48,6 +50,7 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     imagesPath: '/images/generations',
     sendRealKey: true,
     corsHint: null,
+    modelsFilter: null,
   },
   openrouter: {
     id: 'openrouter',
@@ -66,6 +69,9 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     imagesPath: '/images',
     sendRealKey: true,
     corsHint: null,
+    // The unfiltered list hides every TTS model (they declare output_modalities: ["speech"] and
+    // are excluded from the default text-only listing); `all` returns chat, speech and image.
+    modelsFilter: '?output_modalities=all',
   },
   ollama: {
     id: 'ollama',
@@ -84,6 +90,7 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     sendRealKey: false,
     corsHint:
       'OLLAMA_ORIGINS="http://localhost:5173" ollama serve  (or: ollama origin add <origin>)',
+    modelsFilter: null,
   },
   llamacpp: {
     id: 'llamacpp',
@@ -100,6 +107,7 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     imagesPath: null,
     sendRealKey: true,
     corsHint: 'llama-server --cors-origins "http://localhost:5173"',
+    modelsFilter: null,
   },
   vllm: {
     id: 'vllm',
@@ -117,6 +125,7 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     sendRealKey: true,
     corsHint:
       'vllm serve <model> --allowed-origins \'["http://localhost:5173"]\'  (empty by default since v0.32)',
+    modelsFilter: null,
   },
   lmstudio: {
     id: 'lmstudio',
@@ -133,6 +142,7 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     imagesPath: null,
     sendRealKey: true,
     corsHint: null, // no documented flag (verified: none found)
+    modelsFilter: null,
   },
   custom: {
     id: 'custom',
@@ -150,6 +160,7 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     imagesPath: '/images/generations',
     sendRealKey: true,
     corsHint: "Allow the app origin in your server's CORS configuration.",
+    modelsFilter: null,
   },
 }
 
@@ -201,39 +212,64 @@ export interface ClassifiedModels {
 const CHAT_ONLY_PROFILES = new Set(['llamacpp', 'vllm', 'lmstudio'])
 
 /**
+ * Natural ordering for model ids — "3.8" before "3.10", "gpt-4" before "gpt-10"
+ * (settings-profile.md §2.1).
+ */
+const MODEL_COLLATOR = new Intl.Collator('en', { numeric: true, sensitivity: 'base' })
+
+export function sortNatural(ids: string[]): string[] {
+  return [...ids].sort(MODEL_COLLATOR.compare)
+}
+
+/**
  * Split a model list into the three Settings fields. The classification is a suggestion only —
- * the learner can still type any model name. Servers that declare `output_modalities`
- * (OpenRouter) are trusted; everyone else is classified by name:
- *  - speech: `tts` / `speech` (OpenAI `gpt-4o-mini-tts`, Ollama `…-tts`), never `whisper` (ASR);
+ * the learner can still type any model name.
+ *
+ * Servers that declare `output_modalities` (OpenRouter) are trusted — note that TTS models
+ * declare `"speech"`, not `"audio"` (`audio` means chat-with-audio-output on /chat/completions,
+ * which is not our /audio/speech). Modalities outside text/speech/image — embeddings, rerank,
+ * decisions, video, transcription — fit none of the three fields and are dropped.
+ *
+ * Everyone else (OpenAI, Ollama, Custom) declares nothing and is classified by name:
+ *  - speech: `tts` / `speech` / `voice`, never `whisper` / `transcribe` (those are ASR);
  *  - image: `image`, `dall-e`, `flux`, `imagen`, `sdxl`;
- *  - everything else is offered as a chat model (image-capable models also chat).
+ *  - the rest are chat models.
  */
 export function classifyModels(profileId: string, models: ModelInfo[]): ClassifiedModels {
   if (CHAT_ONLY_PROFILES.has(profileId)) {
-    return { chat: models.map((m) => m.id).filter(Boolean), speech: [], image: [] }
+    return {
+      chat: sortNatural(models.map((m) => m.id).filter(Boolean)),
+      speech: [],
+      image: [],
+    }
   }
   const speech = new Set<string>()
   const image = new Set<string>()
+  const chat = new Set<string>()
   for (const m of models) {
     const id = m.id.trim()
     if (!id) continue
-    const hasModalities = m.outputModalities.length > 0
-    if (hasModalities) {
-      if (m.outputModalities.includes('audio')) speech.add(id)
-      if (m.outputModalities.includes('image')) image.add(id)
-      continue // declared modalities are trusted — no name guessing on OpenRouter
+    const mods = m.outputModalities
+    if (mods.length > 0) {
+      // Declared modalities are trusted.
+      if (mods.includes('speech')) speech.add(id)
+      if (mods.includes('image')) image.add(id)
+      if (mods.includes('text')) chat.add(id)
+      continue
     }
     const lower = id.toLowerCase()
-    if (/\b(tts|speech)\b/.test(lower) && !/\bwhisper\b/.test(lower)) {
+    if (/\b(tts|speech|voice)\b/.test(lower) && !/\b(whisper|transcrib)\b/.test(lower)) {
       speech.add(id)
     } else if (/\bimage\b|dall-?e|flux|imagen|sdxl/.test(lower)) {
       image.add(id)
+    } else {
+      chat.add(id)
     }
   }
   return {
-    chat: models.map((m) => m.id).filter((id) => !speech.has(id)),
-    speech: [...speech],
-    image: [...image],
+    chat: sortNatural([...chat]),
+    speech: sortNatural([...speech]),
+    image: sortNatural([...image]),
   }
 }
 

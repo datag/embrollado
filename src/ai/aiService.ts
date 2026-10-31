@@ -354,7 +354,7 @@ export async function testConnection(service: ServiceConfig): Promise<Connection
 
 export async function listModels(service: ServiceConfig): Promise<ModelInfo[]> {
   const profile = profileById(service.providerProfile)
-  const url = buildUrl(service, '/models')
+  const url = buildUrl(service, '/models') + (profile.modelsFilter ?? '')
   const headers = authHeaders(service, profile)
   const response = await request(url, { method: 'GET', headers })
   const json = (await response.json().catch(() => ({}))) as {

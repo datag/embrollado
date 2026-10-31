@@ -76,20 +76,40 @@ describe('shouldResetAuthMode', () => {
 })
 
 describe('classifyModels (settings-profile.md §2.1)', () => {
-  it('trusts declared output modalities (OpenRouter)', () => {
+  it('trusts declared modalities: TTS declares "speech", not "audio"', () => {
     const models = [
       { id: 'openai/gpt-4o-mini', outputModalities: ['text'] },
-      { id: 'openai/gpt-4o-mini-tts', outputModalities: ['text', 'audio'] },
-      { id: 'openai/gpt-image-1', outputModalities: ['text', 'image'] },
+      { id: 'google/gemini-3.8-flash-lite-tts', outputModalities: ['speech'] },
+      { id: 'openai/gpt-image-1', outputModalities: ['image'] },
+      { id: 'google/gemini-3.1-flash-image', outputModalities: ['image', 'text'] },
+      { id: 'openai/gpt-audio', outputModalities: ['text', 'audio'] },
       { id: 'openai/whisper-1', outputModalities: ['text'] },
     ]
     const c = classifyModels('openrouter', models)
-    expect(c.speech).toEqual(['openai/gpt-4o-mini-tts'])
-    expect(c.image).toEqual(['openai/gpt-image-1'])
-    // image-capable models also chat; whisper stays a chat model here
-    expect(c.chat).toContain('openai/gpt-image-1')
+    expect(c.speech).toEqual(['google/gemini-3.8-flash-lite-tts'])
+    expect(c.image).toEqual(['google/gemini-3.1-flash-image', 'openai/gpt-image-1'])
+    expect(c.chat).toContain('openai/gpt-4o-mini')
+    // `audio` is chat-with-audio-output, not our /audio/speech endpoint.
+    expect(c.chat).toContain('openai/gpt-audio')
     expect(c.chat).toContain('openai/whisper-1')
-    expect(c.chat).not.toContain('openai/gpt-4o-mini-tts')
+    // A multimodal model with text output also chats…
+    expect(c.chat).toContain('google/gemini-3.1-flash-image')
+    // …but a pure-image model (text-less) and a TTS model do not.
+    expect(c.chat).not.toContain('openai/gpt-image-1')
+    expect(c.chat).not.toContain('google/gemini-3.8-flash-lite-tts')
+  })
+
+  it('drops modalities that fit none of the three fields', () => {
+    const c = classifyModels('openrouter', [
+      { id: 'embed-model', outputModalities: ['embeddings'] },
+      { id: 'transcribe-model', outputModalities: ['transcription'] },
+      { id: 'video-model', outputModalities: ['video'] },
+      { id: 'decision-model', outputModalities: ['decisions'] },
+      { id: 'rerank-model', outputModalities: ['rerank'] },
+    ])
+    expect(c.chat).toEqual([])
+    expect(c.speech).toEqual([])
+    expect(c.image).toEqual([])
   })
 
   it('classifies by name when no modalities are declared (OpenAI, Ollama)', () => {
@@ -100,12 +120,13 @@ describe('classifyModels (settings-profile.md §2.1)', () => {
       { id: 'dall-e-3', outputModalities: [] },
       { id: 'whisper-1', outputModalities: [] },
       { id: 'llama3.2-tts', outputModalities: [] },
+      { id: 'maia-voice-2', outputModalities: [] },
     ]
     const c = classifyModels('ollama', models)
-    expect(c.speech).toEqual(['gpt-4o-mini-tts', 'llama3.2-tts'])
-    expect(c.image).toEqual(['gpt-image-1', 'dall-e-3'])
-    // Image-capable models also chat; only speech models leave the chat list.
-    expect(c.chat).toEqual(['gpt-4o-mini', 'gpt-image-1', 'dall-e-3', 'whisper-1'])
+    expect(c.speech).toEqual(['gpt-4o-mini-tts', 'llama3.2-tts', 'maia-voice-2'])
+    expect(c.image).toEqual(['dall-e-3', 'gpt-image-1'])
+    // whisper is ASR, not TTS — it stays a (harmless) chat suggestion.
+    expect(c.chat).toEqual(['gpt-4o-mini', 'whisper-1'])
   })
 
   it('local chat-only servers never offer speech or images', () => {
@@ -118,5 +139,25 @@ describe('classifyModels (settings-profile.md §2.1)', () => {
       expect(c.speech).toEqual([])
       expect(c.image).toEqual([])
     }
+  })
+
+  it('sorts naturally so versions order correctly', () => {
+    const c = classifyModels('custom', [
+      { id: 'google/gemini-3.10-flash', outputModalities: [] },
+      { id: 'google/gemini-3.8-flash', outputModalities: [] },
+      { id: 'google/gemini-3.8-flash-lite-tts', outputModalities: [] },
+      { id: 'openai/gpt-4', outputModalities: [] },
+      { id: 'openai/gpt-10', outputModalities: [] },
+      { id: 'openai/gpt-4o', outputModalities: [] },
+    ])
+    // 3.8 before 3.10, gpt-4 before gpt-10; the tts-named model leaves the chat list.
+    expect(c.chat).toEqual([
+      'google/gemini-3.8-flash',
+      'google/gemini-3.10-flash',
+      'openai/gpt-4',
+      'openai/gpt-4o',
+      'openai/gpt-10',
+    ])
+    expect(c.speech).toEqual(['google/gemini-3.8-flash-lite-tts'])
   })
 })

@@ -23,17 +23,17 @@ Hash routing (`createWebHashHistory`) so the app works on any static host withou
 
 ### 2.1 AI service
 
-| Field           | Control                                                                           | Validation                                                                  | Where it goes                                                          |
-| --------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Provider profile | Select: OpenAI, OpenRouter, Ollama, llama.cpp, vLLM, LM Studio, Custom             | —                                                                           | `ServiceConfig.providerProfile`                                        |
-| Auth style      | Select: `Bearer` / `x-api-key` / `api-key`                                        | —                                                                           | `ServiceConfig.authMode`                                               |
-| Service address | Text input                                                                         | Absolute http(s) URL                                                        | `ServiceConfig.baseUrl`                                                |
-| API key         | Password input, with a reveal toggle                                              | Non-empty                                                                   | `ServiceConfig.apiKey` (local only)                                    |
-| Chat model      | Text input; "fetch models" (one `GET {baseUrl}/models`) fills the chat, speech and image suggestion lists | Non-empty | `ServiceConfig.chatModel` |
-| Speech model    | Text input, optional                                                              | —                                                                           | `ServiceConfig.speechModel`                                            |
-| Speech voice    | Text input, optional; empty ⇒ provider default                                    | Voices are model-specific — a wrong voice is the usual cause of an HTTP 400 | `ServiceConfig.speechVoice`                                            |
-| Image model     | Text input, optional                                                              | —                                                                           | `ServiceConfig.imageModel`                                             |
-| Test            | Button: "Test the connection"                                                     | —                                                                           | Sends one minimal request; reports success, the CORS hint or the error |
+| Field            | Control                                                                                                   | Validation                                                                  | Where it goes                                                          |
+| ---------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Provider profile | Select: OpenAI, OpenRouter, Ollama, llama.cpp, vLLM, LM Studio, Custom                                    | —                                                                           | `ServiceConfig.providerProfile`                                        |
+| Auth style       | Select: `Bearer` / `x-api-key` / `api-key`                                                                | —                                                                           | `ServiceConfig.authMode`                                               |
+| Service address  | Text input                                                                                                | Absolute http(s) URL                                                        | `ServiceConfig.baseUrl`                                                |
+| API key          | Password input, with a reveal toggle                                                                      | Non-empty                                                                   | `ServiceConfig.apiKey` (local only)                                    |
+| Chat model       | Text input; "fetch models" (one `GET {baseUrl}/models`) fills the chat, speech and image suggestion lists | Non-empty                                                                   | `ServiceConfig.chatModel`                                              |
+| Speech model     | Text input, optional                                                                                      | —                                                                           | `ServiceConfig.speechModel`                                            |
+| Speech voice     | Text input, optional; empty ⇒ provider default                                                            | Voices are model-specific — a wrong voice is the usual cause of an HTTP 400 | `ServiceConfig.speechVoice`                                            |
+| Image model      | Text input, optional                                                                                      | —                                                                           | `ServiceConfig.imageModel`                                             |
+| Test             | Button: "Test the connection"                                                                             | —                                                                           | Sends one minimal request; reports success, the CORS hint or the error |
 
 **Rules**
 
@@ -47,10 +47,14 @@ Hash routing (`createWebHashHistory`) so the app works on any static host withou
 - The auth style is replaced on a profile switch only while it is still the previous profile's
   default; a manually chosen `x-api-key` / `api-key` survives.
 - "Fetch models" sends one `GET {baseUrl}/models` and fills three suggestion lists (chat, speech,
-  image), classified per the profile: OpenRouter's declared `output_modalities` are trusted;
-  everyone else is classified by name (`tts`/`speech` ⇒ speech, never `whisper`; `image`/
-  `dall-e`/`flux`/`imagen`/`sdxl` ⇒ image); llama.cpp/vLLM/LM Studio stay chat-only. Tapping a
-  suggestion applies it to the field; the fields remain free text.
+  image). OpenRouter is asked with `?output_modalities=all` — its declared `output_modalities` are
+  trusted: `speech` ⇒ speech (TTS models declare `"speech"`, not `"audio"` — `audio` is
+  chat-with-audio-output), `image` ⇒ image, `text` ⇒ chat, anything else (embeddings, rerank,
+  video, transcription, …) is dropped. Servers that declare nothing (OpenAI, Ollama, Custom) are
+  classified by name (`tts`/`speech`/`voice` ⇒ speech, never `whisper`/`transcribe`; `image`/
+  `dall-e`/`flux`/`imagen`/`sdxl` ⇒ image); llama.cpp/vLLM/LM Studio stay chat-only. All lists are
+  sorted naturally (`3.8` before `3.10`). Tapping a suggestion applies it to the field; the fields
+  remain free text.
 
 **Rules**
 

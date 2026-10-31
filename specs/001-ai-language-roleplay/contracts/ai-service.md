@@ -238,11 +238,15 @@ Detection never spends money: the speech and image probes are **not** sent autom
 learner triggers a "test this service" action in Settings, and the result is remembered for the
 session.
 
-`GET {baseUrl}/models` is offered as a suggestion source for the chat, speech and image fields. The
-split trusts the server's declared `output_modalities` when present (OpenRouter); otherwise it is a
-name-based heuristic (`tts`/`speech` ⇒ speech, never `whisper`; `image`/`dall-e`/`flux`/`imagen`/
-`sdxl` ⇒ image) and remains a suggestion — the fields are free text and nothing is ever applied
-automatically.
+`GET {baseUrl}/models` is offered as a suggestion source for the chat, speech and image fields.
+OpenRouter is asked with `?output_modalities=all` (the unfiltered listing hides every TTS model —
+they declare `output_modalities: ["speech"]` and are excluded from the default text-only list).
+The split trusts the server's declared `output_modalities` when present: `speech` ⇒ speech,
+`image` ⇒ image, `text` ⇒ chat, other modalities (embeddings, rerank, video, transcription) are
+dropped. `audio` is chat-with-audio-output, not TTS. Without declared modalities the split is a
+name-based heuristic (`tts`/`speech`/`voice` ⇒ speech, never `whisper`/`transcribe`; `image`/
+`dall-e`/`flux`/`imagen`/`sdxl` ⇒ image) and remains a suggestion — the fields are free text and
+nothing is ever applied automatically. Lists are sorted naturally.
 
 ## 12. What the app must never do
 

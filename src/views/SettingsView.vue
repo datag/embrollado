@@ -283,34 +283,35 @@ function lowSpaceComputed(): boolean {
       </div>
       <p class="text-xs text-fg-muted">{{ $t('settings.apiKeyHint') }}</p>
 
-      <label class="block">
-        <span class="mb-1 block text-sm">{{ $t('settings.chatModel') }}</span>
-        <div class="flex items-end gap-2">
-          <input
-            :value="service.chatModel"
-            data-testid="service-chat-model"
-            type="text"
-            class="min-h-11 w-full rounded-lg border border-border px-3"
-            @input="onChatModel"
-          />
-          <button
-            type="button"
-            data-testid="fetch-models"
-            class="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-lg border border-border px-3 text-sm"
-            :class="modelsLoading ? 'cursor-wait' : ''"
-            :disabled="modelsLoading"
-            @click="runFetchModels"
-          >
-            <SpinnerIcon v-if="modelsLoading" class="h-4 w-4" />
-            {{ $t('settings.fetchModels') }}
-          </button>
-        </div>
-        <span v-if="hasModelSuggestions" class="mt-1 block text-xs text-fg-muted">
+      <div class="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          data-testid="fetch-models"
+          class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border px-4 text-sm"
+          :class="modelsLoading ? 'cursor-wait' : ''"
+          :disabled="modelsLoading"
+          @click="runFetchModels"
+        >
+          <SpinnerIcon v-if="modelsLoading" class="h-4 w-4" />
+          {{ $t('settings.fetchModels') }}
+        </button>
+        <span v-if="hasModelSuggestions" class="text-xs text-fg-muted">
           {{ $t('settings.modelsHint') }}
         </span>
-        <span v-if="modelsError" class="mt-1 block text-xs text-error">
+        <span v-if="modelsError" class="text-xs text-error">
           {{ $t('settings.modelsUnavailable') }}
         </span>
+      </div>
+
+      <label class="block">
+        <span class="mb-1 block text-sm">{{ $t('settings.chatModel') }}</span>
+        <input
+          :value="service.chatModel"
+          data-testid="service-chat-model"
+          type="text"
+          class="min-h-11 w-full rounded-lg border border-border px-3"
+          @input="onChatModel"
+        />
       </label>
       <ul
         v-if="chatModels.length"
