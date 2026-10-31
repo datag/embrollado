@@ -215,7 +215,7 @@ export default {
     persistentDenied: 'Der Browser kann diese Daten löschen. Sichere sie per Export.',
     privacy: 'Privatsphäre',
     privacyText:
-      'Alles bleibt auf diesem Gerät. Das Gespräch und die Profilangaben, die Teil davon sind — Aussehen, Alter, Geschlecht, Stimme sowie Name und Angaben, wenn „Die KI-Persona kennt dich bereits“ aktiviert ist — werden an deinen KI-Dienst gesendet. Tipp: Verwende ein Pseudonym statt deines echten Nachnamens. Siehe „Über“.',
+      'Deine Gespräche, Bilder und zwischengespeichertes Audio liegen nur in diesem Browser. Das Gespräch und die Profilangaben, die Teil davon sind — Aussehen, Alter, Geschlecht, Stimme sowie Name und Angaben, wenn „Die KI-Persona kennt dich bereits“ aktiviert ist — werden an deinen KI-Dienst gesendet. Tipp: Verwende ein Pseudonym statt deines echten Nachnamens. Siehe „Über“.',
     save: 'Speichern',
     saved: 'Gespeichert.',
   },
@@ -275,7 +275,7 @@ export default {
   about: {
     title: 'Über',
     purpose:
-      'Embrollado ist eine reine Browser-App zum Üben von Fremdsprachen. Du führst ein realistisches Rollenspiel-Gespräch mit einem KI-Partner; alles bleibt auf deinem Gerät.',
+      'Embrollado ist eine reine Browser-App zum Üben von Fremdsprachen. Du führst ein realistisches Rollenspiel-Gespräch mit einem KI-Partner. Deine Gespräche bleiben in deinem Browser — nur der laufende Dialog geht an den KI-Dienst, den du selbst konfiguriert hast.',
     privacyTitle: 'Privatsphäre',
     privacy:
       'Deine Gespräche, Bilder und zwischengespeichertes Audio liegen nur in diesem Browser. Der einzige ausgehende Verkehr geht an den von dir konfigurierten KI-Dienst, der das aktive Gespräch, die Situations- und Partner-Wahl, die von dir eingetragenen wahrnehmbaren Merkmale (Aussehen, Alter, Geschlecht, Stimme) und — wenn du „Die KI-Persona kennt dich bereits“ aktivierst — deinen Namen und deine Angaben erhält. Bilder beziehen deinen Namen und deine Angaben immer ein. Der API-Schlüssel wird nur an diesen Dienst gesendet.',

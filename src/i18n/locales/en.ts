@@ -213,7 +213,7 @@ export default {
     persistentDenied: 'The browser may clear this data. Use Export to back it up.',
     privacy: 'Privacy',
     privacyText:
-      'Everything stays on this device. The conversation and the profile fields that are part of it — appearance, age, gender, voice, and name and details when “The AI partner already knows you” is enabled — are sent to your AI service. Tip: use a pseudonym instead of your real last name. See About.',
+      'Your conversations, pictures and cached audio live only in this browser. The conversation and the profile fields that are part of it — appearance, age, gender, voice, and name and details when “The AI partner already knows you” is enabled — are sent to your AI service. Tip: use a pseudonym instead of your real last name. See About.',
     save: 'Save',
     saved: 'Saved.',
   },
@@ -271,7 +271,7 @@ export default {
   about: {
     title: 'About',
     purpose:
-      'Embrollado is a browser-only practice app for foreign languages. You hold a realistic role-play conversation with an AI partner; everything stays on your device.',
+      'Embrollado is a browser-only practice app for foreign languages. You hold a realistic role-play conversation with an AI partner. Your conversations stay in your browser — only the live dialogue goes to the AI service you configured.',
     privacyTitle: 'Privacy',
     privacy:
       'Your conversations, pictures and cached audio live only in this browser. The only outbound traffic is to the AI service you configure, which receives the conversation you are actively having, the situation and partner setup, the perceivable traits you entered (appearance, age, gender, voice), and — when you enable “The AI partner already knows you” — your name and details. Pictures also always include your name and details. The API key is sent only to that service.',

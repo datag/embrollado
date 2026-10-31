@@ -1,7 +1,8 @@
 # Embrollado
 
-**Practise a foreign language through realistic role-play conversations with an AI partner — and
-everything stays on your device.**
+**Practise a foreign language through realistic role-play conversations with an AI partner — your
+conversations stay in your browser, and only the live dialogue goes to the AI service you
+configured.**
 
 Embrollado is a browser-only single-page app. You choose a target language, a level, a situation
 and a partner, and then you talk: the partner replies in the target language with the translation

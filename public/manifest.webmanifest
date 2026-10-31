@@ -1,7 +1,7 @@
 {
   "name": "Embrollado",
   "short_name": "Embrollado",
-  "description": "Practise a foreign language through realistic role-play conversations with an AI partner. Everything stays on your device.",
+  "description": "AI role-play conversations for language practice. Your conversations stay in your browser; only the live dialogue goes to the AI service you configured.",
   "start_url": "./#/",
   "scope": "./",
   "display": "standalone",

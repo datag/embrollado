@@ -1,7 +1,7 @@
 {
   "name": "embrollado",
   "version": "0.1.0",
-  "description": "AI language practice conversations — practise a foreign language through realistic role-play conversations with an AI partner, fully on your own device.",
+  "description": "AI language practice conversations — practise a foreign language through realistic role-play conversations with an AI partner. Your conversations stay in your browser; only the live dialogue goes to the AI service you configured.",
   "license": "MIT",
   "type": "module",
   "packageManager": "pnpm@10.0.0",
