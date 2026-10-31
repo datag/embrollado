@@ -106,11 +106,12 @@ See [docs/configure-ai-service.md](docs/configure-ai-service.md) for provider-sp
 
 ## Where your data lives
 
-| Data                                              | Where                                                           |
-| ------------------------------------------------- | --------------------------------------------------------------- |
-| Conversations, turns, illustrations, cached audio | IndexedDB database `embrollado` (stores prefixed `embrollado:`) |
-| Settings (language, theme, learner profile)       | `localStorage` → `embrollado.settings.v1`                       |
-| AI service configuration (incl. API key)          | `localStorage` → `embrollado.service.v1`                        |
+| Data                                                      | Where                                                           |
+| --------------------------------------------------------- | --------------------------------------------------------------- |
+| Conversations, turns, illustrations, cached audio         | IndexedDB database `embrollado` (stores prefixed `embrollado:`) |
+| Settings (language, theme, learner profile)               | `localStorage` → `embrollado.settings.v1`                       |
+| AI service configuration (incl. API key)                  | `localStorage` → `embrollado.service.v1`                        |
+| Access-granted marker (when an access code is configured) | `localStorage` → `embrollado.access.v1`                         |
 
 Everything is wiped when the browser clears site data. Use **Export/Import** to move or back it up:
 
@@ -150,6 +151,11 @@ needed and a refresh never 404s.
 - GitHub Pages cannot set response headers, so the Pages build ships **without** a CSP by default.
   Set the repository variable `CSP_MODE=preset` for a meta policy that allows OpenAI and
   OpenRouter only.
+- Optional, public-by-design build configuration: set the repository variable
+  `APP_PRIVACY_POLICY_URL` to render "Privacy Policy" (#en) / "Datenschutzerklärung" (#de) links in
+  the footer, and the repository secret `APP_ACCESS_CODE` to ask for a code before the app renders
+  (a small hurdle against accidental use — not a security mechanism). Unset variables hide the
+  feature. See `docs/deployment.md`.
 
 ## Offline
 

@@ -78,6 +78,19 @@ only the app's own origin plus `api.openai.com` and `openrouter.ai` — only usa
 providers. This is a documented deviation from the strict guarantee, narrowing
 `connect-src` to the preset providers for this deployment only.
 
+### Optional build-time configuration
+
+Two `APP_*` variables are baked into the bundle at build time if set (they can also be supplied via
+a local `.env` file for a self-hosted build — see `.env.example`):
+
+| Variable                 | Where to store it       | Effect                                                                                                                                                                          |
+| ------------------------ | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `APP_PRIVACY_POLICY_URL` | repository **variable** | Renders a "Privacy Policy" (#en) and a "Datenschutzerklärung" (#de) link in the footer — both anchors must exist on the target page                                             |
+| `APP_ACCESS_CODE`        | repository **secret**   | Asks for the code before the app renders. A small hurdle against accidental use, **not a security mechanism**: the code is part of the build and anyone who finds it can get in |
+
+Unset variables simply hide the corresponding part of the UI. The build log prints which of the
+two are set (never their values).
+
 ### Why it works
 
 - **Hash routing** (`#/`) means no rewrite rule is needed on any static host; a refresh

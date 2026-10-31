@@ -18,7 +18,7 @@ permissions:
 # latest queued. However, do NOT cancel in-progress runs as we want to allow these production
 # deployments to complete.
 concurrency:
-  group: "pages"
+  group: 'pages'
   cancel-in-progress: false
 
 jobs:
@@ -76,8 +76,12 @@ jobs:
         # origin plus the two preset provider origins. It is off by default: a policy that pinned
         # connect-src would make the learner's own AI service unreachable, which the BYOK design
         # must not do. See contracts/deployment.md.
+        # Optional build-time configuration for the footer (public URL → repository variable) and
+        # the access-code prompt (the code itself → repository secret). Unset → feature hidden.
         env:
           CSP_MODE: ${{ vars.CSP_MODE || 'none' }}
+          APP_PRIVACY_POLICY_URL: ${{ vars.APP_PRIVACY_POLICY_URL }}
+          APP_ACCESS_CODE: ${{ secrets.APP_ACCESS_CODE }}
         run: pnpm build --base=$BASE
 
       - name: Upload artifact

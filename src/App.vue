@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AppHeader from '@/components/AppHeader.vue'
+import AppFooter from '@/components/AppFooter.vue'
 import { computed } from 'vue'
 
 // A `file://` origin has undefined storage behaviour — the app is not supported there
@@ -15,13 +16,7 @@ const onFileProtocol = computed(
     <main class="mx-auto w-full max-w-2xl flex-1 px-4 py-4">
       <RouterView />
     </main>
-    <footer class="mx-auto w-full max-w-2xl px-4 pb-6 text-center text-xs text-fg-muted">
-      <span>{{ $t('app.name') }}</span>
-      <span class="mx-1">·</span>
-      <RouterLink to="/about" class="underline underline-offset-2">{{
-        $t('nav.about')
-      }}</RouterLink>
-    </footer>
+    <AppFooter />
     <div
       v-if="onFileProtocol"
       role="alert"

@@ -11,6 +11,10 @@ export default {
     about: 'Über',
     back: 'Zurück',
   },
+  footer: {
+    privacyPolicyEn: 'Privacy Policy',
+    privacyPolicyDe: 'Datenschutzerklärung',
+  },
   sessions: {
     title: 'Deine Gespräche',
     empty: 'Noch keine Gespräche.',
