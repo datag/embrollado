@@ -180,6 +180,11 @@ surviving a reload. No test touches the network or a paid endpoint.
 
 ## Licence
 
-MIT — see [LICENSE](LICENSE). The bundled font, **Atkinson Hyperlegible Next** (Braille Institute
-of America), is licensed under the SIL Open Font License 1.1; the OFL text and the subsetting
-notice live in `src/assets/fonts/LICENSES/` and are shown on the About screen.
+MIT — see [LICENSE](LICENSE). The bundled third-party components (Vue, Vue Router, Vue I18n, marked,
+DOMPurify, idb) keep their own licences; their copyright notices and the full licence texts are in
+[THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md). The bundled font, **Atkinson Hyperlegible Next**
+(Braille Institute of America), is licensed under the SIL Open Font License 1.1; the OFL text and the
+subsetting notice live in `src/assets/fonts/LICENSES/`.
+
+All of these ship with the app (`/LICENSE`, `/THIRD_PARTY_LICENSES.md`, `/LICENSES/OFL.txt`,
+`/LICENSES/NOTICE.md`) and are linked from the About screen, so they stay available offline too.

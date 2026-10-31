@@ -9,6 +9,7 @@ project constitution — read `.specify/memory/constitution.md` before changing 
 - `.specify/memory/constitution.md` — the governing document (mobile-first, local-first, one AI egress, quality gates).
 - `specs/001-ai-language-roleplay/` — spec/plan/tasks/quickstart for the feature; code comments cite requirement IDs (e.g. `T021`, `FR-057`) from here.
 - `docs/configure-ai-service.md`, `docs/deployment.md` — provider quirks and CSP/deploy details.
+- `THIRD_PARTY_LICENSES.md` — licences and copyright notices of the bundled components; the shipped copy lives in `public/`.
 - `TODO.md` — open items (written in German).
 
 ## Commands
@@ -49,15 +50,20 @@ Manual dev: open `http://localhost:5173` → **Settings → AI service** → add
   call `fetch` elsewhere; no third-party origin may be contacted at all.
 - Data lives in IndexedDB db `embrollado` with prefixed stores (`src/data/db.ts`). Store names are
   **immutable in IndexedDB** — don't rename stores; schema changes go through the `idb` upgrade path
-  + migration (`tests/unit/migrations.test.ts`). Preferences/API config in localStorage keys
+  and the migration (`tests/unit/migrations.test.ts`). Preferences/API config in localStorage keys
   `embrollado.settings.v1` / `embrollado.service.v1`.
 - Proxy/setup belongs in `src/ai/` (adapter: `aiService.ts`, `providers.ts`, `transport.ts`,
   `errors.ts`, `schema.ts`, `prompts.ts`); domain logic in `src/domain/`; screens are
   `src/views/*.vue` (Setup, Dialogue, Sessions, Settings, About).
 - Router uses **hash routing** (GH Pages, no rewrites). `public/sw.js` is a hand-written service
-  worker (precaches built assets); keep it lint-free manually.
+  worker (precaches built assets and the shipped licence documents, which are served from the cache
+  when the network is unavailable); keep it lint-free manually.
 - Model-provided markdown is rendered via `marked` + DOMPurify sanitize — `vue/no-v-html` is off for
   that; never render raw model HTML.
+- The licence files ship with the app: `public/LICENSE`, `public/THIRD_PARTY_LICENSES.md` and
+  `public/LICENSES/` are copies of their sources and must stay byte-identical (guarded by
+  `tests/unit/third-party-licenses.test.ts`). The About screen links them via
+  `import.meta.env.BASE_URL`, so they work under a base path as well.
 - `FR-…`/`T…` IDs in comments are source-only traceability back to `specs/`; they are documented
   convention, not shipping content — Vue's compiler drops template comments in production and the
   minifier strips script comments, so the built bundle never contains them. Do not clean them up.
@@ -76,6 +82,9 @@ Manual dev: open `http://localhost:5173` → **Settings → AI service** → add
 
 - Run the QA tools after every change or extension: `pnpm test:unit`, `pnpm test:e2e`, and the
   Formatter/Prettier (`pnpm format`) on new or edited files.
+- Third-party licences: adding, upgrading or removing a runtime dependency means updating
+  `THIRD_PARTY_LICENSES.md` (package, version, SPDX id, copyright line) in the same change and
+  copying it to `public/` — `tests/unit/third-party-licenses.test.ts` fails otherwise.
 - Commit after every change (when several features/fixes are requested, prefer one atomic commit
   each), but **never push** — the maintainer decides when to publish.
 - Tests must be deterministic and must **not** touch the network (mock/fake transport only).

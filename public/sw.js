@@ -9,18 +9,30 @@
  * deletes the old caches. Activated workers do NOT skip waiting, so a running session is never
  * interrupted mid-turn; the new version takes over on the next load.
  */
-const VERSION = 'embrollado-v1'
+const VERSION = 'embrollado-v2'
 const CACHE_NAME = `${VERSION}-shell`
 
 // Files added at build time. `self.__prerendered` is not used; instead we cache on install by
 // fetching the root document and letting runtime caching pick up the hashed assets.
 const SHELL = ['index.html', 'manifest.webmanifest', 'favicon.svg']
 
+/**
+ * The licence files that ship with the app. They are precached like the shell, and because they
+ * have no file-extension pattern of their own they need their own branch in the fetch handler to be
+ * served from the cache when the network is unavailable.
+ */
+const SHELL_DOCUMENTS = [
+  'LICENSE',
+  'THIRD_PARTY_LICENSES.md',
+  'LICENSES/OFL.txt',
+  'LICENSES/NOTICE.md',
+]
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(CACHE_NAME)
-      for (const file of SHELL) {
+      for (const file of [...SHELL, ...SHELL_DOCUMENTS]) {
         const url = new URL(file, self.registration.scope)
         try {
           const res = await fetch(url, { cache: 'reload' })
@@ -91,7 +103,10 @@ self.addEventListener('fetch', (event) => {
   }
 
   const isHashedAsset = /\.(?:js|css|woff2|png|webp|svg)$/.test(url.pathname)
-  if (isHashedAsset) {
+  const isShellDocument = SHELL_DOCUMENTS.some(
+    (file) => new URL(file, self.registration.scope).pathname === url.pathname,
+  )
+  if (isHashedAsset || isShellDocument) {
     event.respondWith(
       (async () => {
         const cached = await caches.match(request)

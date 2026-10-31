@@ -82,6 +82,10 @@ export default defineConfig({
     rolldownOptions: {
       output: {
         codeSplitting: false,
+        // Vite drops legal comments while minifying (`comments.legal = !minify`), which would
+        // remove the `@license` banners of the bundled libraries. Keeping them preserves the
+        // notices their licences ask for; THIRD_PARTY_LICENSES.md carries the full texts.
+        comments: { legal: true },
       },
     },
     assetsInlineLimit: 0,
