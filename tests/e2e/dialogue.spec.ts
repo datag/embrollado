@@ -33,6 +33,10 @@ test.describe('dialogue cycle', () => {
     await expect(feedback).toContainText('Ist der Waschraum neben den Duschen?')
     // The explanation addresses the learner objectively, never in the partner's first person (FR-061).
     await expect(feedback).toContainText('Deine Antwort ist verständlich')
+    // The concrete error pair renders as original → corrected next to the detail (FR-062).
+    await expect(feedback).toContainText('showers')
+    await expect(feedback).toContainText('washrooms')
+    await expect(feedback.getByText('→')).toBeVisible()
     // The badge must be a visible coloured pill (its bg utility is not generated otherwise).
     const badgeBg = await page.evaluate(() => {
       const el = document.querySelector('span[class*="bg-badge-"]')

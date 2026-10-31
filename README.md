@@ -7,7 +7,8 @@ Embrollado is a browser-only single-page app. You choose a target language, a le
 and a partner, and then you talk: the partner replies in the target language with the translation
 sitting muted under each line — hidden until you peek or until you have answered — and after every
 answer you get an explanation, a correction, an interpretation, filled-in gaps, a quality badge
-and concrete things to improve. Whenever you want, you can have the partner's line read aloud and
+and concrete things to improve (a wrong word is shown as «as written» → «as it should be»).
+Whenever you want, you can have the partner's line read aloud and
 generate an illustration of the current moment of the conversation (a picture button next to the
 input box; the button only appears when an image model is configured). Click any picture in the
 chat to view it at full resolution in a lightbox.
