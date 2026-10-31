@@ -3,10 +3,10 @@ name: CI
 on:
   pull_request:
   push:
+    # CI runs on every branch push, including main. (branches + branches-ignore are not
+    # allowed together; before the fix the workflow failed registration on main pushes.)
     branches:
       - '**'
-    branches-ignore:
-      - main
 
 concurrency:
   group: ci-${{ github.ref }}
