@@ -4,7 +4,7 @@ Offene Punkte, nach Themen gruppiert.
 
 ## Development
 
-- [ ] AGENTS.md mit /init erzeugen
+- [x] AGENTS.md mit /init erzeugen
   - [ ] Faustregel: Stets committen, aber nicht pushen
 
 ## Build & Deployment
@@ -13,27 +13,35 @@ Offene Punkte, nach Themen gruppiert.
 - [ ] FavIcon ergänzen.
 - [ ] Datenschutzerklärung-Verlinkung Englisch/Deutsch mittels Env- bzw. GitHub-Repository-Vars (analog zu anderen Projekten)
 
-## Konversations-Settings
+## Conversation List
+
+- [ ] Absteigend nach Datum (oder letzter Aktivität, falls vorhanden) sorieren
+
+## Conversations Settings
 
 - [ ] Konversations-Settings: festlegen, wer beginnt (User oder AI) inkl. Default.
-- [x] Custom konfigurierte Situation/Persona ist nicht als „ausgewählt“ erkennbar.
-- [x] Eigene Vorlagen bearbeiten/umbenennen (FR-047: edit inkl. rename umgesetzt; Delete bereits).
 
-## Konversation
+## Conversation
 
 - [ ] Beendetes Gespräch: entweder die Beenden-Funktion entfernen oder das Wiedereröffnen erlauben.
 - [ ] Eingabe-Hilfe (Button-Zeile) für Akzente und Zeichen wie ¿ und ¡
 - [ ] Eingabe-Hilfe für eine Gap/Lücke `???`
-- [ ] Emoji für Stimmungen?
+- [ ] Emoji für Stimmungen/Mimik?
+- [ ] Retry-Function bei Fail?
+- [ ] Bewertung scheint hin und wieder Einfluss auf die Antwort zu nehmen; Manchmal AI-Antwort in Feedback-Language. Prompt schärfen, dass nicht die Sprache aus Erklärung relevant, sondern die Zielsprache.
 
 ### Darstellung
 
-- [ ] Lücken besonders rendern
+- [ ] Lücken visuell hervorgehoben rendern
 
 ### Feedback & Bewertung
 
 - [ ] Bewertung: Akzente explizit mitbewerten; Typografie nur als Anmerkung. Ggf. konfigurierbar machen.
 - [ ] Untersuchen: Wenn in Explanation ein Fehler (Rechtschreibfehler in Wort) erwähnt wird, dann sollte dieser Fund auch in den Korrekturen auftauchen.
+- [ ] Bei Verbesserungsvorschlägen kein Imperativ wie "bitte korrigieren", denn diese Funktion ist nicht vorgesehen.
+- [ ] Zu klären: Bewertung geht häufig bereits auf die AI-Antwort ein. Unsicher, ob wir das wollen.
+  - [ ] Nochmals erwägen, die Evaluation in einen separaten Request zu machen, um das zu verhindern.
+- [ ] Bewertung wirklich nur auf die letzte User-Antwort, niemals das zuvor korrigieren/bewerten, jedoch ggf. als zusätzlich Kontext verwenden.
 
 ## TTS / Audio
 
