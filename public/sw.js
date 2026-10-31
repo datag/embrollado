@@ -14,7 +14,7 @@ const CACHE_NAME = `${VERSION}-shell`
 
 // Files added at build time. `self.__prerendered` is not used; instead we cache on install by
 // fetching the root document and letting runtime caching pick up the hashed assets.
-const SHELL = ['index.html', 'manifest.webmanifest']
+const SHELL = ['index.html', 'manifest.webmanifest', 'favicon.svg']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
