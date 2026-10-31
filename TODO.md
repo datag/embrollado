@@ -28,7 +28,7 @@ Offene Punkte, nach Themen gruppiert.
 - [ ] Eingabe-Hilfe für eine Gap/Lücke `???`
 - [ ] Emoji für Stimmungen/Mimik?
 - [ ] Retry-Function bei Fail?
-- [ ] Bewertung scheint hin und wieder Einfluss auf die Antwort zu nehmen; Manchmal AI-Antwort in Feedback-Language. Prompt schärfen, dass nicht die Sprache aus Erklärung relevant, sondern die Zielsprache.
+- [x] Bewertung scheint hin und wieder Einfluss auf die Antwort zu nehmen; Manchmal AI-Antwort in Feedback-Language. Prompt schärfen, dass nicht die Sprache aus Erklärung relevant, sondern die Zielsprache.
 
 ### Darstellung
 

@@ -1,5 +1,6 @@
 import type { Gender, Level, SituationRef, PartnerRef } from '@/domain/types'
 import { audiblePerception, visiblePerception, ageRangePhrase } from '@/domain/perception'
+import { languageName } from '@/domain/catalogue'
 import { TURN_SCHEMA } from '@/ai/schema'
 
 /**
@@ -110,9 +111,26 @@ export function buildSystemPrompt(input: PromptInput): string {
     situation,
     LEVEL_RULES[input.level],
     `Speak the target language: ${input.targetLanguage}.`,
-    `All explanatory feedback text (translation, explanation, interpretation, assumptions, ` +
-      `gaps, assessment, issues) MUST be written in: ${input.feedbackLanguage} — the learner's ` +
-      `native language. The corrected answer MUST stay in the target language.`,
+
+    // Three languages can be in play at once (owner decision): the situation/partner text in any
+    // language, the partner's line in the target language (a short phrase in another language is
+    // a rare, natural exception) and the feedback in the learner's native language. Names (not
+    // ISO codes) make the assignment unambiguous for weak models.
+    `Languages — three of them, and they never mix:`,
+    `- The situation and partner description may be written in ANY language (the catalogue uses ` +
+      `English; a learner may write their own in whatever language they like). That language is ` +
+      `irrelevant — never mirror it in the dialogue.`,
+    `- "partnerText" — your line — is in the TARGET language (${languageName(
+      input.targetLanguage,
+    )}). Speak ${languageName(input.targetLanguage)}. A short phrase in another language is ` +
+      `natural now and then, but the line itself stays in ${languageName(input.targetLanguage)}.`,
+    `- All explanatory feedback text (translation, explanation, interpretation, assumptions, ` +
+      `issues) MUST be written in: ${languageName(input.feedbackLanguage)} — the learner's native ` +
+      `language (feedback language).`,
+    `- "correctedText" is in the TARGET language: it is the learner's own sentence, corrected.`,
+    `- Never speak to the learner in ${languageName(
+      input.feedbackLanguage,
+    )}, and never write the feedback in ${languageName(input.targetLanguage)}.`,
     buildLearnerContext(input),
     'Personality and reactions:',
     '- You are a real person with your own feelings, dignity and boundaries — not a servile ' +
@@ -135,6 +153,10 @@ export function buildSystemPrompt(input: PromptInput): string {
     '- Stay fully in character as the person described above in the "partnerText" field; there, ' +
       'never break into a teaching/lesson voice.',
     '- Always answer with the JSON turn object described in the schema; never with prose outside it.',
+    '- Write "partnerText" first, and write it from the learner\'s message alone: your line reacts ' +
+      'to what was said and how it was said — never to the assessment. The rating is written for ' +
+      'the learner; the partner does not know it, never mentions it, and never praises, corrects ' +
+      'or comments on the learner\'s language in the line itself.',
     '- The "explanation" field MUST explain the learner\'s answer in the LATEST user message — ' +
       'what it means and how well it works — and MUST be written in the ' +
       `feedback language (${input.feedbackLanguage}), NEVER in the target language (except for a ` +

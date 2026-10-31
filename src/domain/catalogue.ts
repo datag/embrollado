@@ -222,6 +222,14 @@ export function languageByCode(code: string): CatalogueLanguage | undefined {
   return LANGUAGES.find((l) => l.code === code)
 }
 
+/**
+ * The human-readable name of a language code for prompts ("Spanish", "German"). Pitch-perfect
+ * names beat ambiguous ISO codes with weak models; unknown codes pass through unchanged.
+ */
+export function languageName(code: string): string {
+  return languageByCode(code)?.nameEn ?? code
+}
+
 export function isKnownLanguage(code: string): boolean {
   return LANGUAGES.some((l) => l.code === code)
 }

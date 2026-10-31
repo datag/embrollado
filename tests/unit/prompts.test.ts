@@ -41,7 +41,31 @@ describe('prompt builder (T045, T039, T112)', () => {
     expect(prompt).toContain('confectioner')
     expect(prompt).toContain('At the campsite washroom')
     expect(prompt).toContain('target language: en')
-    expect(prompt).toContain('MUST be written in: de')
+    // Explicit language NAMES, not ISO codes, so weak models cannot mix the languages.
+    expect(prompt).toContain('MUST be written in: German')
+  })
+
+  it('separates the three languages and keeps the partner line in the target language', () => {
+    const prompt = buildSystemPrompt(base)
+    // The three-languages block names target and feedback language explicitly.
+    expect(prompt).toContain('Languages — three of them, and they never mix')
+    // target = English, feedback = German, and each field is assigned a specific language.
+    expect(prompt).toContain('"partnerText" — your line — is in the TARGET language (English)')
+    expect(prompt).toContain('MUST be written in: German')
+    expect(prompt).toContain('"correctedText" is in the TARGET language')
+    expect(prompt).toContain('Never speak to the learner in German')
+    // The situation/partner text can be in any language and must never leak into the dialogue.
+    expect(prompt).toContain('ANY language')
+    expect(prompt).toContain('never mirror it in the dialogue')
+  })
+
+  it('keeps the partner line free of the assessment (the partner does not know it)', () => {
+    const prompt = buildSystemPrompt(base)
+    expect(prompt).toContain('Write "partnerText" first')
+    expect(prompt).toContain('from the learner\'s message alone')
+    expect(prompt).toContain('never to the assessment')
+    expect(prompt).toContain('the partner does not know it')
+    expect(prompt).toContain('never praises, corrects or comments on the learner\'s language')
   })
 
   it('keeps the learner name and details out of the prompt by default (knowsLearner off)', () => {

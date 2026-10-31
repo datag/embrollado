@@ -164,21 +164,30 @@ The system prompt is assembled by `ai/prompts.ts` from:
 2. **Situation** — "{situation.name}: {situation.setting}".
 3. **Level** — one of the three level instructions (beginner / intermediate / expert), which bound
    vocabulary, sentence length and grammar.
-4. **Target language** — the language the dialogue is conducted in.
-5. **Feedback language** — the language all explanatory text must be written in.
-6. **Learner perception** — the learner's perceivable traits (appearance, voice, approximate age,
+4. **Languages — three of them, and they never mix** — (a) the situation and partner text may be
+   written in **any** language; its language is irrelevant and never mirrored in the dialogue;
+   (b) **`partnerText`** is in the **target language** (named explicitly, e.g. "Spanish", not only
+   the ISO code; a short phrase in another language is a rare, natural exception, but the line
+   stays in the target language); (c) **`translation`, `explanation`, `interpretation`,
+   `assumptions[].reason`, `issues`** are in the **feedback language** (the learner's native
+   language), and **`correctedText`** in the target language. The model must never speak to the
+   learner in the feedback language and never write feedback in the target language.
+5. **Learner perception** — the learner's perceivable traits (appearance, voice, approximate age,
    gender), read against the situation (face to face vs. a phone call), plus either the per-session
    option "The AI partner already knows you" (releases the name + details) or the first-meeting
    knowledge rules: no invented facts, no name before the learner introduces themselves.
-7. **Rules** — one utterance per turn; stay in character; never break into a lesson; always answer
-   with the JSON turn object; treat `???` and native-language words as gaps and fill them with a
-   plausible assumption and state the reason; rate the learner's answer against the selected level.
-   The feedback fields (`explanation`, `issues`, `assumptions[].reason`) are written in an
-   **objective coach voice** (FR-061): addressed to the learner directly ("your answer",
-   "you say"), never in the partner's first person and never reporting the partner's own feelings
-   or opinions; the partner is referenced in the third person. `interpretation` keeps the
-   learner's voice and `translation` keeps the partner's voice — the rule never applies to them.
-   The opening turn has no learner answer, so its `explanation` is `null`.
+6. **Rules** — one utterance per turn; stay in character; never break into a lesson; always answer
+   with the JSON turn object; write `partnerText` first, from the learner's answer alone — it
+   reacts to what was said, never to the assessment; the partner never mentions the rating and
+   never praises or corrects the learner's language in the line; treat `???` and native-language
+   words as gaps and fill them with a plausible assumption and state the reason; rate the learner's
+   answer against the selected level. The feedback fields (`explanation`, `issues`,
+   `assumptions[].reason`) are written in an **objective coach voice** (FR-061): addressed to the
+   learner directly ("your answer", "you say"), never in the partner's first person and never
+   reporting the partner's own feelings or opinions; the partner is referenced in the third person.
+   `interpretation` keeps the learner's voice and `translation` keeps the partner's voice — the
+   rule never applies to them. The opening turn has no learner answer, so its `explanation` is
+   `null`.
 8. **Personality and reactions** — the partner is a real person with feelings, dignity and
    boundaries, not a servile assistant. They react authentically and proportionately to what the
    learner says and how they say it, remember how they have been treated so far, push back against

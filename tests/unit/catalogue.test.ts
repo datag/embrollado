@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { LEVELS, PARTNERS, SITUATIONS, LANGUAGES } from '@/domain/catalogue'
+import { LEVELS, PARTNERS, SITUATIONS, LANGUAGES, languageName } from '@/domain/catalogue'
 
 describe('catalogue (T031)', () => {
   it('exposes 12 target languages', () => {
@@ -41,5 +41,13 @@ describe('catalogue (T031)', () => {
         expect(p.id).toBeTruthy()
       }
     }
+  })
+
+  it('resolves a language code to its human-readable name for the prompt', () => {
+    expect(languageName('es')).toBe('Spanish')
+    expect(languageName('en')).toBe('English')
+    expect(languageName('de')).toBe('German')
+    // Unknown / custom codes pass through unchanged so the prompt stays usable.
+    expect(languageName('xx')).toBe('xx')
   })
 })

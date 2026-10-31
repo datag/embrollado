@@ -317,7 +317,10 @@ on a service without those capabilities and verify the graceful fallback.
 - **FR-011**: The partner MUST react to the learner's answer and continue the conversation, and the
   cycle MUST repeat until the learner ends the session.
 - **FR-012**: The partner's language MUST stay in the target language and MUST respect the selected
-  level in vocabulary, sentence length and grammatical complexity.
+  level in vocabulary, sentence length and grammatical complexity. The partner line MUST be written
+  from the learner's answer alone — it reacts to what was said, never to the assessment, and it
+  MUST NOT praise, correct, mention or comment on the learner's language. A short phrase in another
+  language is a rare, natural exception to the target language, but the line itself stays in it.
 - **FR-013**: The correction, the interpretation and the quality badge of the learner's answer MUST
   take the selected level into account.
 - **FR-014**: The system MUST present the feedback for a turn in a fixed, predictable order so that
@@ -392,7 +395,9 @@ on a service without those capabilities and verify the graceful fallback.
 - **FR-036**: The translation of the partner's line, the explanation of the learner's answer, the
   interpretation, the filled-in assumptions and the quality badge MUST be delivered in the
   learner's native language, while the corrected version of the learner's answer MUST remain in
-  the target language.
+  the target language. The prompt names the two languages explicitly (never ISO codes alone) so a
+  weak model cannot mix them; the situation and partner text may be in any language and its
+  language MUST NOT leak into the dialogue.
 - **FR-061**: The explanation of the learner's answer, the issues and the reasons of the
   filled-in assumptions MUST be written as an objective note that addresses the learner directly
   ("your answer", "you say") and MUST NOT describe the partner's reactions in the partner's
