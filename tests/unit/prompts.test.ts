@@ -141,6 +141,13 @@ describe('prompt builder (T045, T039, T112)', () => {
     expect(prompt).toContain("Translate ONLY the learner's own text")
     expect(prompt).toContain("never import the situation or the partner's lines")
     expect(prompt).toContain('never add framing like "The learner asks:"')
+    // The example is a LEARNER line, never a partner line (the partner line is the translation
+    // field's job) — this was once demonstrated with a partner line ("Hey buddy, are you lost?")
+    // which taught exactly the spoiler behaviour the app must avoid.
+    expect(prompt).toContain('e.g. for a learner writing "Is the washroom next to the showers?"')
+    expect(prompt).toContain('Ist der Waschraum neben den Duschen?')
+    expect(prompt).not.toContain('Hey buddy')
+    expect(prompt).not.toContain('Hey Kumpel')
     // Gap markers survive the translation unchanged.
     expect(prompt).toContain('gap marker or unintelligible')
   })

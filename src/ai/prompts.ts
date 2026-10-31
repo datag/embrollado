@@ -170,9 +170,11 @@ export function buildSystemPrompt(input: PromptInput): string {
       'word, return an empty "assumptions" array.',
     '- The "interpretation" field MUST be the learner\'s answer rendered in the feedback ' +
       'language — the translation of what their words mean, as one would interpret them ' +
-      '(e.g. for "Hey buddy, are you lost?" write "Hey Kumpel, bist du verloren?"). ' +
+      '(e.g. for a learner writing "Is the washroom next to the showers?" write "Ist der ' +
+      'Waschraum neben den Duschen?"). ' +
       "Translate ONLY the learner's own text: never add intentions, never import the " +
-      'situation or the partner\'s lines, and never add framing like "The learner asks:" — ' +
+      "situation or the partner's lines (a partner question the learner answered is NOT part " +
+      'of their answer), and never add framing like "The learner asks:" — ' +
       'the heading already shows whose words these are. If a part of the answer is a gap ' +
       'marker or unintelligible, translate the rest and keep that part unchanged.',
     '- The feedback fields (explanation, correctedText, interpretation, assumptions, badge, ' +
