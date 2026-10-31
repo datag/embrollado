@@ -115,9 +115,7 @@ test.describe('dialogue cycle', () => {
     await expect(page.getByTestId('feedback')).toBeVisible({ timeout: 20_000 })
 
     await expect
-      .poll(() =>
-        page.evaluate(() => document.activeElement?.getAttribute('data-testid') ?? null),
-      )
+      .poll(() => page.evaluate(() => document.activeElement?.getAttribute('data-testid') ?? null))
       .toBe('dialogue-input')
   })
 
@@ -129,13 +127,14 @@ test.describe('dialogue cycle', () => {
     // Leave to the session list and open the same, already running conversation again.
     await page.goto('/#/')
     await expect(page.getByRole('heading', { name: 'Your conversations' })).toBeVisible()
-    await page.getByRole('button', { name: /washroom/i }).first().click()
+    await page
+      .getByRole('button', { name: /washroom/i })
+      .first()
+      .click()
     await expect(page.getByTestId('dialogue-input')).toBeEnabled({ timeout: 20_000 })
 
     await expect
-      .poll(() =>
-        page.evaluate(() => document.activeElement?.getAttribute('data-testid') ?? null),
-      )
+      .poll(() => page.evaluate(() => document.activeElement?.getAttribute('data-testid') ?? null))
       .toBe('dialogue-input')
   })
 
