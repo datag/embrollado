@@ -73,6 +73,8 @@ Manual dev: open `http://localhost:5173` → **Settings → AI service** → add
 
 - Run the QA tools after every change or extension: `pnpm test:unit`, `pnpm test:e2e`, and the
   Formatter/Prettier (`pnpm format`) on new or edited files.
+- Commit after every change (when several features/fixes are requested, prefer one atomic commit
+  each), but **never push** — the maintainer decides when to publish.
 - Tests must be deterministic and must **not** touch the network (mock/fake transport only).
 - Bug fixes must include a regression test that fails before the fix.
 - A change is done only when: full suite + typecheck + lint + formatter pass, verified in a browser
