@@ -72,3 +72,40 @@ test('fetch models fills the chat, speech and image suggestions', async ({ page 
   await expect(page.getByTestId('service-chat-model')).toHaveValue('mock-chat')
   await expect(chat).toHaveCount(0)
 })
+
+test('the OpenAI preset fills profile, address and the curated models', async ({ page }) => {
+  await page.goto('/#/settings')
+  await page.getByTestId('preset-openai').click()
+  await expect(page.getByTestId('service-provider')).toHaveValue('openai')
+  await expect(page.getByTestId('service-base-url')).toHaveValue('https://api.openai.com/v1')
+  await expect(page.getByTestId('service-chat-model')).toHaveValue('gpt-6-luna')
+  await expect(page.getByTestId('service-speech-model')).toHaveValue('gpt-4o-mini-tts')
+  await expect(page.getByTestId('service-speech-voice')).toHaveValue('nova')
+  await expect(page.getByTestId('service-image-model')).toHaveValue('gpt-image-2')
+  await expect(page.getByTestId('preset-flash')).toBeVisible()
+})
+
+test('the OpenRouter preset fills profile, address and the curated models', async ({ page }) => {
+  await page.goto('/#/settings')
+  await page.getByTestId('preset-openrouter').click()
+  await expect(page.getByTestId('service-provider')).toHaveValue('openrouter')
+  await expect(page.getByTestId('service-base-url')).toHaveValue('https://openrouter.ai/api/v1')
+  await expect(page.getByTestId('service-chat-model')).toHaveValue(
+    'deepseek/deepseek-v4-flash-0731',
+  )
+  await expect(page.getByTestId('service-speech-model')).toHaveValue(
+    'google/gemini-3.8-flash-lite-tts',
+  )
+  await expect(page.getByTestId('service-speech-voice')).toHaveValue('Leda')
+  await expect(page.getByTestId('service-image-model')).toHaveValue(
+    'google/gemini-3.1-flash-lite-image',
+  )
+})
+
+test('a preset never overwrites a manually entered address', async ({ page }) => {
+  await page.goto('/#/settings')
+  await page.getByTestId('service-base-url').fill('https://eu.openrouter.ai/api/v1')
+  await page.getByTestId('preset-openrouter').click()
+  await expect(page.getByTestId('service-provider')).toHaveValue('openrouter')
+  await expect(page.getByTestId('service-base-url')).toHaveValue('https://eu.openrouter.ai/api/v1')
+})

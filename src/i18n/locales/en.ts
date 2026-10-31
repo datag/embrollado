@@ -170,6 +170,11 @@ export default {
     modelsHint:
       'Tap a suggestion to apply it, or type your own. Loads chat, speech and image models.',
     modelsUnavailable: 'The service does not list models — enter the names manually.',
+    presetsTitle: 'Presets',
+    presetApply: 'Apply the {provider} preset',
+    presetApplied: 'Preset applied.',
+    presetsHint:
+      'Fills the profile, the address (while still auto-filled) and the recommended models and voice. The API key is never touched.',
     test: 'Test the connection',
     testing: 'Testing…',
     connected: 'Connected.',

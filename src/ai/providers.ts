@@ -192,6 +192,72 @@ export function shouldResetAuthMode(current: AuthMode, oldProfileId: string): bo
 }
 
 /* ------------------------------------------------------------------ */
+/* Curated presets (settings-profile.md §2.1)                          */
+/* ------------------------------------------------------------------ */
+
+/**
+ * A curated model set for one provider. Applying it fills the profile, the address (only while
+ * it is still auto-filled) and the chat/speech/image models plus the TTS voice in one tap — the
+ * learner still only has to enter their API key.
+ */
+export interface ServicePreset {
+  id: string
+  label: string
+  /** The provider profile this preset belongs to. */
+  profileId: string
+  chatModel: string
+  speechModel: string | null
+  speechVoice: string | null
+  imageModel: string | null
+}
+
+/** The two curated presets. Only these profiles get one — local servers have no recommended set. */
+export const SERVICE_PRESETS: Record<string, ServicePreset> = {
+  openai: {
+    id: 'openai',
+    label: 'OpenAI',
+    profileId: 'openai',
+    chatModel: 'gpt-6-luna',
+    speechModel: 'gpt-4o-mini-tts',
+    speechVoice: 'nova',
+    imageModel: 'gpt-image-2',
+  },
+  openrouter: {
+    id: 'openrouter',
+    label: 'OpenRouter',
+    profileId: 'openrouter',
+    chatModel: 'deepseek/deepseek-v4-flash-0731',
+    speechModel: 'google/gemini-3.8-flash-lite-tts',
+    speechVoice: 'Leda',
+    imageModel: 'google/gemini-3.1-flash-lite-image',
+  },
+}
+
+/**
+ * The patch a preset applies to the current service configuration. Sets the profile, the
+ * provider's standard address (only while the current address is still auto-filled — a manually
+ * entered one, e.g. an EU-bounded host, survives), the auth style (only while it is still the
+ * default) and the four curated model/voice fields. The API key is never touched.
+ */
+export function presetPatch(preset: ServicePreset, current: ServiceConfig): Partial<ServiceConfig> {
+  const profile = profileById(preset.profileId)
+  const patch: Partial<ServiceConfig> = {
+    providerProfile: preset.profileId,
+    chatModel: preset.chatModel,
+    speechModel: preset.speechModel,
+    speechVoice: preset.speechVoice,
+    imageModel: preset.imageModel,
+  }
+  if (shouldPrefillAddress(current.baseUrl, current.providerProfile) && profile.defaultBaseUrl) {
+    patch.baseUrl = profile.defaultBaseUrl
+  }
+  if (shouldResetAuthMode(current.authMode, current.providerProfile)) {
+    patch.authMode = profile.defaultAuthMode
+  }
+  return patch
+}
+
+/* ------------------------------------------------------------------ */
 /* Model list classification (settings-profile.md §2.1)                */
 /* ------------------------------------------------------------------ */
 

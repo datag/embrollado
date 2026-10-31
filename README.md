@@ -52,16 +52,16 @@ pnpm dev
 
 Open <http://localhost:5173> and go to **Settings → AI service**:
 
-| Field            | Value                       |
-| ---------------- | --------------------------- |
-| Provider profile | OpenAI (the default)        |
-| Auth style       | `Bearer`                    |
-| Service address  | `http://localhost:8787/v1`  |
-| API key          | `test` (the mock ignores it) |
-| Chat model       | `mock-chat`                 |
-| Speech model     | `mock-speech` (optional)    |
+| Field            | Value                               |
+| ---------------- | ----------------------------------- |
+| Provider profile | OpenAI (the default)                |
+| Auth style       | `Bearer`                            |
+| Service address  | `http://localhost:8787/v1`          |
+| API key          | `test` (the mock ignores it)        |
+| Chat model       | `mock-chat`                         |
+| Speech model     | `mock-speech` (optional)            |
 | Voice (TTS)      | `alloy` — model-specific (optional) |
-| Image model      | `mock-image` (optional)     |
+| Image model      | `mock-image` (optional)             |
 
 Press **Test the connection**. Then start a conversation from **＋ New conversation**. Back in
 **Conversations**, the most recently active conversation is listed first.
@@ -101,6 +101,11 @@ Embrollado talks to any **OpenAI-compatible** endpoint. In **Settings → AI ser
    from `GET /models` (tap a suggestion to apply it).
 6. **Test the connection** — one minimal request. If your service blocks the browser (CORS),
    Embrollado shows the exact flag for that provider.
+
+Below the model fields, the **OpenAI** and **OpenRouter** presets fill the profile, the address
+and the recommended models and voice (`gpt-6-luna` / `gpt-4o-mini-tts` + `nova` /
+`gpt-image-2`; `deepseek/deepseek-v4-flash-0731` / `google/gemini-3.8-flash-lite-tts` +
+`Leda` / `google/gemini-3.1-flash-lite-image`) in one tap — you only add your API key.
 
 The learner profile is split into **perceivable traits** and **other personal data**. What you can
 see or hear (appearance, voice, approximate age, gender) travels with every conversation so the

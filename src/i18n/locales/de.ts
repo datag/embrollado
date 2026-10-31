@@ -172,6 +172,11 @@ export default {
     modelsHint:
       'Vorschläge antippen, um sie zu übernehmen — oder selbst eintippen. Lädt Chat-, Sprach- und Bildmodelle.',
     modelsUnavailable: 'Der Dienst listet keine Modelle — bitte die Namen manuell eintragen.',
+    presetsTitle: 'Vorlagen',
+    presetApply: 'Vorlage {provider} übernehmen',
+    presetApplied: 'Vorlage übernommen.',
+    presetsHint:
+      'Setzt Profil, Adresse (falls auto-gefüllt) und die empfohlenen Modelle samt Stimme. Der API-Schlüssel bleibt unberührt.',
     test: 'Verbindung testen',
     testing: 'Wird getestet…',
     connected: 'Verbunden.',

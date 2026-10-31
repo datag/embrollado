@@ -10,6 +10,8 @@ import {
   shouldPrefillAddress,
   shouldResetAuthMode,
   classifyModels,
+  SERVICE_PRESETS,
+  presetPatch,
 } from '@/ai/providers'
 import { testConnection, listModels } from '@/ai/aiService'
 import type { ConnectionTestResult } from '@/ai/aiService'
@@ -46,6 +48,17 @@ const persistentState = ref<'unknown' | 'granted' | 'denied'>('unknown')
 const savedFlash = ref(false)
 
 const providerOptions = Object.values(PROVIDER_PROFILES)
+const presetOptions = Object.values(SERVICE_PRESETS)
+const presetFlash = ref(false)
+
+/** Apply a curated provider preset: profile, address (if auto-filled), models and voice. */
+function applyPreset(id: string) {
+  const preset = SERVICE_PRESETS[id]
+  if (!preset) return
+  updateService(presetPatch(preset, { ...service }))
+  presetFlash.value = true
+  setTimeout(() => (presetFlash.value = false), 2000)
+}
 
 onMounted(async () => {
   const est = await getStorageEstimate()
@@ -397,6 +410,26 @@ function lowSpaceComputed(): boolean {
           </button>
         </li>
       </ul>
+
+      <div class="space-y-2">
+        <span class="block text-sm">{{ $t('settings.presetsTitle') }}</span>
+        <div class="flex flex-wrap gap-2">
+          <button
+            v-for="preset in presetOptions"
+            :key="preset.id"
+            type="button"
+            :data-testid="`preset-${preset.id}`"
+            class="min-h-11 rounded-lg border border-border px-4 text-sm"
+            @click="applyPreset(preset.id)"
+          >
+            {{ $t('settings.presetApply', { provider: preset.label }) }}
+          </button>
+        </div>
+        <p v-if="presetFlash" data-testid="preset-flash" class="text-xs text-ok">
+          {{ $t('settings.presetApplied') }}
+        </p>
+        <p class="text-xs text-fg-muted">{{ $t('settings.presetsHint') }}</p>
+      </div>
 
       <div>
         <button

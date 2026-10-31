@@ -18,7 +18,7 @@ export const DEFAULT_SERVICE: ServiceConfig = {
   baseUrl: 'https://api.openai.com/v1',
   apiKey: '',
   authMode: 'bearer',
-  chatModel: 'gpt-4o-mini',
+  chatModel: 'gpt-6-luna',
   speechModel: null,
   speechVoice: null,
   imageModel: null,

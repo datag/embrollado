@@ -15,10 +15,10 @@ accepts, and how failures are surfaced.
 | `baseUrl`     | `https://api.openai.com/v1` | Absolute http(s) URL; no trailing `/v1` is added automatically |
 | `apiKey`      | `sk-…`                      | Stored locally only; never logged, never exported              |
 | `authMode`    | `bearer`                    | `bearer` (default), `x-api-key`, `api-key`                     |
-| `chatModel`   | `gpt-4o-mini`               | Required                                                       |
+| `chatModel`   | `gpt-6-luna`                | Required                                                       |
 | `speechModel` | `gpt-4o-mini-tts`           | Optional; absent ⇒ the speech button is hidden                 |
 | `speechVoice` | `alloy`                     | Optional; model-specific, empty ⇒ profile default              |
-| `imageModel`  | `gpt-image-1-mini`          | Optional; absent ⇒ no illustrations                            |
+| `imageModel`  | `gpt-image-2`               | Optional; absent ⇒ no illustrations                            |
 
 ## 2. Endpoints the app uses
 
@@ -43,7 +43,7 @@ Content-Type: application/json
 
 ```json
 {
-  "model": "gpt-4o-mini",
+  "model": "gpt-6-luna",
   "stream": true,
   "stream_options": { "include_usage": true },
   "messages": [
@@ -149,7 +149,9 @@ selecting one pre-fills the service address with the profile's standard URL whil
 still auto-filled (empty or the previous profile's default); a manually entered address is never
 overwritten. Typing an address never changes the profile — when it matches another profile, a
 hint offers to switch, applied only on tap. The auth style is replaced on a profile switch only
-while it still is the previous profile's default.
+while it still is the previous profile's default. Two **presets** (OpenAI, OpenRouter) apply a
+curated model set in one tap — profile, address (while auto-filled), chat/speech/image models and
+the TTS voice; the API key is never touched.
 
 | Profile      | Base URL                       | Auth                 | Schema placement        | JSON mode     | Audio format                                                                            | Images path           |
 | ------------ | ------------------------------ | -------------------- | ----------------------- | ------------- | --------------------------------------------------------------------------------------- | --------------------- |

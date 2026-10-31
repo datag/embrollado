@@ -64,6 +64,18 @@ naturally (`3.8` before `3.10`, `gpt-4` before `gpt-10`):
 The fetch is the only automatic request besides the connection test; Embrollado never probes
 `/audio/speech` or `/images` on its own.
 
+## Presets
+
+Below the model fields two buttons apply a **curated model set** in one tap — for OpenAI and
+OpenRouter (local servers have no recommended set). A preset fills the profile, the address (only
+while it is still auto-filled — a manually entered address is kept), and the recommended models
+and voice; the API key is never touched. You can change every field afterwards.
+
+| Preset         | Chat model                        | Speech model                       | Voice  | Image model                          |
+| -------------- | --------------------------------- | ---------------------------------- | ------ | ------------------------------------ |
+| **OpenAI**     | `gpt-6-luna`                      | `gpt-4o-mini-tts`                  | `nova` | `gpt-image-2`                        |
+| **OpenRouter** | `deepseek/deepseek-v4-flash-0731` | `google/gemini-3.8-flash-lite-tts` | `Leda` | `google/gemini-3.1-flash-lite-image` |
+
 ## Structured output
 
 Every turn is requested as a strict JSON document (`response_format: json_schema`). If a server

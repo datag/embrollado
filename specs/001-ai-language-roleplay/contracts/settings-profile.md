@@ -33,6 +33,7 @@ Hash routing (`createWebHashHistory`) so the app works on any static host withou
 | Speech model     | Text input, optional                                                                                      | —                                                                           | `ServiceConfig.speechModel`                                            |
 | Speech voice     | Text input, optional; empty ⇒ provider default                                                            | Voices are model-specific — a wrong voice is the usual cause of an HTTP 400 | `ServiceConfig.speechVoice`                                            |
 | Image model      | Text input, optional                                                                                      | —                                                                           | `ServiceConfig.imageModel`                                             |
+| Presets          | Two buttons: "Apply the OpenAI / OpenRouter preset"                                                       | —                                                                           | Sets profile, address, models, voice                                   |
 | Test             | Button: "Test the connection"                                                                             | —                                                                           | Sends one minimal request; reports success, the CORS hint or the error |
 
 **Rules**
@@ -55,6 +56,8 @@ Hash routing (`createWebHashHistory`) so the app works on any static host withou
   `dall-e`/`flux`/`imagen`/`sdxl` ⇒ image); llama.cpp/vLLM/LM Studio stay chat-only. All lists are
   sorted naturally (`3.8` before `3.10`). Tapping a suggestion applies it to the field; the fields
   remain free text.
+- The **OpenAI** and **OpenRouter** presets set profile, address (only while auto-filled), the
+  curated chat/speech/image models and the TTS voice in one tap; the API key is never touched.
 
 **Rules**
 

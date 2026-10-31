@@ -53,7 +53,7 @@ value back. The version lives both in the key suffix and in the payload.
     "baseUrl": "https://api.openai.com/v1",
     "apiKey": "sk-…",
     "authMode": "bearer",
-    "chatModel": "gpt-4o-mini",
+    "chatModel": "gpt-6-luna",
     "speechModel": null,
     "imageModel": null,
     "providerProfile": "openai"

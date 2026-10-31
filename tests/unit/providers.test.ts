@@ -5,6 +5,8 @@ import {
   shouldPrefillAddress,
   shouldResetAuthMode,
   classifyModels,
+  SERVICE_PRESETS,
+  presetPatch,
 } from '@/ai/providers'
 import { DEFAULT_SERVICE } from '@/data/profile'
 
@@ -159,5 +161,69 @@ describe('classifyModels (settings-profile.md §2.1)', () => {
       'openai/gpt-10',
     ])
     expect(c.speech).toEqual(['google/gemini-3.8-flash-lite-tts'])
+  })
+})
+
+describe('SERVICE_PRESETS (curated model sets, settings-profile.md §2.1)', () => {
+  it('OpenAI: gpt-6-luna / gpt-4o-mini-tts + nova / gpt-image-2', () => {
+    expect(SERVICE_PRESETS.openai).toEqual({
+      id: 'openai',
+      label: 'OpenAI',
+      profileId: 'openai',
+      chatModel: 'gpt-6-luna',
+      speechModel: 'gpt-4o-mini-tts',
+      speechVoice: 'nova',
+      imageModel: 'gpt-image-2',
+    })
+  })
+
+  it('OpenRouter: deepseek-v4-flash-0731 / gemini-3.8-flash-lite-tts + Leda / gemini-3.1-flash-lite-image', () => {
+    expect(SERVICE_PRESETS.openrouter).toEqual({
+      id: 'openrouter',
+      label: 'OpenRouter',
+      profileId: 'openrouter',
+      chatModel: 'deepseek/deepseek-v4-flash-0731',
+      speechModel: 'google/gemini-3.8-flash-lite-tts',
+      speechVoice: 'Leda',
+      imageModel: 'google/gemini-3.1-flash-lite-image',
+    })
+  })
+})
+
+describe('presetPatch', () => {
+  it('sets profile, models and voice — never the API key', () => {
+    const patch = presetPatch(SERVICE_PRESETS.openrouter, {
+      ...DEFAULT_SERVICE,
+      apiKey: 'sk-test',
+    })
+    expect(patch.providerProfile).toBe('openrouter')
+    expect(patch.baseUrl).toBe('https://openrouter.ai/api/v1')
+    expect(patch.chatModel).toBe('deepseek/deepseek-v4-flash-0731')
+    expect(patch.speechModel).toBe('google/gemini-3.8-flash-lite-tts')
+    expect(patch.speechVoice).toBe('Leda')
+    expect(patch.imageModel).toBe('google/gemini-3.1-flash-lite-image')
+    expect(patch.apiKey).toBeUndefined()
+  })
+
+  it('keeps a manually entered address (e.g. EU-bounded OpenRouter)', () => {
+    const patch = presetPatch(SERVICE_PRESETS.openrouter, {
+      ...DEFAULT_SERVICE,
+      baseUrl: 'https://eu.openrouter.ai/api/v1',
+    })
+    expect(patch.baseUrl).toBeUndefined()
+    expect(patch.providerProfile).toBe('openrouter')
+  })
+
+  it('keeps a manually chosen auth style', () => {
+    const patch = presetPatch(SERVICE_PRESETS.openrouter, {
+      ...DEFAULT_SERVICE,
+      authMode: 'x-api-key',
+    })
+    expect(patch.authMode).toBeUndefined()
+  })
+
+  it('replaces the auth style while it is still the default', () => {
+    const patch = presetPatch(SERVICE_PRESETS.openrouter, DEFAULT_SERVICE)
+    expect(patch.authMode).toBe('bearer')
   })
 })
