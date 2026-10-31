@@ -58,6 +58,9 @@ Manual dev: open `http://localhost:5173` → **Settings → AI service** → add
   worker (precaches built assets); keep it lint-free manually.
 - Model-provided markdown is rendered via `marked` + DOMPurify sanitize — `vue/no-v-html` is off for
   that; never render raw model HTML.
+- `FR-…`/`T…` IDs in comments are source-only traceability back to `specs/`; they are documented
+  convention, not shipping content — Vue's compiler drops template comments in production and the
+  minifier strips script comments, so the built bundle never contains them. Do not clean them up.
 
 ## Build / CI / deploy gotchas
 
