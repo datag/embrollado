@@ -169,6 +169,9 @@ export default {
     imageModel: 'Bildmodell',
     imageModelHint: 'Leer blendet den Bild-Knopf aus',
     fetchModels: 'Modelle abrufen',
+    modelsHint:
+      'Vorschläge antippen, um sie zu übernehmen — oder selbst eintippen. Lädt Chat-, Sprach- und Bildmodelle.',
+    modelsUnavailable: 'Der Dienst listet keine Modelle — bitte die Namen manuell eintragen.',
     test: 'Verbindung testen',
     testing: 'Wird getestet…',
     connected: 'Verbunden.',

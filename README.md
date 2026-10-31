@@ -97,7 +97,8 @@ Embrollado talks to any **OpenAI-compatible** endpoint. In **Settings → AI ser
 4. **API key** — stored locally only. It is never logged, never exported, and sent nowhere except
    your configured service.
 5. **Chat model** — required. **Speech/Image models** — optional; leaving them empty hides the
-   playback button and the picture button.
+   playback button and the picture button. "Fetch models" loads suggestions for all three fields
+   from `GET /models` (tap a suggestion to apply it).
 6. **Test the connection** — one minimal request. If your service blocks the browser (CORS),
    Embrollado shows the exact flag for that provider.
 

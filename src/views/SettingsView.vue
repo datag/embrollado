@@ -9,6 +9,7 @@ import {
   corsHintFor,
   shouldPrefillAddress,
   shouldResetAuthMode,
+  classifyModels,
 } from '@/ai/providers'
 import { testConnection, listModels } from '@/ai/aiService'
 import type { ConnectionTestResult } from '@/ai/aiService'
@@ -29,8 +30,16 @@ const { setTheme } = useTheme()
 const showKey = ref(false)
 const testing = ref(false)
 const testResult = ref<ConnectionTestResult | null>(null)
-const modelList = ref<string[]>([])
+const chatModels = ref<string[]>([])
+const speechModels = ref<string[]>([])
+const imageModels = ref<string[]>([])
 const modelsLoading = ref(false)
+const modelsError = ref(false)
+/** Any suggestion list is populated — show the "tap to apply" hint. */
+const hasModelSuggestions = computed(
+  () =>
+    chatModels.value.length > 0 || speechModels.value.length > 0 || imageModels.value.length > 0,
+)
 const estimate = ref({ usage: 0, quota: 0 })
 const hasEstimate = ref(false)
 const persistentState = ref<'unknown' | 'granted' | 'denied'>('unknown')
@@ -141,13 +150,36 @@ async function runTest() {
 
 async function runFetchModels() {
   modelsLoading.value = true
+  modelsError.value = false
   try {
-    modelList.value = await listModels({ ...service })
+    // One request fills all three suggestion lists — chat, speech and image (classified by the
+    // profile, never auto-applied).
+    const models = await listModels({ ...service })
+    const classified = classifyModels(service.providerProfile, models)
+    chatModels.value = classified.chat
+    speechModels.value = classified.speech
+    imageModels.value = classified.image
   } catch {
-    modelList.value = []
+    modelsError.value = true
+    chatModels.value = []
+    speechModels.value = []
+    imageModels.value = []
   } finally {
     modelsLoading.value = false
   }
+}
+
+function applyChatModel(id: string) {
+  updateService({ chatModel: id })
+  chatModels.value = []
+}
+function applySpeechModel(id: string) {
+  updateService({ speechModel: id })
+  speechModels.value = []
+}
+function applyImageModel(id: string) {
+  updateService({ imageModel: id })
+  imageModels.value = []
 }
 
 async function requestPersist() {
@@ -263,6 +295,7 @@ function lowSpaceComputed(): boolean {
           />
           <button
             type="button"
+            data-testid="fetch-models"
             class="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-lg border border-border px-3 text-sm"
             :class="modelsLoading ? 'cursor-wait' : ''"
             :disabled="modelsLoading"
@@ -272,12 +305,27 @@ function lowSpaceComputed(): boolean {
             {{ $t('settings.fetchModels') }}
           </button>
         </div>
+        <span v-if="hasModelSuggestions" class="mt-1 block text-xs text-fg-muted">
+          {{ $t('settings.modelsHint') }}
+        </span>
+        <span v-if="modelsError" class="mt-1 block text-xs text-error">
+          {{ $t('settings.modelsUnavailable') }}
+        </span>
       </label>
       <ul
-        v-if="modelList.length"
-        class="max-h-32 overflow-auto rounded border border-border bg-surface px-2 text-sm"
+        v-if="chatModels.length"
+        data-testid="model-list-chat"
+        class="max-h-32 overflow-auto rounded border border-border bg-surface p-1 text-sm"
       >
-        <li v-for="m in modelList" :key="m">{{ m }}</li>
+        <li v-for="m in chatModels" :key="m">
+          <button
+            type="button"
+            class="min-h-11 w-full rounded px-2 text-left"
+            @click="applyChatModel(m)"
+          >
+            {{ m }}
+          </button>
+        </li>
       </ul>
 
       <label class="block">
@@ -292,6 +340,21 @@ function lowSpaceComputed(): boolean {
         />
         <span class="mt-1 block text-xs text-fg-muted">{{ $t('settings.speechModelHint') }}</span>
       </label>
+      <ul
+        v-if="speechModels.length"
+        data-testid="model-list-speech"
+        class="max-h-32 overflow-auto rounded border border-border bg-surface p-1 text-sm"
+      >
+        <li v-for="m in speechModels" :key="m">
+          <button
+            type="button"
+            class="min-h-11 w-full rounded px-2 text-left"
+            @click="applySpeechModel(m)"
+          >
+            {{ m }}
+          </button>
+        </li>
+      </ul>
 
       <label class="block">
         <span class="mb-1 block text-sm">{{ $t('settings.speechVoice') }}</span>
@@ -318,6 +381,21 @@ function lowSpaceComputed(): boolean {
         />
         <span class="mt-1 block text-xs text-fg-muted">{{ $t('settings.imageModelHint') }}</span>
       </label>
+      <ul
+        v-if="imageModels.length"
+        data-testid="model-list-image"
+        class="max-h-32 overflow-auto rounded border border-border bg-surface p-1 text-sm"
+      >
+        <li v-for="m in imageModels" :key="m">
+          <button
+            type="button"
+            class="min-h-11 w-full rounded px-2 text-left"
+            @click="applyImageModel(m)"
+          >
+            {{ m }}
+          </button>
+        </li>
+      </ul>
 
       <div>
         <button

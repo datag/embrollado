@@ -238,6 +238,12 @@ Detection never spends money: the speech and image probes are **not** sent autom
 learner triggers a "test this service" action in Settings, and the result is remembered for the
 session.
 
+`GET {baseUrl}/models` is offered as a suggestion source for the chat, speech and image fields. The
+split trusts the server's declared `output_modalities` when present (OpenRouter); otherwise it is a
+name-based heuristic (`tts`/`speech` ⇒ speech, never `whisper`; `image`/`dall-e`/`flux`/`imagen`/
+`sdxl` ⇒ image) and remains a suggestion — the fields are free text and nothing is ever applied
+automatically.
+
 ## 12. What the app must never do
 
 - Send anything to an origin other than the configured `baseUrl` (SC-007).

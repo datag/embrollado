@@ -167,6 +167,9 @@ export default {
     imageModel: 'Image model',
     imageModelHint: 'Empty hides the generate-picture button',
     fetchModels: 'Fetch models',
+    modelsHint:
+      'Tap a suggestion to apply it, or type your own. Loads chat, speech and image models.',
+    modelsUnavailable: 'The service does not list models — enter the names manually.',
     test: 'Test the connection',
     testing: 'Testing…',
     connected: 'Connected.',

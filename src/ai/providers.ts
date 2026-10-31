@@ -180,6 +180,63 @@ export function shouldResetAuthMode(current: AuthMode, oldProfileId: string): bo
   return current === profileById(oldProfileId).defaultAuthMode
 }
 
+/* ------------------------------------------------------------------ */
+/* Model list classification (settings-profile.md §2.1)                */
+/* ------------------------------------------------------------------ */
+
+/** One entry of `GET {baseUrl}/models`, with the capability hints the server declares. */
+export interface ModelInfo {
+  id: string
+  /** The model's declared output modalities (e.g. `['text']`, `['text', 'audio']`). */
+  outputModalities: string[]
+}
+
+export interface ClassifiedModels {
+  chat: string[]
+  speech: string[]
+  image: string[]
+}
+
+/** Profiles whose servers expose only chat models — never speech or images. */
+const CHAT_ONLY_PROFILES = new Set(['llamacpp', 'vllm', 'lmstudio'])
+
+/**
+ * Split a model list into the three Settings fields. The classification is a suggestion only —
+ * the learner can still type any model name. Servers that declare `output_modalities`
+ * (OpenRouter) are trusted; everyone else is classified by name:
+ *  - speech: `tts` / `speech` (OpenAI `gpt-4o-mini-tts`, Ollama `…-tts`), never `whisper` (ASR);
+ *  - image: `image`, `dall-e`, `flux`, `imagen`, `sdxl`;
+ *  - everything else is offered as a chat model (image-capable models also chat).
+ */
+export function classifyModels(profileId: string, models: ModelInfo[]): ClassifiedModels {
+  if (CHAT_ONLY_PROFILES.has(profileId)) {
+    return { chat: models.map((m) => m.id).filter(Boolean), speech: [], image: [] }
+  }
+  const speech = new Set<string>()
+  const image = new Set<string>()
+  for (const m of models) {
+    const id = m.id.trim()
+    if (!id) continue
+    const hasModalities = m.outputModalities.length > 0
+    if (hasModalities) {
+      if (m.outputModalities.includes('audio')) speech.add(id)
+      if (m.outputModalities.includes('image')) image.add(id)
+      continue // declared modalities are trusted — no name guessing on OpenRouter
+    }
+    const lower = id.toLowerCase()
+    if (/\b(tts|speech)\b/.test(lower) && !/\bwhisper\b/.test(lower)) {
+      speech.add(id)
+    } else if (/\bimage\b|dall-?e|flux|imagen|sdxl/.test(lower)) {
+      image.add(id)
+    }
+  }
+  return {
+    chat: models.map((m) => m.id).filter((id) => !speech.has(id)),
+    speech: [...speech],
+    image: [...image],
+  }
+}
+
 /**
  * Whether the generate-picture button may be offered (FR-028 as amended). The three conditions
  * must hold: an image model is configured, the current provider profile exposes an images path

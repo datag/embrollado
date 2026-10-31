@@ -42,3 +42,19 @@ test('the detected profile hint can be applied', async ({ page }) => {
   await expect(page.getByTestId('service-base-url')).toHaveValue('https://eu.openrouter.ai/api/v1')
   await expect(hint).toHaveCount(0)
 })
+
+test('fetch models fills the chat, speech and image suggestions', async ({ page }) => {
+  await page.goto('/#/settings')
+  await page.getByTestId('service-provider').selectOption('custom')
+  await page.getByTestId('service-base-url').fill('http://localhost:8787/v1')
+  await page.getByTestId('service-api-key').fill('test')
+  await page.getByTestId('fetch-models').click()
+  const chat = page.getByTestId('model-list-chat')
+  await expect(chat).toContainText('mock-chat')
+  await expect(page.getByTestId('model-list-speech')).toContainText('mock-speech')
+  await expect(page.getByTestId('model-list-image')).toContainText('mock-image')
+  // Tapping a suggestion applies it and collapses the list.
+  await chat.getByRole('button', { name: 'mock-chat' }).click()
+  await expect(page.getByTestId('service-chat-model')).toHaveValue('mock-chat')
+  await expect(chat).toHaveCount(0)
+})

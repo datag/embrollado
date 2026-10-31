@@ -29,7 +29,7 @@ Hash routing (`createWebHashHistory`) so the app works on any static host withou
 | Auth style      | Select: `Bearer` / `x-api-key` / `api-key`                                        | —                                                                           | `ServiceConfig.authMode`                                               |
 | Service address | Text input                                                                         | Absolute http(s) URL                                                        | `ServiceConfig.baseUrl`                                                |
 | API key         | Password input, with a reveal toggle                                              | Non-empty                                                                   | `ServiceConfig.apiKey` (local only)                                    |
-| Chat model      | Text input, with a "fetch models" action that calls `GET {baseUrl}/models`        | Non-empty                                                                   | `ServiceConfig.chatModel`                                              |
+| Chat model      | Text input; "fetch models" (one `GET {baseUrl}/models`) fills the chat, speech and image suggestion lists | Non-empty | `ServiceConfig.chatModel` |
 | Speech model    | Text input, optional                                                              | —                                                                           | `ServiceConfig.speechModel`                                            |
 | Speech voice    | Text input, optional; empty ⇒ provider default                                    | Voices are model-specific — a wrong voice is the usual cause of an HTTP 400 | `ServiceConfig.speechVoice`                                            |
 | Image model     | Text input, optional                                                              | —                                                                           | `ServiceConfig.imageModel`                                             |
@@ -46,6 +46,11 @@ Hash routing (`createWebHashHistory`) so the app works on any static host withou
   offers to switch — the switch is applied only when the learner taps it.
 - The auth style is replaced on a profile switch only while it is still the previous profile's
   default; a manually chosen `x-api-key` / `api-key` survives.
+- "Fetch models" sends one `GET {baseUrl}/models` and fills three suggestion lists (chat, speech,
+  image), classified per the profile: OpenRouter's declared `output_modalities` are trusted;
+  everyone else is classified by name (`tts`/`speech` ⇒ speech, never `whisper`; `image`/
+  `dall-e`/`flux`/`imagen`/`sdxl` ⇒ image); llama.cpp/vLLM/LM Studio stay chat-only. Tapping a
+  suggestion applies it to the field; the fields remain free text.
 
 **Rules**
 

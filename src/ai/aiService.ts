@@ -1,6 +1,6 @@
 import { AiError } from '@/domain/types'
 import type { ServiceConfig } from '@/domain/types'
-import type { EndpointProfile } from '@/ai/providers'
+import type { EndpointProfile, ModelInfo } from '@/ai/providers'
 import { profileById } from '@/ai/providers'
 import { postJson, postStream, request } from '@/ai/transport'
 import { normalizeBodyError } from '@/ai/errors'
@@ -352,13 +352,21 @@ export async function testConnection(service: ServiceConfig): Promise<Connection
   }
 }
 
-export async function listModels(service: ServiceConfig): Promise<string[]> {
+export async function listModels(service: ServiceConfig): Promise<ModelInfo[]> {
   const profile = profileById(service.providerProfile)
   const url = buildUrl(service, '/models')
   const headers = authHeaders(service, profile)
   const response = await request(url, { method: 'GET', headers })
-  const json = (await response.json().catch(() => ({}))) as { data?: Array<{ id: string }> }
-  return (json.data ?? []).map((m) => m.id).filter(Boolean)
+  const json = (await response.json().catch(() => ({}))) as {
+    data?: Array<{
+      id: string
+      // OpenRouter declares capabilities per model; OpenAI/local servers do not.
+      architecture?: { output_modalities?: string[] }
+    }>
+  }
+  return (json.data ?? [])
+    .map((m) => ({ id: m.id, outputModalities: m.architecture?.output_modalities ?? [] }))
+    .filter((m) => Boolean(m.id))
 }
 
 /* ------------------------------------------------------------------ */

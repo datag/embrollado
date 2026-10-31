@@ -43,6 +43,23 @@ matching flag for the selected profile (spec FR-039).
 The test is the only automatic request Embrollado ever makes, and it only runs when you press the
 button.
 
+## Fetching model suggestions
+
+"Fetch models" sends **one** `GET {baseUrl}/models` and fills three suggestion lists — one under
+the chat, speech and image fields. Tapping a suggestion applies it to that field; you can always
+type any name instead. The classification is a suggestion, not a promise:
+
+- **OpenRouter** declares capabilities per model, so the split is exact: models with `audio`
+  output go to speech, `image` output to image, everything else to chat.
+- **OpenAI, Ollama, Custom** declare nothing, so the split is by name: names containing
+  `tts`/`speech` go to speech (never `whisper`), names containing `image`/`dall-e`/`flux`/
+  `imagen`/`sdxl` go to image.
+- **llama.cpp, vLLM, LM Studio** serve chat models only — speech and image stay empty, because
+  these servers have no `/audio/speech` or `/images` endpoint at all.
+
+The fetch is the only automatic request besides the connection test; Embrollado never probes
+`/audio/speech` or `/images` on its own.
+
 ## Structured output
 
 Every turn is requested as a strict JSON document (`response_format: json_schema`). If a server
