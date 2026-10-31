@@ -15,6 +15,12 @@ export default {
     privacyPolicyEn: 'Privacy Policy',
     privacyPolicyDe: 'Datenschutzerklärung',
   },
+  gate: {
+    hint: 'Gib den Zugangscode ein, um fortzufahren.',
+    codeLabel: 'Zugangscode',
+    submit: 'Weiter',
+    error: 'Dieser Code ist nicht korrekt.',
+  },
   sessions: {
     title: 'Deine Gespräche',
     empty: 'Noch keine Gespräche.',

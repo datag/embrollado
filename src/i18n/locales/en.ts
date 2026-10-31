@@ -15,6 +15,12 @@ export default {
     privacyPolicyEn: 'Privacy Policy',
     privacyPolicyDe: 'Datenschutzerklärung',
   },
+  gate: {
+    hint: 'Enter the access code to continue.',
+    codeLabel: 'Access code',
+    submit: 'Continue',
+    error: 'That code is not correct.',
+  },
   sessions: {
     title: 'Your conversations',
     empty: 'No conversations yet.',
