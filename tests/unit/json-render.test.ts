@@ -99,4 +99,48 @@ describe('renderJsonValue (expanded)', () => {
     const parsed = JSON.parse(stored) as unknown
     expect(texts(renderJsonValue(parsed, true))).toBe(JSON.stringify(parsed, null, 2))
   })
+
+  it('boxes a long single-line string by code-point length (>= 50)', () => {
+    const value = { content: 'x'.repeat(52) }
+    const tokens = renderJsonValue(value, true)
+    const decoded = tokens.find((t) => t.type === 'decoded')
+    expect(decoded).toBeTruthy()
+    expect(decoded!.text).toHaveLength(52)
+  })
+
+  it('keeps a short string below the code-point threshold unboxed', () => {
+    const value = { content: 'x'.repeat(49) }
+    const tokens = renderJsonValue(value, true)
+    expect(tokens.some((t) => t.type === 'decoded')).toBe(false)
+  })
+
+  it('boxes by code points, not UTF-16 units', () => {
+    // 49 emoji = 49 code points but 98 UTF-16 units — below the 50 code-point floor, so no box.
+    const short = '😀'.repeat(49)
+    expect(short.length).toBe(98) // would pass a unit-based >=50 check
+    expect(renderJsonValue({ content: short }, true).some((t) => t.type === 'decoded')).toBe(false)
+    // 50 emoji = 50 code points (100 units) → box.
+    const long = '😀'.repeat(50)
+    expect(renderJsonValue({ content: long }, true).some((t) => t.type === 'decoded')).toBe(true)
+  })
+
+  it('boxes a long string nested inside an unfolded structure', () => {
+    const value = { outer: { content: 'y'.repeat(60) } }
+    const tokens = renderJsonValue(value, true)
+    expect(tokens.some((t) => t.type === 'decoded')).toBe(true)
+  })
+
+  it('raw mode never boxes long strings', () => {
+    const value = { content: 'z'.repeat(80) }
+    const tokens = renderJsonValue(value, false)
+    expect(tokens.some((t) => t.type === 'decoded')).toBe(false)
+  })
+
+  it('never emits a blank structural line before/after a box', () => {
+    const value = { messages: [{ role: 'system', content: 'p'.repeat(70) }], ok: true }
+    const out = texts(renderJsonValue(value, true))
+    // Frames tokens around a box: "content": , newline, decoded, newline, closer — never an empty
+    // line (the box text itself here has no embedded blank lines).
+    expect(out).not.toContain('\n\n')
+  })
 })

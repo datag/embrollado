@@ -87,9 +87,11 @@ function classFor(type: JsonToken['type']): string {
 .json-text {
   color: var(--color-fg-muted);
 }
-/* A decoded string value sits on its own line inside a distinct box. */
+/* A long / multi-line string value sits as a decoded box on its own line. */
 .json-decoded {
-  display: block;
+  display: inline-block;
+  vertical-align: top;
+  max-width: 100%;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   background: color-mix(in oklab, var(--color-accent) 12%, transparent);

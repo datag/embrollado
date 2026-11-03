@@ -141,10 +141,27 @@ export function embeddedJson(raw: string): unknown {
  * string value can be shown unescaped and/or on its own line without breaking the surrounding
  * structure. In expanded mode:
  *  - embedded JSON objects/arrays are unfolded into nested blocks;
- *  - string values containing real newlines are emitted unquoted as a `decoded` box on their own line;
+ *  - string values of at least {@link BOX_MIN_CODE_POINTS} code points — or that contain a real
+ *    line break — are emitted unquoted as a `decoded` box on their own line (prompt/response prose);
  *  - other string values are shown quoted with their escapes decoded.
  * In raw mode (`expanded: false`) it behaves like ordinary pretty JSON.
  */
+
+/** Long string values are shown unquoted in a box when they reach this many code points. */
+export const BOX_MIN_CODE_POINTS = 50
+
+/** Length in Unicode code points (handles surrogate-pair emoji correctly). */
+function codePointLength(s: string): number {
+  let n = 0
+  for (const _ of s) n++
+  return n
+}
+
+/** Emit exactly one line break + indentation, so a box starts on its own line with no gap. */
+function ensureOwnLine(push: (t: JsonTokenType, s: string) => void, depth: number): void {
+  push('whitespace', '\n' + '  '.repeat(Math.max(0, depth + 1)))
+}
+
 export function renderJsonValue(value: unknown, expanded: boolean): JsonToken[] {
   const tokens: JsonToken[] = []
   const push = (type: JsonTokenType, text: string) => {
@@ -187,9 +204,9 @@ export function renderJsonValue(value: unknown, expanded: boolean): JsonToken[] 
       push('string', JSON.stringify(s))
       return
     }
-    if (/[\n\r]/.test(s)) {
-      // Multi-line string → a decoded box on its own line, unquoted, with real line breaks.
-      push('whitespace', '\n' + indent(depth + 1))
+    if (codePointLength(s) >= BOX_MIN_CODE_POINTS || /[\n\r]/.test(s)) {
+      // A long (or multi-line) string → a decoded box on its own line, unquoted.
+      ensureOwnLine(push, depth)
       push('decoded', s)
       return
     }

@@ -106,4 +106,26 @@ describe('debug panel', () => {
     expect(wrapper.find('[data-testid="debug-headers"]').text()).toContain('<REDACTED>')
     expect(wrapper.html()).not.toContain(SECRET)
   })
+
+  it('renders long payload strings as boxes with no vertical margin', async () => {
+    logRequest(CHAT_URL, {
+      method: 'POST',
+      headers: {},
+      body: JSON.stringify({
+        model: 'gpt',
+        messages: [{ role: 'user', content: 'x'.repeat(80) }],
+      }),
+    })
+    const wrapper = mountPanel()
+    await wrapper.find('[data-testid="debug-entry"]').trigger('click')
+
+    const boxes = wrapper.findAll('.json-decoded')
+    expect(boxes.length).toBeGreaterThanOrEqual(1)
+    for (const box of boxes) {
+      const styles = box.attributes('style') ?? ''
+      // happy-dom exposes no layout; the absence of any explicit margin is what the component sets.
+      expect(box.classes()).toContain('json-decoded')
+      expect(styles).not.toMatch(/margin/)
+    }
+  })
 })

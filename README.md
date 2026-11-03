@@ -145,9 +145,10 @@ with an ISO-like timestamp (`YYYY-MM-DD HH:MM:SS`), the request/response directi
 TTS, Image, Other), the method, path, and a status chip with the response time shown muted beside
 it. While the modal is open the page behind is scroll-locked. Clicking an entry shows the **real**
 request/response headers (collapsed by default; the API key is always `<REDACTED>`) plus the type
-and kind, and the payload — unfolded by default so embedded JSON string values (`content` field)
-render as readable nested blocks and multi-line decoded strings sit in a highlighted box; go to
-"Show raw" for the byte-exact form. Oversized values are shortened to `abcde<TRUNCATED>vwxyz`.
+and kind, and the payload — unfolded by default so embedded JSON string values render as readable
+nested blocks, and long string values (≥ 50 characters / code points, or containing a line break)
+sit unquoted in a highlighted box so prompt/response prose stays readable; go to "Show raw" for the
+byte-exact form. Oversized values are shortened to `abcde<TRUNCATED>vwxyz`.
 
 ## Deployment
 
