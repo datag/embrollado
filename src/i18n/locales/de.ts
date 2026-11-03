@@ -10,7 +10,7 @@ export default {
     settings: 'Einstellungen',
     about: 'Über',
     back: 'Zurück',
-    debug: 'Debug',
+    traffic: 'Traffic',
   },
   footer: {
     privacyPolicyEn: 'Privacy Policy',
@@ -304,7 +304,7 @@ export default {
     data: 'Gespräche, Illustrationen und zwischengespeichertes Audio liegen in IndexedDB; ein kleines Einstellungsdokument und deine Dienst-Konfiguration in localStorage. Nutze Export/Import, um sie zu sichern oder zu übertragen.',
   },
   debug: {
-    title: 'Debug-Panel',
+    title: 'Traffic-Inspektion',
     subtitle:
       'KI-Anfragen dieser Sitzung — überleben ein Neuladen in diesem Tab und enden, wenn der Tab geschlossen wird.',
     empty: 'Noch keine KI-Anfragen in dieser Sitzung.',

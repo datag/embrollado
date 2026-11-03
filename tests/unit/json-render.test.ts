@@ -70,4 +70,33 @@ describe('renderJsonValue (expanded)', () => {
     expect(out).toContain('"none": null')
     expect(out).toContain('"arr": [')
   })
+
+  it('matches JSON.stringify for escape-free payloads (no stray blank lines)', () => {
+    const payload = {
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'embrollado_scene',
+          strict: true,
+          schema: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['scene'],
+            properties: { scene: { type: 'string' } },
+          },
+        },
+      },
+    }
+    const pretty = JSON.stringify(payload, null, 2)
+    expect(texts(renderJsonValue(payload, true))).toBe(pretty)
+  })
+
+  it('round-trips escape-free stored payloads unchanged', () => {
+    const stored = JSON.stringify([
+      { id: 'a', values: [1, 2, 3], map: { x: 1 } },
+      { id: 'b', values: [], map: {} },
+    ])
+    const parsed = JSON.parse(stored) as unknown
+    expect(texts(renderJsonValue(parsed, true))).toBe(JSON.stringify(parsed, null, 2))
+  })
 })

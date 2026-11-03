@@ -71,9 +71,11 @@ test.describe('debug panel', () => {
     // Close and reload: the log survives in this tab.
     await page.getByTestId('debug-close').click()
     await expect(panel).toHaveCount(0)
-    // The footer item is a chip and the last interactive element of the footer.
+    // The footer item is a small chip-like control and the last interactive element of the footer.
     const chip = page.getByTestId('debug-toggle')
-    await expect(chip).toHaveClass(/rounded-full/)
+    await expect(chip).toHaveText('Traffic')
+    await expect(chip).not.toHaveClass(/rounded-full/)
+    await expect(chip).toHaveClass(/uppercase/)
     await page.reload()
     await page.getByTestId('debug-toggle').click()
     await expect(panel).toBeVisible()

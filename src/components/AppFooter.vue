@@ -48,10 +48,10 @@ const privacyLinks = computed<{ lang: PrivacyLang; href: string; label: string }
     <button
       type="button"
       data-testid="debug-toggle"
-      class="inline-block min-h-11 min-w-11 rounded-full border border-border bg-surface-raised px-3 py-2 align-middle text-[10px] font-semibold uppercase tracking-wide"
+      class="-my-2 inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg px-2 align-middle text-[10px] font-semibold uppercase tracking-wider text-fg-muted transition-colors hover:bg-surface-muted hover:text-fg"
       @click="toggleDebug"
     >
-      {{ t('nav.debug') }}
+      {{ t('nav.traffic') }}
     </button>
   </footer>
 </template>

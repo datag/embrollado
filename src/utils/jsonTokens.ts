@@ -206,8 +206,11 @@ export function renderJsonValue(value: unknown, expanded: boolean): JsonToken[] 
     push('whitespace', '\n' + indent(depth + 1))
     arr.forEach((item, i) => {
       emitValue(item, depth + 1)
-      if (i < arr.length - 1) push('punct', ',')
-      push('whitespace', '\n' + indent(depth + 1))
+      // The item line-break goes BETWEEN items only, so no stray blank line precedes the closer.
+      if (i < arr.length - 1) {
+        push('punct', ',')
+        push('whitespace', '\n' + indent(depth + 1))
+      }
     })
     push('whitespace', '\n' + indent(depth))
     push('punct', ']')
@@ -225,8 +228,11 @@ export function renderJsonValue(value: unknown, expanded: boolean): JsonToken[] 
       push('key', JSON.stringify(k))
       push('punct', ': ')
       emitValue(obj[k], depth + 1)
-      if (i < keys.length - 1) push('punct', ',')
-      push('whitespace', '\n' + indent(depth + 1))
+      // The item line-break goes BETWEEN items only, so no stray blank line precedes the closer.
+      if (i < keys.length - 1) {
+        push('punct', ',')
+        push('whitespace', '\n' + indent(depth + 1))
+      }
     })
     push('whitespace', '\n' + indent(depth))
     push('punct', '}')

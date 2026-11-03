@@ -10,7 +10,7 @@ export default {
     settings: 'Settings',
     about: 'About',
     back: 'Back',
-    debug: 'Debug',
+    traffic: 'Traffic',
   },
   footer: {
     privacyPolicyEn: 'Privacy Policy',
@@ -300,7 +300,7 @@ export default {
     data: 'Conversations, illustrations and cached audio live in IndexedDB; a small settings document and your service configuration live in localStorage. Use Export/Import to move or back them up.',
   },
   debug: {
-    title: 'Debug panel',
+    title: 'Traffic inspection',
     subtitle:
       'AI requests of this session — they survive a reload in this tab and end when the tab closes.',
     empty: 'No AI requests yet in this session.',
