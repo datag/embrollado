@@ -25,19 +25,42 @@ describe('debug log helpers', () => {
     expect(classifyKind('https://x/v1/models')).toBe('other')
   })
 
-  it('truncates a long string as 5 + <TRUNCATED> + 5', () => {
-    const long = 'a'.repeat(3000)
-    const out = truncateLongStrings(long) as string
-    expect(out).toBe('aaaaa<TRUNCATED>aaaaa')
+  it('truncates a value under a base64 field as 5 + <TRUNCATED> + 5', () => {
+    const b64 = 'A'.repeat(3000)
+    const out = (truncateLongStrings({ b64_json: b64 }) as Record<string, unknown>)[
+      'b64_json'
+    ] as string
+    expect(out).toBe('AAAAA<TRUNCATED>AAAAA')
   })
 
-  it('truncates long strings recursively and serialises prettily', () => {
-    const text = formatJsonText(
-      JSON.stringify({ msg: 'x'.repeat(3000), nested: { ok: true, n: 1 } }),
-    )
-    expect(text).toContain('<TRUNCATED>')
+  it('keeps a long prose string intact when it is not under a binary field (regression)', () => {
+    const text = 'Das ist ein langer Text '.repeat(100) // ~2400 chars
+    const out = (truncateLongStrings({ content: text }) as Record<string, unknown>)[
+      'content'
+    ] as string
+    expect(out).toBe(text)
+    expect(out).not.toContain('<TRUNCATED>')
+  })
+
+  it('truncates a value over the safety net under any field name', () => {
+    const out = (truncateLongStrings({ content: 'x'.repeat(60_000) }) as Record<string, unknown>)
+      .content as string
+    expect(out).toBe('xxxxx<TRUNCATED>xxxxx')
+  })
+
+  it('truncates array items under a base64-like field', () => {
+    const out = (truncateLongStrings({ b64: ['Y'.repeat(200), 'z'] }) as Record<string, unknown>)
+      .b64 as unknown[]
+    expect(out[0]).toBe('YYYYY<TRUNCATED>YYYYY')
+    expect(out[1]).toBe('z') // short value untouched
+  })
+
+  it('formatJsonText keeps long text fields intact and pretty-prints', () => {
+    const long = 'Antwort '.repeat(400) // ~2880 chars
+    const text = formatJsonText(JSON.stringify({ content: long, nested: { ok: true } }))
+    expect(text).toContain(long)
     expect(text).toContain('"nested"')
-    expect(text).toContain('    "ok": true')
+    expect(text).not.toContain('<TRUNCATED>')
   })
 
   it('formats an SSE body into a JSON array of frames', () => {

@@ -148,7 +148,8 @@ request/response headers (collapsed by default; the API key is always `<REDACTED
 and kind, and the payload — unfolded by default so embedded JSON string values render as readable
 nested blocks, and long string values (≥ 50 characters / code points, or containing a line break)
 sit unquoted in a highlighted box so prompt/response prose stays readable; go to "Show raw" for the
-byte-exact form. Oversized values are shortened to `abcde<TRUNCATED>vwxyz`.
+byte-exact form. Base64/binary payloads are shortened to `abcde<TRUNCATED>vwxyz`; ordinary text is
+kept intact.
 
 ## Deployment
 

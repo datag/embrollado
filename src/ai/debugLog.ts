@@ -5,9 +5,9 @@
  * which reports each request and its response here; nothing is exported and nothing leaves the
  * device. The store is plain (no Vue): components subscribe through `composables/useDebugLog.ts`.
  *
- * Redaction happens here (headers, the bearer key anywhere it appears), truncation of oversized
- * string values happens here too, and the payload shown is always already shortened — so a multi-MB
- * base64 image never sits in memory and never reaches the DOM.
+ * Redaction happens here (headers, the bearer key anywhere it appears), and truncation happens
+ * here too: only base64/binary values (or strings over the hard safety net) are shortened, so a
+ * multi-MB base64 image never sits in memory while ordinary prose stays intact.
  */
 import { readDebugEntries, writeDebugEntries, clearDebugEntries } from '@/data/debugSession'
 
@@ -33,7 +33,10 @@ export interface DebugLogEntry {
 }
 
 /** Values longer than this become `abcde<TRUNCATED>vwxyz` when shown (development TODO). */
-const TRUNCATE_LEN = 2000
+/** Values under a base64/binary field longer than this become `abcde<TRUNCATED>vwxyz`. */
+const BASE64_MIN_LEN = 64
+/** Hard safety net: any string longer than this is truncated regardless of its field name. */
+const SAFETY_MAX_LEN = 50_000
 const TRUNCATE_MARKER = '<TRUNCATED>'
 /** A raw, non-JSON text value is hard-capped so an unbounded body can never bloat the log. */
 const MAX_RAW_CHARS = 50_000
@@ -48,17 +51,32 @@ function safeStringify(value: unknown): string {
   }
 }
 
-/** Recursively shorten every string longer than the threshold (5 + marker + 5). */
-export function truncateLongStrings(value: unknown): unknown {
+/** Field names whose value holds base64/binary data (e.g. `b64_json` from the image API). */
+const BASE64_KEY = /b64|base64/i
+
+/** Shorten a string value; returns a new string. */
+function abbreviate(text: string): string {
+  return `${text.slice(0, 5)}${TRUNCATE_MARKER}${text.slice(-5)}`
+}
+
+/**
+ * Recursively shorten string values. Only values held under a base64/binary field name (or any
+ * string over the hard safety net) are truncated — ordinary prose is preserved intact, so a long
+ * answer or prompt no longer collapses to `abcde<TRUNCATED>vwxyz`. The field name travels with the
+ * walk: objects pass their key down, arrays inherit the parent's key (so `{"b64": [...]}` works).
+ */
+export function truncateLongStrings(value: unknown, key?: string): unknown {
   if (typeof value === 'string') {
-    if (value.length > TRUNCATE_LEN)
-      return `${value.slice(0, 5)}${TRUNCATE_MARKER}${value.slice(-5)}`
+    const isBinaryField = key !== undefined && BASE64_KEY.test(key)
+    if ((isBinaryField && value.length > BASE64_MIN_LEN) || value.length > SAFETY_MAX_LEN)
+      return abbreviate(value)
     return value
   }
-  if (Array.isArray(value)) return value.map(truncateLongStrings)
+  if (Array.isArray(value)) return value.map((child) => truncateLongStrings(child, key))
   if (value && typeof value === 'object') {
     const out: Record<string, unknown> = {}
-    for (const [key, child] of Object.entries(value)) out[key] = truncateLongStrings(child)
+    for (const [childKey, child] of Object.entries(value))
+      out[childKey] = truncateLongStrings(child, childKey)
     return out
   }
   return value
