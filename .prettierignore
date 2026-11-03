@@ -5,3 +5,9 @@ playwright-report/
 test-results/
 pnpm-lock.yaml
 *.woff2
+
+# Spec-kit tooling and feature specs are maintained outside Prettier; formatting
+# the whole repo would otherwise churn them on every `pnpm format`.
+.opencode/
+.specify/
+specs/
