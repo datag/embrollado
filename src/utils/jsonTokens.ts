@@ -157,11 +157,6 @@ function codePointLength(s: string): number {
   return n
 }
 
-/** Emit exactly one line break + indentation, so a box starts on its own line with no gap. */
-function ensureOwnLine(push: (t: JsonTokenType, s: string) => void, depth: number): void {
-  push('whitespace', '\n' + '  '.repeat(Math.max(0, depth + 1)))
-}
-
 export function renderJsonValue(value: unknown, expanded: boolean): JsonToken[] {
   const tokens: JsonToken[] = []
   const push = (type: JsonTokenType, text: string) => {
@@ -205,8 +200,7 @@ export function renderJsonValue(value: unknown, expanded: boolean): JsonToken[] 
       return
     }
     if (codePointLength(s) >= BOX_MIN_CODE_POINTS || /[\n\r]/.test(s)) {
-      // A long (or multi-line) string → a decoded box on its own line, unquoted.
-      ensureOwnLine(push, depth)
+      // A long (or multi-line) string → a decoded box, unquoted, flowing inline after the key.
       push('decoded', s)
       return
     }

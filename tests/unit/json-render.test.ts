@@ -31,15 +31,17 @@ describe('renderJsonValue (expanded)', () => {
     expect(out).toContain('"n": 1')
   })
 
-  it('renders a multi-line decoded string as a decoded token on its own line', () => {
+  it('renders a multi-line decoded string as a decoded token, inline after the key', () => {
     const value = { content: 'line1\nline2\nline3' }
     const tokens = renderJsonValue(value, true)
     const decoded = tokens.find((t) => t.type === 'decoded')!
     expect(decoded).toBeTruthy()
     expect(decoded.text).toBe('line1\nline2\nline3')
-    // there is leading whitespace so the box starts on its own indented line
-    const ws = tokens.find((t) => t.type === 'whitespace')
-    expect(ws?.text).toMatch(/\n\s+/)
+    // No leading line-break token is emitted, so the box flows right after ": " (no own-line gap).
+    const idx = tokens.indexOf(decoded)
+    const prev = tokens[idx - 1]
+    expect(prev?.type).toBe('punct')
+    expect(prev?.text).toBe(': ')
   })
 
   it('renders a single-line string with escapes decoded but quoted', () => {
