@@ -40,7 +40,7 @@ describe('debug panel', () => {
         status: 200,
         headers: { 'content-type': 'application/json' },
       }),
-      Date.now(),
+      performance.now(),
     )
 
     const wrapper = mountPanel()
@@ -67,7 +67,7 @@ describe('debug panel', () => {
         status: 204,
         headers: { 'content-type': 'application/json' },
       }),
-      Date.now() - 120,
+      performance.now() - 120,
     )
     const wrapper = mountPanel()
     await wrapper.find('[data-testid="debug-entry"]').trigger('click')
@@ -93,6 +93,14 @@ describe('debug panel', () => {
     const details = wrapper.find('details[data-testid="debug-headers"]')
     expect(details.attributes('open')).toBeUndefined() // collapsed by default
     expect(wrapper.find('[data-testid="debug-payload"]').text()).toContain('hola')
+
+    // Expand is the default: the toggle offers "Show raw".
+    const expandBtn = wrapper.find('[data-testid="debug-expand"]')
+    expect(expandBtn.exists()).toBe(true)
+    expect(expandBtn.text()).toBe('Show raw')
+    // The detail carries the type + kind badges.
+    expect(wrapper.find('[data-testid="debug-detail"]').text()).toContain('Request')
+    expect(wrapper.find('[data-testid="debug-detail"]').text()).toContain('Chat')
 
     await details.trigger('toggle-open')
     expect(wrapper.find('[data-testid="debug-headers"]').text()).toContain('<REDACTED>')

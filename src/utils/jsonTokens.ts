@@ -9,7 +9,15 @@
  */
 
 export type JsonTokenType =
-  'key' | 'string' | 'number' | 'literal' | 'punct' | 'whitespace' | 'text'
+  | 'key'
+  | 'string'
+  | 'number'
+  | 'literal'
+  | 'punct'
+  | 'whitespace'
+  | 'text'
+  /** A decoded string value shown unescaped (its own line, with a distinct box). */
+  | 'decoded'
 
 export interface JsonToken {
   type: JsonTokenType
@@ -109,4 +117,121 @@ export function tokenizeJson(code: string): JsonToken[] {
 /** Tokenise for display. Values were truncated at capture time by the debug store. */
 export function tokenizeJsonForDisplay(code: string): JsonToken[] {
   return tokenizeJson(code)
+}
+
+/* ------------------------------------------------------------------ */
+/* Value-tree renderer (expanded mode)                                */
+/* ------------------------------------------------------------------ */
+
+/** A string whose value is itself a parseable JSON object/array (structural heuristic). */
+export function embeddedJson(raw: string): unknown {
+  const trimmed = raw.trim()
+  if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) return null
+  try {
+    const parsed: unknown = JSON.parse(raw)
+    if (Array.isArray(parsed) || (typeof parsed === 'object' && parsed !== null)) return parsed
+  } catch {
+    /* not JSON — treat as a plain string */
+  }
+  return null
+}
+
+/**
+ * Render a parsed JSON value as tokens, staying structurally true (unlike the text tokenizer) so a
+ * string value can be shown unescaped and/or on its own line without breaking the surrounding
+ * structure. In expanded mode:
+ *  - embedded JSON objects/arrays are unfolded into nested blocks;
+ *  - string values containing real newlines are emitted unquoted as a `decoded` box on their own line;
+ *  - other string values are shown quoted with their escapes decoded.
+ * In raw mode (`expanded: false`) it behaves like ordinary pretty JSON.
+ */
+export function renderJsonValue(value: unknown, expanded: boolean): JsonToken[] {
+  const tokens: JsonToken[] = []
+  const push = (type: JsonTokenType, text: string) => {
+    if (text) tokens.push({ type, text })
+  }
+  const indent = (depth: number) => '  '.repeat(Math.max(0, depth))
+
+  function emitValue(v: unknown, depth: number): void {
+    if (v === null) {
+      push('literal', 'null')
+      return
+    }
+    const t = typeof v
+    if (t === 'boolean') {
+      push('literal', String(v))
+      return
+    }
+    if (t === 'number') {
+      push('number', String(v))
+      return
+    }
+    if (t === 'string') {
+      emitString(v as string, depth)
+      return
+    }
+    if (Array.isArray(v)) {
+      emitArray(v, depth)
+      return
+    }
+    emitObject(v as Record<string, unknown>, depth)
+  }
+
+  function emitString(s: string, depth: number): void {
+    const embedded = embeddedJson(s)
+    if (embedded !== null) {
+      emitValue(embedded, depth)
+      return
+    }
+    if (!expanded) {
+      push('string', JSON.stringify(s))
+      return
+    }
+    if (/[\n\r]/.test(s)) {
+      // Multi-line string → a decoded box on its own line, unquoted, with real line breaks.
+      push('whitespace', '\n' + indent(depth + 1))
+      push('decoded', s)
+      return
+    }
+    // Single-line with escapes → show decoded but keep it quoted so the value stays labelled.
+    push('string', '"' + s + '"')
+  }
+
+  function emitArray(arr: unknown[], depth: number): void {
+    push('punct', '[')
+    if (arr.length === 0) {
+      push('punct', ']')
+      return
+    }
+    push('whitespace', '\n' + indent(depth + 1))
+    arr.forEach((item, i) => {
+      emitValue(item, depth + 1)
+      if (i < arr.length - 1) push('punct', ',')
+      push('whitespace', '\n' + indent(depth + 1))
+    })
+    push('whitespace', '\n' + indent(depth))
+    push('punct', ']')
+  }
+
+  function emitObject(obj: Record<string, unknown>, depth: number): void {
+    push('punct', '{')
+    const keys = Object.keys(obj)
+    if (keys.length === 0) {
+      push('punct', '}')
+      return
+    }
+    push('whitespace', '\n' + indent(depth + 1))
+    keys.forEach((k, i) => {
+      push('key', JSON.stringify(k))
+      push('punct', ': ')
+      emitValue(obj[k], depth + 1)
+      if (i < keys.length - 1) push('punct', ',')
+      push('whitespace', '\n' + indent(depth + 1))
+    })
+    push('whitespace', '\n' + indent(depth))
+    push('punct', '}')
+  }
+
+  emitValue(value, 0)
+  return tokens
 }

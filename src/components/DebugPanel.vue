@@ -27,7 +27,7 @@ const selected = computed<DebugLogEntry | null>(
   () => list.value.find((e) => e.id === selectedId.value) ?? null,
 )
 /** Whether the detail view shows embedded JSON unfolded (vs. the raw payload). */
-const expanded = ref(false)
+const expanded = ref(true)
 
 function kindLabel(kind: DebugLogEntry['kind']): string {
   return t(`debug.kind${kind.charAt(0).toUpperCase()}${kind.slice(1)}`)
@@ -72,19 +72,27 @@ function onClear() {
   selectedId.value = null
 }
 
+const msLabel = (ms: number) => String(Math.round(ms))
+
 onMounted(() => {
   window.addEventListener('keydown', onKeydown)
+  // Lock the page behind the modal, matching ImageModal.vue (verified: the body overflow
+  // propagates to the viewport in Chrome without turning the body into its own scroll container).
+  document.body.classList.add('overflow-hidden')
   void nextTick(() => panelRef.value?.focus())
 })
-onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown)
+  document.body.classList.remove('overflow-hidden')
+})
 
 // Reset the drill-in when a fresh entry arrives while a stale id is selected.
 watch(selected, (sel) => {
   if (!sel && selectedId.value) selectedId.value = null
 })
-// Reset the expand toggle when switching between entries.
+// Expand is the default; reset it when switching between entries.
 watch(selectedId, () => {
-  expanded.value = false
+  expanded.value = true
 })
 </script>
 
@@ -154,7 +162,7 @@ watch(selectedId, () => {
         </div>
       </header>
 
-      <div class="flex-1 overflow-y-auto p-3">
+      <div class="flex-1 overflow-y-auto overscroll-contain p-3">
         <!-- ------------------------------ list ------------------------------ -->
         <template v-if="!selected">
           <p
@@ -215,7 +223,7 @@ watch(selectedId, () => {
                       v-if="entry.durationMs !== null"
                       class="border-l border-border pl-2 text-fg-muted"
                     >
-                      {{ t('debug.durationMs', { ms: entry.durationMs }) }}
+                      {{ t('debug.durationMs', { ms: msLabel(entry.durationMs) }) }}
                     </span>
                   </span>
                 </span>
@@ -250,7 +258,23 @@ watch(selectedId, () => {
             <dt class="text-fg-muted">{{ t('debug.time') }}</dt>
             <dd class="font-mono">{{ formatTimestamp(selected!.timestamp) }}</dd>
             <dt class="text-fg-muted">{{ t('debug.method') }}</dt>
-            <dd class="font-mono">{{ selected!.method }} {{ selected!.path }}</dd>
+            <dd class="flex flex-wrap items-center gap-2">
+              <span class="font-mono">{{ selected!.method }} {{ selected!.path }}</span>
+              <span
+                class="rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+                :class="
+                  selected!.direction === 'request'
+                    ? 'bg-accent/15 text-accent'
+                    : 'bg-ok/15 text-ok'
+                "
+                >{{ directionLabel(selected!.direction) }}</span
+              >
+              <span
+                class="rounded bg-surface-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+              >
+                {{ kindLabel(selected!.kind) }}
+              </span>
+            </dd>
             <dt class="text-fg-muted">{{ t('debug.status') }}</dt>
             <dd class="font-mono">
               <template v-if="selected!.direction === 'response'">
@@ -267,7 +291,7 @@ watch(selectedId, () => {
                   v-if="selected!.durationMs !== null"
                   class="ml-2 border-l border-border pl-2 text-fg-muted"
                 >
-                  {{ t('debug.durationMs', { ms: selected!.durationMs }) }}
+                  {{ t('debug.durationMs', { ms: msLabel(selected!.durationMs) }) }}
                 </span>
               </template>
               <template v-else>—</template>

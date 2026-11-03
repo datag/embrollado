@@ -21,7 +21,9 @@ function unexpectedFormat(status: number): AiError {
  * synchronously in `logResponse`'s prologue before the caller can touch the original body.
  */
 export async function request(url: string, init: RequestInit): Promise<Response> {
-  const startedAt = Date.now()
+  // High-resolution start (monotonic `performance.now()`) so `logResponse` can report sub-ms
+  // latency without being affected by wall-clock adjustments.
+  const startedAt = performance.now()
   logRequest(url, init)
   let response: Response
   try {

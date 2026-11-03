@@ -33,15 +33,6 @@ const privacyLinks = computed<{ lang: PrivacyLang; href: string; label: string }
     <span>{{ t('app.name') }}</span>
     <span class="mx-1" aria-hidden="true">·</span>
     <RouterLink to="/about" class="underline underline-offset-2">{{ t('nav.about') }}</RouterLink>
-    <span class="mx-1" aria-hidden="true">·</span>
-    <button
-      type="button"
-      data-testid="debug-toggle"
-      class="inline-block min-h-11 min-w-11 align-middle px-1 underline underline-offset-2"
-      @click="toggleDebug"
-    >
-      {{ t('nav.debug') }}
-    </button>
     <template v-for="link in privacyLinks" :key="link.lang">
       <span class="mx-1" aria-hidden="true">·</span>
       <a
@@ -53,5 +44,14 @@ const privacyLinks = computed<{ lang: PrivacyLang; href: string; label: string }
         {{ link.label }}
       </a>
     </template>
+    <span class="mx-1" aria-hidden="true">·</span>
+    <button
+      type="button"
+      data-testid="debug-toggle"
+      class="inline-block min-h-11 min-w-11 rounded-full border border-border bg-surface-raised px-3 py-2 align-middle text-[10px] font-semibold uppercase tracking-wide"
+      @click="toggleDebug"
+    >
+      {{ t('nav.debug') }}
+    </button>
   </footer>
 </template>

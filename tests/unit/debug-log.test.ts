@@ -85,7 +85,7 @@ describe('response logging', () => {
       'https://api.example.com/v1/chat/completions',
       { method: 'POST', headers: { authorization: `Bearer ${SECRET}` } },
       res,
-      Date.now(),
+      performance.now(),
     )
     const entry = debugLogEntries()[0]
     expect(entry.direction).toBe('response')
@@ -108,7 +108,7 @@ describe('response logging', () => {
       'https://api.example.com/v1/chat/completions',
       { headers: {} },
       res,
-      Date.now(),
+      performance.now(),
     )
     const entry = debugLogEntries()[0]
     expect(entry.payload).toContain('"content": "A"')
@@ -124,11 +124,75 @@ describe('response logging', () => {
       'https://api.example.com/v1/audio/speech',
       { method: 'POST', headers: {} },
       res,
-      Date.now(),
+      performance.now(),
     )
     const entry = debugLogEntries()[0]
     expect(entry.kind).toBe('tts')
     expect(entry.payload.startsWith('<binary audio/mpeg')).toBe(true)
+  })
+})
+
+describe('debug log chronology', () => {
+  beforeEach(() => clearDebugLog())
+
+  it('orders by event time, not by when the response body finished reading', async () => {
+    vi.useFakeTimers()
+    try {
+      // Request A is sent first.
+      vi.setSystemTime(1000)
+      logRequest('https://api.example.com/v1/chat/completions', { method: 'POST', headers: {} })
+
+      // Request B is sent later.
+      vi.setSystemTime(2000)
+      logRequest('https://api.example.com/v1/images', { method: 'POST', headers: {} })
+
+      // The response to A arrives at t=1500 (before B), but its body is read/flushed LAST — only
+      // now, after B is already in the log. It must still be sorted between A and B by its time.
+      vi.setSystemTime(1500)
+      const res = new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+      await logResponse(
+        'https://api.example.com/v1/chat/completions',
+        { method: 'POST', headers: {} },
+        res,
+        performance.now(),
+      )
+
+      // Newest first, strictly by timestamp — the response (1500) sits between B (2000) and A (1000),
+      // even though it was pushed last.
+      expect(debugLogEntries().map((e) => e.timestamp)).toEqual([2000, 1500, 1000])
+    } finally {
+      vi.useRealTimers()
+      clearDebugLog()
+    }
+  })
+
+  it('uses the seq counter to break timestamp ties (later event wins)', async () => {
+    vi.useFakeTimers()
+    try {
+      vi.setSystemTime(5000)
+      logRequest('https://api.example.com/v1/chat/completions', { method: 'POST', headers: {} })
+      const res = new Response(JSON.stringify({ n: 1 }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+      await logResponse(
+        'https://api.example.com/v1/chat/completions',
+        { method: 'POST', headers: {} },
+        res,
+        performance.now(),
+      )
+
+      // Two entries share the same timestamp; the response (seq 2) is newer than the request (seq 1).
+      const entries = debugLogEntries()
+      expect(entries[0].direction).toBe('response')
+      expect(entries[0].seq).toBeGreaterThan(entries[1].seq)
+    } finally {
+      vi.useRealTimers()
+      clearDebugLog()
+    }
   })
 })
 

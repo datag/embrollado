@@ -16,8 +16,10 @@ export type DebugRequestKind = 'chat' | 'tts' | 'image' | 'other'
 
 export interface DebugLogEntry {
   id: string
+  /** Monotonic event sequence — served as a tie-breaker when two entries share a timestamp. */
+  seq: number
   direction: DebugDirection
-  /** Epoch ms of when the request was sent / the response completed. */
+  /** Epoch ms of when the request was sent / the response's headers arrived. */
   timestamp: number
   kind: DebugRequestKind
   method: string
@@ -187,6 +189,12 @@ const listeners = new Set<() => void>()
 /** True once a persist attempt failed and the log only lives for this page. */
 let persistenceFailed = false
 
+/** Monotonic counter assigned at each event (request send / response arrival). */
+let seqCounter = 0
+function nextSeq(): number {
+  return ++seqCounter
+}
+
 function readPersisted() {
   entries = []
   persistenceFailed = false
@@ -213,7 +221,11 @@ function persist() {
 }
 
 function pushEntry(entry: DebugLogEntry) {
-  entries = [entry, ...entries].slice(0, MAX_ENTRIES)
+  entries = [entry, ...entries]
+  // Strict chronological order (newest first), independent of when a body read finished: sort by
+  // event timestamp, then by event sequence for ties. Entries are never re-ordered by insert time.
+  entries.sort((a, b) => b.timestamp - a.timestamp || b.seq - a.seq)
+  entries = entries.slice(0, MAX_ENTRIES)
   persist()
   notify()
 }
@@ -252,6 +264,7 @@ export function logRequest(url: string, init: RequestInit): void {
   const body = typeof init.body === 'string' ? init.body : null
   pushEntry({
     id: nextId(),
+    seq: nextSeq(),
     direction: 'request',
     timestamp: Date.now(),
     kind,
@@ -271,7 +284,7 @@ export async function logResponse(
   response: Response,
   startedAt: number,
 ): Promise<void> {
-  const durationMs = Date.now() - startedAt
+  const durationMs = performance.now() - startedAt
   const contentType = response.headers.get('content-type') ?? ''
   // The secret used to scrub bodies/URLs comes from the REQUEST auth header.
   const secret = extractSecret(normalizeHeaders(init.headers))
@@ -281,6 +294,7 @@ export async function logResponse(
 
   const base = {
     id: nextId(),
+    seq: nextSeq(),
     direction: 'response' as const,
     timestamp: Date.now(),
     kind: classifyKind(url),

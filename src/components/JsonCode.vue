@@ -1,26 +1,36 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { tokenizeJsonForDisplay, type JsonToken } from '@/utils/jsonTokens'
-import { expandEmbeddedJson } from '@/utils/jsonExpand'
+import { tokenizeJsonForDisplay, renderJsonValue, type JsonToken } from '@/utils/jsonTokens'
 
 /**
- * Syntax-highlighted JSON. Values are tokenised by `tokenizeJson` and rendered as isolated `<span>`s
- * — no `v-html`, so nothing here goes through the markdown/DOMPurify path and no markup from a body
- * can ever be interpreted (constitution Principle III). The payload was already truncated + redacted
- * by the debug store before it reached this component.
+ * Syntax-highlighted JSON. In the default expanded mode the payload is parsed and rendered from its
+ * value tree, which lets the component show string values unescaped and as a distinct multi-line
+ * box (the model's `content` field) while keeping the surrounding structure truthful. When the
+ * payload isn't valid JSON — or when "Show raw" is picked — it falls back to the text tokenizer.
  *
- * `expand` unfolds embedded JSON string values (e.g. the model's `content` field) into nested blocks
- * for readability; the stored payload is never changed, only the display. The `<pre>` is the scroll
- * container in both axes and wraps long lines at the container edge (overflow-wrap: anywhere), so the
- * slim box scrolls both ways without pushing the panel open.
+ * Tokens are rendered as isolated `<span>`s — no `v-html`, so nothing goes through the
+ * markdown/DOMPurify path and no markup from a body can ever be interpreted (Principle III). The
+ * payload was already truncated + redacted by the debug store.
  */
 const props = withDefaults(defineProps<{ code: string; expand?: boolean }>(), {
-  expand: false,
+  expand: true,
 })
 
-const tokens = computed<JsonToken[]>(() =>
-  tokenizeJsonForDisplay(props.expand ? expandEmbeddedJson(props.code) : props.code),
-)
+function tryParse(code: string): unknown {
+  try {
+    return JSON.parse(code)
+  } catch {
+    return null
+  }
+}
+
+const tokens = computed<JsonToken[]>(() => {
+  if (props.expand) {
+    const parsed = tryParse(props.code)
+    if (parsed !== null) return renderJsonValue(parsed, true)
+  }
+  return tokenizeJsonForDisplay(props.code)
+})
 
 function classFor(type: JsonToken['type']): string {
   switch (type) {
@@ -34,6 +44,8 @@ function classFor(type: JsonToken['type']): string {
       return 'json-literal'
     case 'text':
       return 'json-text'
+    case 'decoded':
+      return 'json-decoded'
     default:
       return ''
   }
@@ -56,8 +68,6 @@ function classFor(type: JsonToken['type']): string {
   font-size: 0.75rem;
   line-height: 1.5;
   tab-size: 2;
-  /* Long tokens (e.g. base64 or the escaped `content` line) break at the container edge instead of
-     forcing a page-wide horizontal scroll; the box still scrolls when a single token exceeds it. */
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -76,5 +86,15 @@ function classFor(type: JsonToken['type']): string {
 }
 .json-text {
   color: var(--color-fg-muted);
+}
+/* A decoded string value sits on its own line inside a distinct box. */
+.json-decoded {
+  display: block;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: color-mix(in oklab, var(--color-accent) 12%, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.25em 0.35em;
 }
 </style>
