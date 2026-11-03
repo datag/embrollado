@@ -53,11 +53,13 @@ function classFor(type: JsonToken['type']): string {
 </script>
 
 <template>
-  <pre class="json-pre"><span
+  <pre class="json-pre"><template
       v-for="(token, i) in tokens"
       :key="i"
-      :class="classFor(token.type)"
-    >{{ token.text }}</span></pre>
+    ><span
+        v-if="token.type !== 'whitespace'"
+        :class="classFor(token.type)"
+      >{{ token.text }}</span><template v-else>{{ token.text }}</template></template></pre>
 </template>
 
 <style scoped>
