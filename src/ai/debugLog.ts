@@ -1,13 +1,15 @@
 /**
- * In-memory debug log for the current page lifetime (constitution "current session" reading of the
- * development TODO). Every network call leaves through the single `fetch` seam (`ai/transport.ts`),
- * which reports each request and its response here — no persistence, no export, nothing leaves the
+ * Debug log for the current session: it survives a reload in the same tab (via `sessionStorage`,
+ * see `data/debugSession.ts`) but dies when the tab closes — the "current session" reading of the
+ * development TODO. Every network call leaves through the single `fetch` seam (`ai/transport.ts`),
+ * which reports each request and its response here; nothing is exported and nothing leaves the
  * device. The store is plain (no Vue): components subscribe through `composables/useDebugLog.ts`.
  *
  * Redaction happens here (headers, the bearer key anywhere it appears), truncation of oversized
  * string values happens here too, and the payload shown is always already shortened — so a multi-MB
  * base64 image never sits in memory and never reaches the DOM.
  */
+import { readDebugEntries, writeDebugEntries, clearDebugEntries } from '@/data/debugSession'
 
 export type DebugDirection = 'request' | 'response'
 export type DebugRequestKind = 'chat' | 'tts' | 'image' | 'other'
@@ -33,7 +35,7 @@ const TRUNCATE_LEN = 2000
 const TRUNCATE_MARKER = '<TRUNCATED>'
 /** A raw, non-JSON text value is hard-capped so an unbounded body can never bloat the log. */
 const MAX_RAW_CHARS = 50_000
-const MAX_ENTRIES = 200
+const MAX_ENTRIES = 50
 
 /** Serialise a parsed value to pretty JSON after truncating long strings. */
 function safeStringify(value: unknown): string {
@@ -139,7 +141,7 @@ function redactHeaders(headers: Record<string, string>): {
     if (key === 'authorization') {
       const scheme = value.includes(' ') ? value.slice(0, value.indexOf(' ')).trim() : value
       out[key] = `${scheme} ${REDACTED}`.trim()
-    } else if (key === 'x-api-key' || key === 'api-key') {
+    } else if (key === 'x-api-key' || key === 'api-key' || key === 'set-cookie') {
       out[key] = REDACTED
     } else {
       out[key] = value
@@ -182,13 +184,37 @@ function nextId(): string {
 
 let entries: DebugLogEntry[] = []
 const listeners = new Set<() => void>()
+/** True once a persist attempt failed and the log only lives for this page. */
+let persistenceFailed = false
+
+function readPersisted() {
+  entries = []
+  persistenceFailed = false
+  entries = readDebugEntries()
+  // Never let a storage-extracted log exceed the in-memory cap.
+  entries = entries.slice(0, MAX_ENTRIES)
+}
+
+// Hydrate from the previous page load in this tab (sessionStorage).
+readPersisted()
 
 function notify() {
   for (const listener of listeners) listener()
 }
 
+/** Persist best-effort; on failure the log keeps working in memory only. */
+function persist() {
+  const result = writeDebugEntries(entries)
+  if (result.ok) {
+    if (result.entries.length !== entries.length) entries = result.entries
+  } else {
+    persistenceFailed = true
+  }
+}
+
 function pushEntry(entry: DebugLogEntry) {
   entries = [entry, ...entries].slice(0, MAX_ENTRIES)
+  persist()
   notify()
 }
 
@@ -205,9 +231,16 @@ export function debugLogEntries(): readonly DebugLogEntry[] {
   return entries
 }
 
-/** Clear the current page's log (manual action; the log is never persisted anyway). */
+/** Whether storage is unavailable so the log survives only this page. */
+export function debugPersistenceFailed(): boolean {
+  return persistenceFailed
+}
+
+/** Clear the log (manual action) — memory and the persisted copy. */
 export function clearDebugLog(): void {
   entries = []
+  persistenceFailed = false
+  clearDebugEntries()
   notify()
 }
 
@@ -240,8 +273,10 @@ export async function logResponse(
 ): Promise<void> {
   const durationMs = Date.now() - startedAt
   const contentType = response.headers.get('content-type') ?? ''
-  const headerMap = normalizeHeaders(init.headers)
-  const { headers, secret } = redactHeaders(headerMap)
+  // The secret used to scrub bodies/URLs comes from the REQUEST auth header.
+  const secret = extractSecret(normalizeHeaders(init.headers))
+  // The headers shown on a response entry are the RESPONSE headers (redacted ids kept out).
+  const { headers } = redactHeaders(normalizeHeaders(response.headers))
   const status = response.status
 
   const base = {

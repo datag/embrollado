@@ -306,7 +306,7 @@ export default {
   debug: {
     title: 'Debug-Panel',
     subtitle:
-      'KI-Anfragen dieser Sitzung — nur im Speicher gehalten, werden beim Neuladen geleert.',
+      'KI-Anfragen dieser Sitzung — überleben ein Neuladen in diesem Tab und enden, wenn der Tab geschlossen wird.',
     empty: 'Noch keine KI-Anfragen in dieser Sitzung.',
     directionRequest: 'Anfrage',
     directionResponse: 'Antwort',
@@ -322,6 +322,9 @@ export default {
     headers: 'Header',
     payload: 'Payload',
     noBody: '(kein Body)',
+    expandJson: 'Eingebettetes JSON aufklappen',
+    showRaw: 'Roh anzeigen',
+    notPersisted: 'Das Protokoll konnte nicht gespeichert werden — es überlebt nur diese Seite.',
     clear: 'Protokoll leeren',
     close: 'Panel schließen',
     badge: 'Debug',

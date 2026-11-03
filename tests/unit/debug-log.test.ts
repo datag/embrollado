@@ -1,14 +1,16 @@
-import { describe, expect, it, beforeEach } from 'vitest'
+import { describe, expect, it, beforeEach, vi } from 'vitest'
 import {
   classifyKind,
   clearDebugLog,
   debugLogEntries,
+  debugPersistenceFailed,
   formatJsonText,
   formatSseText,
   logRequest,
   logResponse,
   truncateLongStrings,
 } from '@/ai/debugLog'
+import { readDebugEntries } from '@/data/debugSession'
 
 const SECRET = 'sk-testsecret-123'
 
@@ -91,6 +93,9 @@ describe('response logging', () => {
     expect(entry.kind).toBe('chat')
     expect(entry.payload).toContain('hi')
     expect(entry.payload).not.toContain(SECRET)
+    // REGRESSION (bug): a response entry shows the RESPONSE headers, not the request's.
+    expect(entry.headers['content-type']).toBe('application/json')
+    expect(entry.headers['authorization']).toBeUndefined()
   })
 
   it('formats an SSE response into its parsed frames', async () => {
@@ -124,5 +129,51 @@ describe('response logging', () => {
     const entry = debugLogEntries()[0]
     expect(entry.kind).toBe('tts')
     expect(entry.payload.startsWith('<binary audio/mpeg')).toBe(true)
+  })
+})
+
+describe('debug log persistence (sessionStorage)', () => {
+  beforeEach(() => clearDebugLog())
+
+  it('persists entries so they can be read back after a reload', () => {
+    logRequest('https://api.example.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {},
+      body: JSON.stringify({ model: 'gpt' }),
+    })
+    const persisted = readDebugEntries()
+    expect(persisted).toHaveLength(1)
+    expect(persisted[0].direction).toBe('request')
+    expect(persisted[0].path).toBe('/v1/chat/completions')
+  })
+
+  it('keeps working in memory and flags persistence failure when storage is blocked', () => {
+    const spy = vi.spyOn(sessionStorage, 'setItem').mockImplementation(() => {
+      throw new DOMException('quota', 'QuotaExceededError')
+    })
+    try {
+      logRequest('https://api.example.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {},
+      })
+      expect(debugLogEntries()).toHaveLength(1) // still in memory
+      expect(debugPersistenceFailed()).toBe(true)
+    } finally {
+      spy.mockRestore()
+      clearDebugLog()
+    }
+  })
+
+  it('caps the in-memory log and keeps the persisted copy within the byte budget', () => {
+    for (let i = 0; i < 200; i++) {
+      logRequest('https://api.example.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {},
+        body: JSON.stringify({ big: 'x'.repeat(2000), i }),
+      })
+    }
+    expect(debugLogEntries()).toHaveLength(50) // across a reload the stored list is also capped
+    const bytes = JSON.stringify(readDebugEntries()).length
+    expect(bytes).toBeLessThan(256 * 1024)
   })
 })

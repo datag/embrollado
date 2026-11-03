@@ -1,31 +1,33 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDebugLog, type DebugLogEntry } from '@/composables/useDebugLog'
 import { useDebugPanel } from '@/composables/useDebugPanel'
+import { formatTimestamp } from '@/utils/datetime'
 import JsonCode from '@/components/JsonCode.vue'
 
 /**
- * Debug panel — the "Development" TODO item. A footer item opens it (mounted in App.vue). Shows
- * every AI exchange of the current page: a list (newest first) of request/response entries, and on
- * click a detail view with the meta line, the headers (<details>, collapsed by default, credentials
- * already `<REDACTED>`) and — most importantly — the formatted, syntax-highlighted payload.
+ * Debug panel — the "Development" TODO item. A footer item opens it (mounted in App.vue). A true
+ * full-width modal (focus-trap, Esc, backdrop) showing every AI exchange of the current session:
+ * a list (newest first) of request/response entries, and on click a detail view with the meta line,
+ * the headers (<details>, collapsed by default, credentials `<REDACTED>`) and the payload — wrapped
+ * at the container edge, with embedded JSON (the `content` field) optionally unfolded.
  *
- * The log is in-memory only and never leaves the device (constitution "current session", local-first).
+ * The log survives a reload in this tab via sessionStorage and dies when the tab closes. It is never
+ * exported and never leaves the device.
  */
-const { entries, clear } = useDebugLog()
+const { entries, clear, persistenceFailed } = useDebugLog()
 const { close: closePanel } = useDebugPanel()
 const { t } = useI18n()
 
+const panelRef = ref<HTMLElement | null>(null)
 const list = computed(() => entries())
 const selectedId = ref<string | null>(null)
 const selected = computed<DebugLogEntry | null>(
   () => list.value.find((e) => e.id === selectedId.value) ?? null,
 )
-
-function formatTime(ms: number): string {
-  return new Date(ms).toLocaleString()
-}
+/** Whether the detail view shows embedded JSON unfolded (vs. the raw payload). */
+const expanded = ref(false)
 
 function kindLabel(kind: DebugLogEntry['kind']): string {
   return t(`debug.kind${kind.charAt(0).toUpperCase()}${kind.slice(1)}`)
@@ -41,6 +43,27 @@ function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape') {
     if (selectedId.value) selectedId.value = null
     else closePanel()
+    return
+  }
+  // Keep Tab inside the modal (focus trap, constitution/accessibility).
+  if (e.key !== 'Tab') return
+  const root = panelRef.value
+  if (!root) return
+  const focusables = Array.from(
+    root.querySelectorAll<HTMLElement>('button, [href], summary, [tabindex]:not([tabindex="-1"])'),
+  ).filter((el) => !el.hasAttribute('disabled') && (el as HTMLElement).offsetParent !== null)
+  if (focusables.length === 0) return
+  const first = focusables[0]
+  const last = focusables[focusables.length - 1]
+  const active = document.activeElement as HTMLElement | null
+  if (e.shiftKey) {
+    if (active === first || !root.contains(active)) {
+      e.preventDefault()
+      last.focus()
+    }
+  } else if (active === last) {
+    e.preventDefault()
+    first.focus()
   }
 }
 
@@ -49,40 +72,56 @@ function onClear() {
   selectedId.value = null
 }
 
-onMounted(() => window.addEventListener('keydown', onKeydown))
+onMounted(() => {
+  window.addEventListener('keydown', onKeydown)
+  void nextTick(() => panelRef.value?.focus())
+})
 onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
-// Reset the drill-in when a fresh entry arrives while a stale id is selected (it also closes the
-// breadcrumb for an id that no longer exists after a clear).
+// Reset the drill-in when a fresh entry arrives while a stale id is selected.
 watch(selected, (sel) => {
   if (!sel && selectedId.value) selectedId.value = null
+})
+// Reset the expand toggle when switching between entries.
+watch(selectedId, () => {
+  expanded.value = false
 })
 </script>
 
 <template>
-  <div
-    role="dialog"
-    aria-modal="true"
-    :aria-label="t('debug.title')"
-    data-testid="debug-panel"
-    class="fixed inset-0 z-50 flex sm:justify-end"
-  >
-    <!-- dim backdrop on mobile (tap to close); on ≥sm the drawer sits over the app's right side -->
+  <div data-testid="debug-panel" class="fixed inset-0 z-50 flex items-center justify-center sm:p-4">
+    <!-- backdrop (all breakpoints) — tap to close -->
     <div
-      class="absolute inset-0 bg-black/40 sm:hidden"
+      class="absolute inset-0 bg-black/40"
       data-testid="debug-backdrop"
       @click="closePanel"
     ></div>
 
     <div
-      class="relative flex h-full w-full flex-col border-border bg-surface sm:max-w-[560px] sm:border-l"
+      ref="panelRef"
+      role="dialog"
+      aria-modal="true"
+      tabindex="-1"
+      :aria-label="t('debug.title')"
+      class="relative flex h-full w-full flex-col border border-border bg-surface sm:h-auto sm:max-h-[90vh] sm:max-w-4xl sm:rounded-xl"
     >
       <header
-        class="flex items-center justify-between gap-2 border-b border-border bg-surface-raised px-4 py-2"
+        class="flex items-center justify-between gap-2 border-b border-border bg-surface-raised px-4 py-2 sm:rounded-t-xl"
       >
         <div class="min-w-0">
-          <h2 class="text-base font-bold leading-tight">{{ t('debug.title') }}</h2>
-          <p class="truncate text-xs text-fg-muted">{{ t('debug.subtitle') }}</p>
+          <h2 class="flex items-center gap-2 text-base font-bold leading-tight">
+            {{ t('debug.title') }}
+          </h2>
+          <p class="truncate text-xs text-fg-muted" data-testid="debug-subtitle">
+            {{ t('debug.subtitle') }}
+          </p>
+          <p
+            v-if="persistenceFailed()"
+            class="text-xs text-error"
+            data-testid="debug-not-persisted"
+          >
+            {{ t('debug.notPersisted') }}
+          </p>
         </div>
         <div class="flex items-center gap-1">
           <button
@@ -151,7 +190,7 @@ watch(selected, (sel) => {
                     </span>
                   </span>
                   <span class="shrink-0 font-mono text-xs text-fg-muted">{{
-                    formatTime(entry.timestamp)
+                    formatTimestamp(entry.timestamp)
                   }}</span>
                 </span>
                 <span class="flex items-center justify-between gap-2 font-mono text-xs">
@@ -159,17 +198,25 @@ watch(selected, (sel) => {
                     <span class="text-fg-muted">{{ entry.method }}</span>
                     <span class="ml-1">{{ entry.path }}</span>
                   </span>
-                  <span v-if="entry.direction === 'response'" class="shrink-0">
+                  <span
+                    v-if="entry.direction === 'response'"
+                    class="flex shrink-0 items-center gap-1"
+                  >
                     <span
+                      class="rounded px-1.5 py-0.5 text-[10px] font-semibold"
                       :class="
-                        entry.status !== null && entry.status >= 400 ? 'text-error' : 'text-ok'
+                        entry.status !== null && entry.status >= 400
+                          ? 'bg-error/15 text-error'
+                          : 'bg-ok/15 text-ok'
                       "
+                      >{{ entry.status }}</span
                     >
-                      {{ entry.status }}
+                    <span
+                      v-if="entry.durationMs !== null"
+                      class="border-l border-border pl-2 text-fg-muted"
+                    >
+                      {{ t('debug.durationMs', { ms: entry.durationMs }) }}
                     </span>
-                    <span v-if="entry.durationMs !== null" class="ml-2 text-fg-muted">{{
-                      t('debug.durationMs', { ms: entry.durationMs })
-                    }}</span>
                   </span>
                 </span>
               </button>
@@ -201,20 +248,25 @@ watch(selected, (sel) => {
             class="mb-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 rounded-lg border border-border bg-surface-raised p-3 text-sm"
           >
             <dt class="text-fg-muted">{{ t('debug.time') }}</dt>
-            <dd>{{ formatTime(selected!.timestamp) }}</dd>
+            <dd class="font-mono">{{ formatTimestamp(selected!.timestamp) }}</dd>
             <dt class="text-fg-muted">{{ t('debug.method') }}</dt>
             <dd class="font-mono">{{ selected!.method }} {{ selected!.path }}</dd>
             <dt class="text-fg-muted">{{ t('debug.status') }}</dt>
-            <dd>
+            <dd class="font-mono">
               <template v-if="selected!.direction === 'response'">
                 <span
+                  class="rounded px-1.5 py-0.5 text-[10px] font-semibold"
                   :class="
-                    selected!.status !== null && selected!.status >= 400 ? 'text-error' : 'text-ok'
+                    selected!.status !== null && selected!.status >= 400
+                      ? 'bg-error/15 text-error'
+                      : 'bg-ok/15 text-ok'
                   "
+                  >{{ selected!.status }}</span
                 >
-                  {{ selected!.status }}
-                </span>
-                <span v-if="selected!.durationMs !== null" class="ml-2 text-fg-muted">
+                <span
+                  v-if="selected!.durationMs !== null"
+                  class="ml-2 border-l border-border pl-2 text-fg-muted"
+                >
                   {{ t('debug.durationMs', { ms: selected!.durationMs }) }}
                 </span>
               </template>
@@ -227,23 +279,40 @@ watch(selected, (sel) => {
             <summary class="flex min-h-11 items-center px-3 text-sm font-medium text-fg">
               {{ t('debug.headers') }}
             </summary>
-            <div class="max-h-64 overflow-y-auto border-t border-border px-3 py-2">
+            <div class="max-h-64 overflow-auto border-t border-border px-3 py-2">
               <pre
-                class="m-0 text-xs leading-relaxed"
+                class="m-0 whitespace-pre-wrap break-all text-xs leading-relaxed"
               ><template v-for="(value, key) in selected!.headers" :key="key"><span class="text-accent">{{ key }}</span>: {{ value }}
 </template></pre>
             </div>
           </details>
 
-          <!-- the payload: highlighted JSON, or a plain placeholder for binary -->
+          <!-- the payload: wrapped JSON, optionally unfolded; or a plain placeholder for binary -->
           <div class="overflow-hidden rounded-lg border border-border">
-            <div class="border-b border-border bg-surface-raised px-3 py-2 text-sm font-medium">
-              {{ t('debug.payload') }}
+            <div
+              class="flex items-center justify-between gap-2 border-b border-border bg-surface-raised px-3 py-2"
+            >
+              <span class="text-sm font-medium">{{ t('debug.payload') }}</span>
+              <button
+                v-if="selected!.payload && !isBinary(selected!.payload)"
+                type="button"
+                data-testid="debug-expand"
+                class="min-h-11 rounded-lg px-2 text-xs text-fg-muted transition-colors hover:text-fg"
+                @click="expanded = !expanded"
+              >
+                {{ expanded ? t('debug.showRaw') : t('debug.expandJson') }}
+              </button>
             </div>
-            <div class="max-h-[60vh] overflow-auto bg-surface p-3" data-testid="debug-payload">
-              <p v-if="!selected!.payload" class="text-sm text-fg-muted">{{ t('debug.noBody') }}</p>
-              <JsonCode v-else-if="!isBinary(selected!.payload)" :code="selected!.payload" />
-              <p v-else class="font-mono text-xs text-fg-muted">{{ selected!.payload }}</p>
+            <div data-testid="debug-payload" class="bg-surface p-3">
+              <JsonCode
+                v-if="!isBinary(selected!.payload)"
+                :code="selected!.payload"
+                :expand="expanded"
+              />
+              <p v-else-if="selected!.payload" class="font-mono text-xs text-fg-muted">
+                {{ selected!.payload }}
+              </p>
+              <p v-else class="text-sm text-fg-muted">{{ t('debug.noBody') }}</p>
             </div>
           </div>
         </div>

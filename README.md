@@ -137,13 +137,16 @@ low on space it prunes **only** the speech cache — never a transcript or a pic
 
 ## Debug panel
 
-A **Debug** item in the footer opens a panel (available in production too) that lists every AI
-request and response made since the page loaded — nothing is persisted and a reload clears it. The
-newest entry is shown first, each with its time, request/response direction, kind (Chat, TTS, Image,
-Other), method, path and status. Clicking an entry shows the request/response headers (collapsed by
-default) and the formatted, syntax-highlighted payload; the API key is always shown as
-`<REDACTED>`. Oversized values (e.g. base64 image data) are shortened to
-`abcde<TRUNCATED>vwxyz` before display.
+A **Debug** item in the footer opens a full-width modal (available in production too) that lists
+every AI request and response of the current session. The log is kept in `sessionStorage`, so it
+survives a reload in the same tab and ends when the tab is closed — it is never exported and never
+leaves the device. Each entry is shown with an ISO-like timestamp (`YYYY-MM-DD HH:MM:SS`), the
+request/response direction, the kind (Chat, TTS, Image, Other), the method, path, and a status chip
+with the response time shown muted beside it. Clicking an entry shows the **real** request/response
+headers (collapsed by default; the API key is always `<REDACTED>`) and the payload — wrapped at the
+container edge so long lines don't cause a page-wide scroll, with a toggle to unfold embedded JSON
+string values (the model's `content` field). Oversized values are shortened to
+`abcde<TRUNCATED>vwxyz`.
 
 ## Deployment
 

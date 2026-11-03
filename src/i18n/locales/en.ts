@@ -301,7 +301,8 @@ export default {
   },
   debug: {
     title: 'Debug panel',
-    subtitle: 'AI requests of this session — kept only in memory, cleared on reload.',
+    subtitle:
+      'AI requests of this session — they survive a reload in this tab and end when the tab closes.',
     empty: 'No AI requests yet in this session.',
     directionRequest: 'Request',
     directionResponse: 'Response',
@@ -317,6 +318,9 @@ export default {
     headers: 'Headers',
     payload: 'Payload',
     noBody: '(no body)',
+    expandJson: 'Expand embedded JSON',
+    showRaw: 'Show raw',
+    notPersisted: 'The log could not be saved — it only survives this page.',
     clear: 'Clear log',
     close: 'Close panel',
     badge: 'Debug',

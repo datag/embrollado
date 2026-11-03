@@ -1,5 +1,10 @@
 import { ref } from 'vue'
-import { debugLogEntries, subscribeDebugLog, clearDebugLog } from '@/ai/debugLog'
+import {
+  debugLogEntries,
+  subscribeDebugLog,
+  clearDebugLog,
+  debugPersistenceFailed,
+} from '@/ai/debugLog'
 import type { DebugLogEntry } from '@/ai/debugLog'
 
 /**
@@ -16,12 +21,15 @@ subscribeDebugLog(() => {
 export interface UseDebugLog {
   entries: () => readonly DebugLogEntry[]
   clear: () => void
+  /** True when the log could not be persisted and survives only this page. */
+  persistenceFailed: () => boolean
 }
 
 export function useDebugLog(): UseDebugLog {
   return {
     entries: () => entriesSnapshot.value,
     clear: clearDebugLog,
+    persistenceFailed: debugPersistenceFailed,
   }
 }
 
