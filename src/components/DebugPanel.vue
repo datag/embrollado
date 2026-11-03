@@ -21,6 +21,7 @@ const { close: closePanel } = useDebugPanel()
 const { t } = useI18n()
 
 const panelRef = ref<HTMLElement | null>(null)
+const backEl = ref<HTMLButtonElement | null>(null)
 const list = computed(() => entries())
 const selectedId = ref<string | null>(null)
 const selected = computed<DebugLogEntry | null>(
@@ -28,6 +29,10 @@ const selected = computed<DebugLogEntry | null>(
 )
 /** Whether the detail view shows embedded JSON unfolded (vs. the raw payload). */
 const expanded = ref(true)
+
+function goBack() {
+  selectedId.value = null
+}
 
 function kindLabel(kind: DebugLogEntry['kind']): string {
   return t(`debug.kind${kind.charAt(0).toUpperCase()}${kind.slice(1)}`)
@@ -41,7 +46,7 @@ const isBinary = (payload: string) => payload.startsWith('<binary')
 
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape') {
-    if (selectedId.value) selectedId.value = null
+    if (selectedId.value) goBack()
     else closePanel()
     return
   }
@@ -94,6 +99,15 @@ watch(selected, (sel) => {
 watch(selectedId, () => {
   expanded.value = true
 })
+// When a detail opens, move focus to the header back control (the list entry that was focused is
+// unmounted, so focus would otherwise fall through to <body>).
+watch(
+  selected,
+  (sel) => {
+    if (sel) void nextTick(() => backEl.value?.focus())
+  },
+  { flush: 'post' },
+)
 </script>
 
 <template>
@@ -116,20 +130,42 @@ watch(selectedId, () => {
       <header
         class="flex items-center justify-between gap-2 border-b border-border bg-surface-raised px-4 py-2 sm:rounded-t-xl"
       >
-        <div class="min-w-0">
-          <h2 class="flex items-center gap-2 text-base font-bold leading-tight">
-            {{ t('debug.title') }}
-          </h2>
-          <p class="truncate text-xs text-fg-muted" data-testid="debug-subtitle">
-            {{ t('debug.subtitle') }}
-          </p>
-          <p
-            v-if="persistenceFailed()"
-            class="text-xs text-error"
-            data-testid="debug-not-persisted"
+        <div class="flex min-w-0 items-center gap-1">
+          <button
+            v-if="selected"
+            ref="backEl"
+            type="button"
+            data-testid="debug-back"
+            class="flex h-11 shrink-0 items-center gap-1 rounded-lg px-2 text-sm text-fg-muted transition-colors hover:text-fg"
+            @click="goBack"
           >
-            {{ t('debug.notPersisted') }}
-          </p>
+            <svg
+              viewBox="0 0 24 24"
+              class="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            {{ t('nav.back') }}
+          </button>
+          <div class="min-w-0">
+            <h2 class="flex items-center gap-2 text-base font-bold leading-tight">
+              {{ t('debug.title') }}
+            </h2>
+            <p class="truncate text-xs text-fg-muted" data-testid="debug-subtitle">
+              {{ t('debug.subtitle') }}
+            </p>
+            <p
+              v-if="persistenceFailed()"
+              class="text-xs text-error"
+              data-testid="debug-not-persisted"
+            >
+              {{ t('debug.notPersisted') }}
+            </p>
+          </div>
         </div>
         <div class="flex items-center gap-1">
           <button
@@ -234,24 +270,6 @@ watch(selectedId, () => {
 
         <!-- ------------------------------ detail ------------------------------ -->
         <div v-else data-testid="debug-detail">
-          <button
-            type="button"
-            class="mb-2 flex min-h-11 items-center gap-1 rounded-lg px-2 text-sm text-fg-muted transition-colors hover:text-fg"
-            @click="selectedId = null"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              class="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              aria-hidden="true"
-            >
-              <path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-            {{ t('nav.back') }}
-          </button>
-
           <dl
             class="mb-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 rounded-lg border border-border bg-surface-raised p-3 text-sm"
           >

@@ -107,6 +107,26 @@ describe('debug panel', () => {
     expect(wrapper.html()).not.toContain(SECRET)
   })
 
+  it('moves the back control into the header', async () => {
+    logRequest(CHAT_URL, { method: 'POST', headers: {} })
+    const wrapper = mountPanel()
+
+    // In the list the header has no back control.
+    expect(wrapper.find('[data-testid="debug-back"]').exists()).toBe(false)
+
+    await wrapper.find('[data-testid="debug-entry"]').trigger('click')
+    // In the detail the back control appears in the header and nowhere else.
+    expect(wrapper.find('[data-testid="debug-back"]').exists()).toBe(true)
+    expect(wrapper.findAll('[data-testid="debug-back"]')).toHaveLength(1)
+    expect(
+      wrapper.find('[data-testid="debug-detail"]').find('[data-testid="debug-back"]').exists(),
+    ).toBe(false)
+
+    await wrapper.find('[data-testid="debug-back"]').trigger('click')
+    expect(wrapper.find('[data-testid="debug-detail"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="debug-list"]').exists()).toBe(true)
+  })
+
   it('renders long payload strings as boxes with no vertical margin', async () => {
     logRequest(CHAT_URL, {
       method: 'POST',

@@ -61,6 +61,13 @@ test.describe('debug panel', () => {
     await expect(panel.getByTestId('debug-payload')).toBeVisible()
     await expect(panel.getByTestId('debug-detail')).toContainText('Request')
     await expect(panel.getByTestId('debug-detail')).toContainText('Chat')
+    // The header back control returns to the list.
+    await expect(panel.getByTestId('debug-back')).toBeVisible()
+    await panel.getByTestId('debug-back').click()
+    await expect(panel.getByTestId('debug-list')).toBeVisible()
+    await expect(panel.getByTestId('debug-back')).toHaveCount(0)
+    // Re-open a detail for the redaction assertions.
+    await panel.getByTestId('debug-entry').filter({ hasText: 'Request' }).first().click()
     // The payload is unfolded by default (the toggle offers "Show raw").
     await expect(panel.getByTestId('debug-expand')).toHaveText('Show raw')
     await expect(panel.getByTestId('debug-headers')).not.toHaveAttribute('open')
