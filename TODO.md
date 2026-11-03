@@ -4,8 +4,6 @@ Offene Punkte, nach Themen gruppiert.
 
 ## Development
 
-- [x] Ein Debug-Panel (auch im Prod-Build) in dem man alle AI-Requests der aktuellen Session (keine Persistenz) nachsehen/prüfen kann. Der JSON-Request und -Response sollte formatted und highlighted dargestellt werden. Längere Payloads (z.B. base64-kodierte Bildaten) sollen mit jeweils 5 Zeichen vorne/hinten und zwischendrin `<TRUNCATED>` abgekürzt werden. Das Panel kann mit einem Icon in der rechten unteren Ecke getoggelt werden. Das Panel zeigt eine Listenansicht (sortiert nach Datum absteigend) mit Datum/Uhrzeit, Request oder Response, Art (Chat, TTS, Image, Sonstige). Ein Klick auf ein Item soll die Details inklusive Header (Default zugeklappt, und API-Key als `<REDACTED>`) und insbesondere der Payload zeigen. _(Toggle über einen „Debug“-Eintrag im Footer statt eines Icons in der Ecke.)_
-
 ## Build & Deployment
 
 ## Conversation List
@@ -13,6 +11,7 @@ Offene Punkte, nach Themen gruppiert.
 ## Conversations Settings
 
 - [ ] Konversations-Settings: festlegen, wer beginnt (User oder AI) inkl. Default.
+- [ ] Überlegung: User-Kontext ebenfalls in den Konversation-Start verschieben und dort auch mehrere User-Persona ermöglichen
 
 ## Conversation
 
@@ -21,6 +20,8 @@ Offene Punkte, nach Themen gruppiert.
 - [ ] Eingabe-Hilfe für eine Gap/Lücke `???`
 - [ ] Emoji für Stimmungen/Mimik?
 - [ ] HTML5-Attribut für Input-Sprache?
+- [ ] Untersuchen; möglicher BUG: Situation/Persona und auch User-Kontext ist für eine Konversation fix. Auch wenn sich zwischenzeitlich z.B. die Infos zum User geändert haben, muss die Konversation stets mit den urspünglichen Settings laufen. Sicherstellen, dass die Settings nicht live herausgezogen werden, sondern direkt an den Metadaten der Konversation inkl. Persistenz stecken. Andere Settings wie z.B. Modell etc. sollen hingegen live herangezogen werden.
+- [ ] Streamed responses mit unserem structured JSON überhaupt sinnvoll bzw. partielles Rendern der Chunks möglich?
 
 ### Darstellung
 
@@ -46,6 +47,10 @@ Offene Punkte, nach Themen gruppiert.
 - [ ] Prüfen: Bekommt Image-Gen den vollen Kontext, inkl. Aussehen der Personen? Negativbeispiel: Persona-Kontext "blaue Jeans und weißes Oberteil", und (schwaches?) Bild-Modell macht ein Blumenkleid daraus.
 - [ ] Bildstil (Illustrationen) festlegen. Notiz: Stil einmalig mit LLM aus gespeicherten Bildern als JSON beschreiben lassen.
 - [ ] Konsistente Images (also bei Folge-Bildern)
+
+## Sonstiges AI
+
+- [ ] Kosten, sofern in Responses geliefert, aufaddieren und anzeigen.
 
 ## Profil & Persona
 
