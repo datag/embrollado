@@ -476,8 +476,9 @@ export async function requestImage(service: ServiceConfig, prompt: string): Prom
     }
     // A provider that answers with a remote `url` is not used for display, but the bytes are
     // fetched once at generation time so no third-party address is contacted later (FR-029).
+    // Routed through `request()` so it leaves the same fetch seam as every other call (T021).
     if (item?.url) {
-      const res = await fetch(item.url)
+      const res = await request(item.url, { method: 'GET' })
       const bytes = new Uint8Array(await res.arrayBuffer())
       return { ok: true, bytes, mimeType: res.headers.get('content-type') ?? 'image/png' }
     }

@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { appConfig, privacyPolicyLink, type PrivacyLang } from '@/config/app'
+import { useDebugPanel } from '@/composables/useDebugPanel'
 
 /**
  * App footer: app name, the About link, and — only when a privacy-policy URL is configured at
@@ -13,6 +14,7 @@ const props = withDefaults(defineProps<{ privacyPolicyUrl?: string }>(), {
 })
 
 const { t } = useI18n()
+const { toggle: toggleDebug } = useDebugPanel()
 
 const privacyLinks = computed<{ lang: PrivacyLang; href: string; label: string }[]>(() => {
   const base = props.privacyPolicyUrl ?? appConfig.privacyPolicyUrl
@@ -31,6 +33,15 @@ const privacyLinks = computed<{ lang: PrivacyLang; href: string; label: string }
     <span>{{ t('app.name') }}</span>
     <span class="mx-1" aria-hidden="true">·</span>
     <RouterLink to="/about" class="underline underline-offset-2">{{ t('nav.about') }}</RouterLink>
+    <span class="mx-1" aria-hidden="true">·</span>
+    <button
+      type="button"
+      data-testid="debug-toggle"
+      class="inline-block min-h-11 min-w-11 align-middle px-1 underline underline-offset-2"
+      @click="toggleDebug"
+    >
+      {{ t('nav.debug') }}
+    </button>
     <template v-for="link in privacyLinks" :key="link.lang">
       <span class="mx-1" aria-hidden="true">·</span>
       <a

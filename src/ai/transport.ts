@@ -1,5 +1,6 @@
 import { AiError } from '@/domain/types'
 import { mapThrownError, normalizeResponseError } from '@/ai/errors'
+import { logRequest, logResponse } from '@/ai/debugLog'
 
 /**
  * The single `fetch` seam — every request the app makes leaves through `request()` (T021).
@@ -12,14 +13,24 @@ function unexpectedFormat(status: number): AiError {
   return new AiError('provider', 'The service answered in an unexpected format.', status)
 }
 
-/** The one place that calls `fetch`. Resolves with the (checked) Response. */
+/**
+ * The one place that calls `fetch`. Resolves with the (checked) Response. Also reports the exchange
+ * to the in-memory debug log: the request is logged synchronously, and the response body is captured
+ * on a *clone* read in the background — the log read must not be awaited here, or it would deadlock
+ * the SSE path (the original body is consumed by the caller's stream reader). The clone is made
+ * synchronously in `logResponse`'s prologue before the caller can touch the original body.
+ */
 export async function request(url: string, init: RequestInit): Promise<Response> {
+  const startedAt = Date.now()
+  logRequest(url, init)
   let response: Response
   try {
     response = await fetch(url, init)
   } catch (err) {
     throw mapThrownError(err instanceof Error ? err : new Error(String(err)))
   }
+  // Capture the response body in the background on a clone; never awaited.
+  void logResponse(url, init, response, startedAt)
   if (!response.ok) throw await normalizeResponseError(response)
   return response
 }

@@ -4,19 +4,11 @@ Offene Punkte, nach Themen gruppiert.
 
 ## Development
 
-- [x] AGENTS.md mit /init erzeugen
-  - [x] Faustregel: Stets committen (wenn mehrere Features/Fixes angefragt, möglichst atomar), aber nicht pushen
+- [x] Ein Debug-Panel (auch im Prod-Build) in dem man alle AI-Requests der aktuellen Session (keine Persistenz) nachsehen/prüfen kann. Der JSON-Request und -Response sollte formatted und highlighted dargestellt werden. Längere Payloads (z.B. base64-kodierte Bildaten) sollen mit jeweils 5 Zeichen vorne/hinten und zwischendrin `<TRUNCATED>` abgekürzt werden. Das Panel kann mit einem Icon in der rechten unteren Ecke getoggelt werden. Das Panel zeigt eine Listenansicht (sortiert nach Datum absteigend) mit Datum/Uhrzeit, Request oder Response, Art (Chat, TTS, Image, Sonstige). Ein Klick auf ein Item soll die Details inklusive Header (Default zugeklappt, und API-Key als `<REDACTED>`) und insbesondere der Payload zeigen. _(Toggle über einen „Debug“-Eintrag im Footer statt eines Icons in der Ecke.)_
 
 ## Build & Deployment
 
-- [x] HTML-Kommentare mit Verweisen auf Specs entfernen – oder sicherstellen, dass sie im finalen Build nicht sichtbar sind.
-- [x] FavIcon ergänzen. Möglicherweise etwas mit einem "E"? SVG?
-- [x] Datenschutzerklärung-Verlinkung Englisch/Deutsch (zwei Links "Privacy Policy" und "Datenschutzerklärung", selbe URL, aber named anchor #en und #de) mittels Env- bzw. GitHub-Repository-Vars (analog zu anderen Projekten, z.B. ~/projects/wizzy-weasel) im Footer. Sind die Variablen nicht gesetzt, gibt es diese Links nicht im Footer.
-- [x] Zusätzlich eine Env- bzw. GitHub-Repository-Var gestützte Code-Abfrage, die den Zugriff auf die App beschränkt. Es handelt sich hier lediglich um eine weiche Maßnahme "nicht direkt der Öffentlichkeit zugänglich", und nicht um einen Sicherheitsmechanismus. Das Passwort ist "letmein" und ist das Hash im Code hinterlegt. Nur wenn das Setting existiert, kommt unmittelbar vor dem Rendern einer Seite die Code-Abfrage. Ist der Code richtig, so wird ein Marker im localStorage (achte auf den App-Namen-Prefix) hinterlegt, an dem festgestellt werden kann, dass bereits einmal ein gültiger Code eingegeben wurde. In diesem Fall kommt keine Anfrage.
-
 ## Conversation List
-
-- [x] Absteigend nach Datum (oder letzter Aktivität, falls vorhanden) sorieren
 
 ## Conversations Settings
 
@@ -28,22 +20,20 @@ Offene Punkte, nach Themen gruppiert.
 - [ ] Eingabe-Hilfe (Button-Zeile) für Akzente und Zeichen wie ¿ und ¡
 - [ ] Eingabe-Hilfe für eine Gap/Lücke `???`
 - [ ] Emoji für Stimmungen/Mimik?
-- [ ] Retry-Function bei Fail?
-- [x] Bewertung scheint hin und wieder Einfluss auf die Antwort zu nehmen; Manchmal AI-Antwort in Feedback-Language. Prompt schärfen, dass nicht die Sprache aus Erklärung relevant, sondern die Zielsprache.
+- [ ] HTML5-Attribut für Input-Sprache?
 
 ### Darstellung
 
 - [ ] Lücken visuell hervorgehoben rendern
 - [ ] "Was du verbessern kannst": Die mit `whitespace-nowrap` gestylten Korrekturen fließen bei langen Texten aus dem Layout. Gibt es eine Klasse, die Umbrüche vermeidet, aber nicht verbietet?
+- [ ] Dropdowns im Darkmode schwer lesbar, da hellgrauer Hintergrund
 
 ### Feedback & Bewertung
 
 - [ ] Bewertung: Akzente explizit mitbewerten; Typografie nur als Anmerkung. Ggf. konfigurierbar machen.
-- [x] Untersuchen: Wenn in Explanation ein Fehler (Rechtschreibfehler in Wort) erwähnt wird, dann sollte dieser Fund auch in den Korrekturen auftauchen.
-- [x] Bei Verbesserungsvorschlägen kein Imperativ wie "bitte korrigieren", denn diese Funktion ist nicht vorgesehen.
 - [x] Zu klären: Bewertung geht häufig bereits auf die AI-Antwort ein. Unsicher, ob wir das wollen.
   - [ ] Nochmals erwägen, die Evaluation in einen separaten Request zu machen, um das zu verhindern.
-- [x] Bewertung wirklich nur auf die letzte User-Antwort, niemals das zuvor korrigieren/bewerten, jedoch ggf. als zusätzlich Kontext verwenden.
+- [ ] Bei schwachen Modellen (?) ist die Explanation hin und wieder immer noch aus der Perspektive der AI-Persona. Es soll jedoch objektiv bzw. aus Erzählerperspektive bzw. von Lehrer aus dem Off kommen. Negativbeispiel: "Du fragst höflich nach meiner Herkunft,"
 
 ## TTS / Audio
 
@@ -53,8 +43,8 @@ Offene Punkte, nach Themen gruppiert.
 
 ## Image Generation
 
-- [ ] Prüfen: Bekommt Image-Gen den vollen Kontext, inkl. Aussehen der Personen?
-- [ ] Bildstil (Illustrationen) festlegen.
+- [ ] Prüfen: Bekommt Image-Gen den vollen Kontext, inkl. Aussehen der Personen? Negativbeispiel: Persona-Kontext "blaue Jeans und weißes Oberteil", und (schwaches?) Bild-Modell macht ein Blumenkleid daraus.
+- [ ] Bildstil (Illustrationen) festlegen. Notiz: Stil einmalig mit LLM aus gespeicherten Bildern als JSON beschreiben lassen.
 - [ ] Konsistente Images (also bei Folge-Bildern)
 
 ## Profil & Persona
@@ -62,5 +52,3 @@ Offene Punkte, nach Themen gruppiert.
 - [ ] Zielgruppe einstellbar (Kind vs. Erwachsener) oder automatisch aus dem Alter ableiten. Hinweis: Ableitung aus dem Alter schließt ein „Alter-Ego“ aus.
 
 ## Settings & Konfiguration
-
-- [x] Auth-style / Provider-Profil – URL als separate Option anbieten? — Profil führt, Adresse wird beim Profilwechsel vorbefüllt (sofern noch auto-gefüllt), Auth-Stil bleibt separate Option; getippte Adresse zeigt „Erkannt"-Hinweis statt das Profil zu überschreiben.

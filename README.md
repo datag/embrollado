@@ -135,6 +135,16 @@ Everything is wiped when the browser clears site data. Use **Export/Import** to 
 The app requests persistent storage (`navigator.storage.persist()`) on demand; if the device is
 low on space it prunes **only** the speech cache — never a transcript or a picture.
 
+## Debug panel
+
+A **Debug** item in the footer opens a panel (available in production too) that lists every AI
+request and response made since the page loaded — nothing is persisted and a reload clears it. The
+newest entry is shown first, each with its time, request/response direction, kind (Chat, TTS, Image,
+Other), method, path and status. Clicking an entry shows the request/response headers (collapsed by
+default) and the formatted, syntax-highlighted payload; the API key is always shown as
+`<REDACTED>`. Oversized values (e.g. base64 image data) are shortened to
+`abcde<TRUNCATED>vwxyz` before display.
+
 ## Deployment
 
 Two options:
@@ -181,8 +191,8 @@ dialogue itself reports the missing connection.
 
 | Suite              | Covers                                                                                                                                                                                                                                                         |
 | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unit (Vitest)      | badge tiers, catalogue, SSE parser, error normaliser, prompt builder, export envelope, migrations, settings, speech-cache pruning, translation visibility (FR-057)                                                                                             |
-| Component (Vitest) | the setup pickers, the feedback block (fixed element order, explanation added without hiding feedback), the muted line translation and its toggle                                                                                                              |
+| Unit (Vitest)      | badge tiers, catalogue, SSE parser, error normaliser, prompt builder, export envelope, migrations, settings, speech-cache pruning, translation visibility, debug-log capture (redaction, truncation, kinds)                                                    |
+| Component (Vitest) | the setup pickers, the feedback block (fixed element order, explanation added without hiding feedback), the muted line translation and its toggle, the debug panel (list order, redacted key, collapsed headers)                                               |
 | E2E (Playwright)   | the dialogue cycle against the local mock (incl. the hidden/revealed line translation), conversation list (search/rename/delete), export/import round trip, offline reload, speech + illustrations, network isolation, and the mobile layout at 393/390/320 px |
 
 The e2e suite asserts the constitution's hard promises directly: no horizontal scrolling at

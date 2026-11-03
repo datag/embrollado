@@ -2,9 +2,11 @@
 import AppHeader from '@/components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
 import AccessGate from '@/components/AccessGate.vue'
+import DebugPanel from '@/components/DebugPanel.vue'
 import { computed, ref } from 'vue'
 import { accessGateEnabled } from '@/config/app'
 import { readAccessGrant } from '@/data/access'
+import { useDebugPanel } from '@/composables/useDebugPanel'
 
 // A `file://` origin has undefined storage behaviour — the app is not supported there
 // (contracts/deployment.md §8). Show a short, dismissible notice instead of silently misbehaving.
@@ -17,6 +19,9 @@ const onFileProtocol = computed(
 // (localStorage marker `embrollado.access.v1`).
 const gateEnabled = accessGateEnabled()
 const granted = ref(gateEnabled ? readAccessGrant() : true)
+
+// Debug panel open state (toggled from the footer item).
+const { open: debugOpen } = useDebugPanel()
 </script>
 
 <template>
@@ -34,5 +39,6 @@ const granted = ref(gateEnabled ? readAccessGrant() : true)
     >
       {{ $t('app.fileProtocol') }}
     </div>
+    <DebugPanel v-if="debugOpen" />
   </div>
 </template>
