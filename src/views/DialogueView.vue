@@ -181,16 +181,48 @@ watch(
   () => sessionState.partnerProgress.value,
   () => {
     if (streaming.value && isNearBottom()) scrollToBottom(false)
+    captureStreamAnchor()
   },
   { flush: 'post' },
 )
 
+/**
+ * The partner line's streaming position (T132). Captured on every streamed frame while the line
+ * exists; consumed once when the turn lands.
+ */
+const streamAnchor = ref<{ lineTop: number } | null>(null)
+
+function captureStreamAnchor() {
+  const line = document.querySelector('[data-testid="partner-streaming"]')
+  streamAnchor.value = line ? { lineTop: line.getBoundingClientRect().top } : null
+}
+
+function settleTurnPosition() {
+  const anchor = streamAnchor.value
+  streamAnchor.value = null
+  if (anchor == null) {
+    // No line was streaming (e.g. a session was just opened) — keep the old behaviour.
+    scrollToBottom(true)
+    return
+  }
+  // Restore the line to the viewport position it had while streaming, by scrolling the net shift
+  // it was displaced (whatever the block's height, including per-turn row differences). Instant, so
+  // nothing glides. If the reader scrolled the line out of view, leave everything alone.
+  const lines = document.querySelectorAll('[data-testid="partner-line"]')
+  const finalLine = lines.length ? lines[lines.length - 1] : null
+  if (!finalLine || anchor.lineTop < 0 || anchor.lineTop > window.innerHeight) return
+  const delta = finalLine.getBoundingClientRect().top - anchor.lineTop
+  if (Math.abs(delta) > 1) window.scrollBy({ top: delta, behavior: 'auto' })
+}
+
 // The learner's answer renders instantly on send — scroll it into view even before the model
-// answers (the sent message belongs at the foot of the conversation).
+// answers (the sent message belongs at the foot of the conversation). Instant, so the position is
+// settled before the stream starts: a smooth glide here would still be running while the partner
+// line streams in and would corrupt the landing-anchor capture (T132).
 watch(
   () => sessionState.pendingLearnerText.value,
   (v) => {
-    if (v) void nextTick(() => scrollToBottom(true))
+    if (v) void nextTick(() => scrollToBottom(false))
   },
   { flush: 'post' },
 )
@@ -200,7 +232,7 @@ watch(
 watch(
   () => turns.value,
   () => {
-    void nextTick(() => scrollToBottom(true))
+    void nextTick(() => settleTurnPosition())
   },
   { flush: 'post' },
 )
@@ -296,6 +328,7 @@ watch(
                 :text="turn.partnerText"
                 side="partner"
                 :translation="sessionState.isTranslationVisible(turn.id) ? turn.translation : null"
+                data-testid="partner-line"
               />
               <p
                 v-if="speechHint(turn.id)"

@@ -367,6 +367,10 @@ learner answers (FR-057).
 
 - [x] T131 Keep the reactive service singleton in sync with `embrollado.service.v1`: `reloadService()` in `src/composables/useSettings.ts` re-reads the document explicitly, and a `storage` event listener reloads it automatically when another tab of the same browser profile changes it — a stale tab can no longer keep a dead configuration nor silently overwrite the other tab's edit. Unit tests in `tests/unit/service-sync.test.ts`; README ("Where your data lives") and `data-model.md` §6 updated.
 
+### A variable-height assessment no longer shoves the partner line around (T132)
+
+- [x] T132 Keep the partner line still when the feedback block lands: the block sits above the line, so a full block (~330 px) pushed the line the learner was reading ~285 px down, and the follow-up smooth scroll then slid it back — two movements in opposite directions, the observable "restlessness". The assessment is variable (as little as the badge ~60 px, up to every field ~330 px), so a fixed offset cannot work. `src/views/DialogueView.vue` now remembers the streamed line's viewport position and, once the turn lands, scrolls the net shift back with an instant `scrollBy` — independent of the block's actual height. If the reader scrolled away mid-stream, nothing is overridden; without a streamed line, the old behaviour stays. The block itself no longer "appears": in `src/components/FeedbackPanel.vue` the frame was already shown by the loading card, so only the content fades in once (180 ms, within the unchanged frame). e2e in `tests/e2e/dialogue.spec.ts` (streamed top ≈ final top), component test in `tests/component/FeedbackPanel.test.ts`; `contracts/settings-profile.md` §3 updated.
+
 ---
 
 ## Dependencies & Execution Order

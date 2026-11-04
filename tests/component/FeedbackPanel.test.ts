@@ -111,4 +111,16 @@ describe('feedback panel (T046, T052)', () => {
       expect(badgeEl?.classes()).toContain(`bg-badge-${tier}`)
     }
   })
+
+  it('fades the content in within the already-present frame (T132)', () => {
+    // The frame was shown while the turn was pending, so the block must not "appear" as a whole —
+    // only its content settles in, inside the unchanged frame.
+    const wrapper = mountPanel(makeTurn())
+    const frame = wrapper.find('[data-testid="feedback"]')
+    expect(frame.classes()).toContain('bg-surface-muted')
+    const arriving = wrapper.find('.feedback-arrive')
+    expect(arriving.exists()).toBe(true)
+    // The sections live inside the animated wrapper — shown or not, the fade is one movement act.
+    expect(arriving.find('h4').text()).toBe('Explanation')
+  })
 })

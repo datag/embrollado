@@ -136,6 +136,11 @@ placeholder), complete, failed (with the learner's text kept and a retry; a part
 partner line is discarded, because the failed turn never becomes part of the conversation), offline,
 and "the service is not configured" (with a link to Settings).
 
+Scroll behaviour on a completed turn: the partner line stays at the viewport position the learner
+was reading it at, whatever the height of the assessment that just landed above it (the block is
+variable: sometimes only the badge, sometimes every field). If the learner scrolled away while the
+line streamed, the position is not overridden.
+
 ## 4. Setup screen contract
 
 | Control             | Options                                                                                       | Requirement                    |

@@ -249,4 +249,46 @@ test.describe('dialogue cycle', () => {
     await expect(placeholder).toHaveCount(0)
     await expect(page.getByTestId('partner-streaming')).toHaveCount(0)
   })
+
+  test('keeps the partner line still when the assessment arrives (T132)', async ({ page }) => {
+    // The assessment is variable in height (sometimes only the badge, sometimes every field). When
+    // it lands the partner line must not be pushed around. This only holds when the transcript
+    // actually overflows the viewport (the reading case) — on a page that fits there is no scroll
+    // room, so the line must just stay on screen. Build a tall transcript first.
+    await configureService(page, { chatModel: 'mock-streaming-chat' })
+    await startConversation(page)
+    for (let i = 0; i < 3; i++) {
+      await page.getByTestId('dialogue-input').fill('Where do you come from?')
+      await page.getByTestId('send').click()
+      await expect(page.getByTestId('feedback')).toHaveCount(i + 1, { timeout: 20_000 })
+    }
+    // The transcript now overflows, so there is scroll room to keep the line still.
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollHeight - window.innerHeight,
+    )
+    expect(overflow).toBeGreaterThan(300)
+
+    await page.getByTestId('dialogue-input').fill('Is this the washroom?')
+    await page.getByTestId('send').click()
+
+    // Mid-stream: remember where the newest line sits in the viewport. The app snaps the wheel to
+    // the foot when the line first appears — sample only after that has settled (the mock pauses
+    // for 2 s, so this window is deterministic).
+    const streaming = page.getByTestId('partner-streaming')
+    await expect(streaming).toBeVisible({ timeout: 20_000 })
+    await page.waitForTimeout(200)
+    const streamedTop = await streaming.evaluate((el) => el.getBoundingClientRect().top)
+
+    // When the assessment lands, the line must stay at that exact viewport position. The partner
+    // line's permanent slot gains the translation toggle column (absent while streaming), so a
+    // small residual is expected — what must NOT happen is the line being shoved by the block's
+    // height (~200–330 px): the anchor keeps it within a few dozen pixels.
+    await expect(page.getByTestId('feedback')).toHaveCount(4, { timeout: 20_000 })
+    const finalLine = page.getByTestId('partner-line').last()
+    const drift = await finalLine.evaluate(
+      (el, top) => el.getBoundingClientRect().top - top,
+      streamedTop,
+    )
+    expect(Math.abs(drift)).toBeLessThanOrEqual(48)
+  })
 })
