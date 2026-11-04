@@ -347,6 +347,22 @@ learner answers (FR-057).
 
 - [x] T126 Stop the feedback from giving away the partner line created in the same request: `src/ai/prompts.ts` gains the spoiler rule — `explanation`, `interpretation`, `assumptions[].reason`, `issues[].detail` and `issues[].suggestion` never quote, paraphrase, translate or repeat the NEW `partnerText` of the same document or its `translation` (the learner has not read that line yet; its translation is the after-answering "peek", FR-057); the allowed context is the question the learner just answered (the previous, already revealed assistant line) and the earlier conversation; docs: new FR-063 in `spec.md`, `contracts/turn-payload.md` §4, the feedback block in `contracts/settings-profile.md` §3, the explanation/interpretation rows in `data-model.md`; prompt unit test asserts the rule; TODO entry "Zu klären: Bewertung geht häufig bereits auf die AI-Antwort ein" checked off (decided: the answer that "already looks at the AI answer" is the spoiler; the separate-evaluation-request sub-item stays open as the fallback if prompt-only turns out to be insufficient)
 
+### The partner line never actually streamed (FR-035, SC-012, T127)
+
+- [x] T127 Fix the progressive rendering of the partner line: the transport hands the adapter the raw SSE frame, and the adapter passed that frame on as the "text" delta, so the accumulated text was a JSON-of-JSON and `growingStringValue` never found `partnerText` — the line was only ever shown complete, and the thinking indicator stood for the whole request. `src/ai/aiService.ts` now extracts the assistant text from the frame (`chunkText`), and `growingStringValue` decodes the JSON string value properly (whitespace after the colon, `\n`/`\t`/`\"`/`\\`/`\uXXXX`), so the partial always equals the beginning of the final, parsed value (SC-012). Unit test `tests/unit/progressive-line.test.ts` (fails before the fix), e2e `tests/e2e/dialogue.spec.ts` with the new mock model `mock-streaming-chat`, which pauses inside the `partnerText` string.
+
+### The assessment block had no pending state (FR-035, T128)
+
+- [x] T128 Hold the feedback block's position while the turn is generated: the new `src/components/FeedbackPlaceholder.vue` (a quiet card in the styling of the completed block) with the shared `src/components/ThinkingDots.vue`, rendered by `src/views/DialogueView.vue` between the learner's answer and the streamed line while the phase is `generating`. The wording is the app's own status message ("Your answer is being assessed…" / "Deine Antwort wird bewertet…"), never the partner's act of rating — the partner does not know the rating (FR-061). i18n key `dialogue.assessing` in `en`/`de`; component test `tests/component/feedback-placeholder.test.ts`.
+
+### A failed turn leaves nothing behind (T129)
+
+- [x] T129 Discard a partially streamed partner line when the request fails: `src/composables/useSession.ts` clears `partnerProgress` in the catch, because a failed turn never becomes part of the conversation — nothing is persisted, so the text must not stay on screen either. `data-model.md` corrected accordingly (it claimed the opposite).
+
+### The spec must describe the progressive delivery (T130)
+
+- [x] T130 Document the change: FR-035 in `spec.md` (the placeholder holds the feedback block's position and is phrased as the app's own status message), D15 in `research.md` (including why the assessment is NOT rendered section by section, although the JSON field order would allow it), the streaming section in `contracts/ai-service.md` (the adapter extracts the text from the frame), the dialogue states in `contracts/settings-profile.md`, the turn states in `data-model.md`; TODO entry "Streamed responses mit unserem structured JSON …" checked off.
+
 ---
 
 ## Dependencies & Execution Order

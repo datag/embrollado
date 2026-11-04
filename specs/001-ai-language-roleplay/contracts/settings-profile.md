@@ -131,8 +131,10 @@ Feedback block details:
   (FR-036).
 
 States the dialogue view must render: empty (no session yet), waiting for the first line,
-streaming, complete, failed (with the learner's text kept and a retry), offline, and
-"the service is not configured" (with a link to Settings).
+streaming (the partner line grows in place; the feedback block's position is held by a loading
+placeholder), complete, failed (with the learner's text kept and a retry; a partially streamed
+partner line is discarded, because the failed turn never becomes part of the conversation), offline,
+and "the service is not configured" (with a link to Settings).
 
 ## 4. Setup screen contract
 

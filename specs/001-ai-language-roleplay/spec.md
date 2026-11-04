@@ -402,8 +402,11 @@ on a service without those capabilities and verify the graceful fallback.
   it is not set, the app MUST use the interface language as the native language.
 - **FR-035**: The delivery of a partner's turn MUST show the partner's line progressively while it
   is being generated, and the feedback for the turn MUST appear as one complete block afterwards.
-  If the service cannot deliver the line in parts, the app MUST fall back to showing the complete
-  turn at once, without duplicated or incomplete text.
+  While the feedback is still being generated, the app MUST hold the feedback block's position
+  with a loading placeholder, so that the block does not appear out of nowhere. The placeholder is
+  the app's own status message and MUST NOT be phrased as the partner's own act of rating — the
+  partner does not know the rating (FR-061). If the service cannot deliver the line in parts, the
+  app MUST fall back to showing the complete turn at once, without duplicated or incomplete text.
 - **FR-036**: The translation of the partner's line, the explanation of the learner's answer, the
   interpretation, the filled-in assumptions and the quality badge MUST be delivered in the
   learner's native language, while the corrected version of the learner's answer MUST remain in

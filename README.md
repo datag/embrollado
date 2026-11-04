@@ -9,6 +9,9 @@ and a partner, and then you talk: the partner replies in the target language wit
 sitting muted under each line — hidden until you peek or until you have answered — and after every
 answer you get an explanation, a correction, an interpretation, filled-in gaps, a quality badge
 and concrete things to improve (a wrong word is shown as «as written» → «as it should be»). The
+partner's line appears word by word while it is being written, and the assessment of your answer
+takes its place right after the stream is done — a quiet loading card holds that spot in the
+meantime. The
 feedback always concerns only your latest answer and never reveals the meaning of the partner's
 new line — you work that out yourself, with the translation appearing after you answer. Whenever
 you want, you can have the partner's line read aloud and

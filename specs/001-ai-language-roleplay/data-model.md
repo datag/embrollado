@@ -300,8 +300,13 @@ sessions (edge case in the spec).
 ```
 
 Failure states: `generating → failed` (the learner's text is kept and can be sent again — the
-edge case in the spec); `generating → aborted` (the learner cancelled). In both cases the turn
-keeps the partner line if it had already been streamed.
+edge case in the spec); `generating → aborted` (the learner cancelled). In both cases the
+partially streamed partner line is discarded: a failed turn never becomes part of the conversation
+— nothing is persisted — so its text must not stay on screen either.
+
+While the turn is in `generating`, the partner line grows in place and the feedback block's
+position is held by a loading placeholder; when the turn completes, the placeholder is replaced by
+the complete block (FR-035).
 
 ### Badge tier
 

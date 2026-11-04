@@ -246,13 +246,24 @@ font** (the "notebook style with script font" idea is dropped).
 ## D15 — Progressive display
 
 - **Decision**: The partner's line is streamed over SSE and shown as it arrives; the feedback block
-  appears afterwards as one unit. If the endpoint cannot stream, the app falls back to showing the
-  complete turn (FR-035).
+  appears afterwards as one unit. While the feedback is still being generated, a loading
+  placeholder holds the feedback block's position. If the endpoint cannot stream, the app falls
+  back to showing the complete turn (FR-035).
 - **Rationale**: FR-035 and SC-012 (first words visible within 2 s in ≥ 90 % of turns) require
   streaming. Because the turn is a structured JSON document, the *feedback* cannot be rendered
-  progressively — only the partner's line can, and it is streamed as a JSON string value.
+  progressively — only the partner's line can, and it is streamed as a JSON string value. The
+  turn's JSON field order matches the feedback block's order, so a section-by-section rendering of
+  the assessment would be technically possible; it is deliberately NOT done, because it would
+  change the owner's clarify decision (answer B: the feedback arrives as one block) and because
+  partial markdown would render visibly broken. The placeholder keeps the promise of FR-035
+  without that change.
+- **Implementation note (T127)**: the SSE parser hands the adapter the raw frame; the adapter
+  extracts the assistant *text* from it, so the accumulated text is the model's JSON document and
+  the `partnerText` string value can be decoded character by character. The decoded partial always
+  equals the beginning of the final, parsed value (SC-012).
 - **Alternatives considered**: Streaming every field (impossible with schema-constrained output);
-  no streaming at all (rejected by the owner in `/speckit.clarify` — answer B).
+  no streaming at all (rejected by the owner in `/speckit.clarify` — answer B); section-by-section
+  rendering of the assessment (deferred, see above).
 
 ## D16 — Testing strategy
 

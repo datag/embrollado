@@ -96,8 +96,14 @@ app reports a failure and offers to retry; `content_filter` ⇒ reported as a re
   array, and OpenRouter's final usage frame that carries a non-empty `choices`.
 - The **accumulated text is never parsed as JSON while the stream is running**. It is parsed once,
   after the stream ends.
+- The transport hands the adapter the raw `data:` payload of every frame; the adapter extracts the
+  assistant **text** from it (`choices[0].delta.content`, tolerating the `message.content` shape).
+  The accumulated text is therefore the model's JSON document itself — the only text the app
+  renders progressively is the `partnerText` string value, decoded character by character. A
+  partial value always equals the beginning of the final, parsed value.
 - Only the `partnerText` field is rendered progressively. The rest of the turn — including the
-  line's own translation (FR-057) — appears when the stream completes (spec FR-035).
+  line's own translation (FR-057) — appears when the stream completes (spec FR-035). While the
+  turn is still being generated, a loading placeholder holds the feedback block's position.
 - If the endpoint does not stream (it answers with a normal JSON body), the app renders the
   complete turn — the fallback is required by FR-035 and is not an error.
 

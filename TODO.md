@@ -21,7 +21,11 @@ Offene Punkte, nach Themen gruppiert.
 - [ ] Emoji für Stimmungen/Mimik?
 - [ ] HTML5-Attribut für Input-Sprache?
 - [ ] Untersuchen; möglicher BUG: Situation/Persona und auch User-Kontext ist für eine Konversation fix. Auch wenn sich zwischenzeitlich z.B. die Infos zum User geändert haben, muss die Konversation stets mit den urspünglichen Settings laufen. Sicherstellen, dass die Settings nicht live herausgezogen werden, sondern direkt an den Metadaten der Konversation inkl. Persistenz stecken. Andere Settings wie z.B. Modell etc. sollen hingegen live herangezogen werden.
-- [ ] Streamed responses mit unserem structured JSON überhaupt sinnvoll bzw. partielles Rendern der Chunks möglich?
+- [x] Streamed responses mit unserem structured JSON überhaupt sinnvoll bzw. partielles Rendern der Chunks möglich?
+  - Die Partnerline wird jetzt progressiv gerendert (der SSE-Frame war nie bis zum Model-Text extrahiert
+    worden — T127). Der Bewertungsblock selbst wird weiterhin als ein Block geliefert; Abschnitt für
+    Abschnitt wäre machbar (die JSON-Feldreihenfolge entspricht der Blockreihenfolge), ist aber
+    bewusst offen — siehe D15 in `research.md`.
 
 ### Darstellung
 
