@@ -128,6 +128,10 @@ See [docs/configure-ai-service.md](docs/configure-ai-service.md) for provider-sp
 | AI service configuration (incl. API key)                  | `localStorage` → `embrollado.service.v1`                        |
 | Access-granted marker (when an access code is configured) | `localStorage` → `embrollado.access.v1`                         |
 
+Service-configuration edits made in one tab are picked up automatically by every other open tab of
+the same browser profile (a `storage` event reloads the document from `localStorage`), so no tab
+keeps running on a stale configuration.
+
 Everything is wiped when the browser clears site data. Use **Export/Import** to move or back it up:
 
 - **Export** downloads `embrollado-export-<date>.json` — the conversations in a portable,

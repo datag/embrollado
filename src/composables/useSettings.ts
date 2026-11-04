@@ -1,7 +1,7 @@
 import { reactive } from 'vue'
 import type { LearnerProfile, ServiceConfig } from '@/domain/types'
 import { readSettings, updateSettings, DEFAULT_SETTINGS } from '@/data/settings'
-import { readService, writeService } from '@/data/profile'
+import { readService, writeService, SERVICE_KEY } from '@/data/profile'
 import { setInterfaceLanguage } from '@/i18n'
 
 /**
@@ -47,6 +47,26 @@ export function useSettings(): UseSettings {
 /* ------------------------------------------------------------------ */
 
 const service = reactive<ServiceConfig>({ ...readService() })
+
+/**
+ * Re-read the service document from localStorage into the singleton. Needed after an external
+ * write — in particular a change made in another tab of the same browser profile, which arrives
+ * as a `storage` event. Without it, a stale tab would keep using its old configuration and would
+ * overwrite the other tab's edit with its stale copy on the next update (last-writer-wins on the
+ * whole document).
+ */
+export function reloadService() {
+  Object.assign(service, readService())
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    // A `storage` event fires in every OTHER tab of the same origin (never in the one that
+    // changed the value). `key === null` covers `localStorage.clear()`. No tab is touched by its
+    // own write, so there is no loop.
+    if (event.key === SERVICE_KEY || event.key === null) reloadService()
+  })
+}
 
 export function useServiceConfig() {
   function update(patch: Partial<ServiceConfig>) {

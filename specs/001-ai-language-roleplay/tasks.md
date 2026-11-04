@@ -363,6 +363,10 @@ learner answers (FR-057).
 
 - [x] T130 Document the change: FR-035 in `spec.md` (the placeholder holds the feedback block's position and is phrased as the app's own status message), D15 in `research.md` (including why the assessment is NOT rendered section by section, although the JSON field order would allow it), the streaming section in `contracts/ai-service.md` (the adapter extracts the text from the frame), the dialogue states in `contracts/settings-profile.md`, the turn states in `data-model.md`; TODO entry "Streamed responses mit unserem structured JSON …" checked off.
 
+### The service configuration syncs across tabs (T131)
+
+- [x] T131 Keep the reactive service singleton in sync with `embrollado.service.v1`: `reloadService()` in `src/composables/useSettings.ts` re-reads the document explicitly, and a `storage` event listener reloads it automatically when another tab of the same browser profile changes it — a stale tab can no longer keep a dead configuration nor silently overwrite the other tab's edit. Unit tests in `tests/unit/service-sync.test.ts`; README ("Where your data lives") and `data-model.md` §6 updated.
+
 ---
 
 ## Dependencies & Execution Order

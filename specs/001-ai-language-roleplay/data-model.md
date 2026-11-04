@@ -326,6 +326,7 @@ when the model returns something unexpected or omits the badge entirely (typical
 | Importing a file                         | Validate, migrate, then **one** transaction that replaces the sessions, turns, illustrations and audio                                                         |
 | Exporting                                | Assemble the JSON envelope from chunked `BlobPart`s so the whole file is never materialised as one string                                                      |
 | Pruning the speech cache                 | Keep the newest `cachedSpeechLines` entries per session; run after each cached write                                                                           |
+| Editing the service document in another tab | A `storage` event reloads the reactive singleton through `reloadService()`; without it a stale tab would keep its old configuration and overwrite the other tab's edit with its old copy on the next `update()`                                                                    |
 
 ## 7. Notes for the reviewer
 
