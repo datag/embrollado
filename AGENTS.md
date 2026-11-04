@@ -44,6 +44,31 @@ Manual dev: open `http://localhost:5173` → **Settings → AI service** → add
 - The suite asserts constitutional hard promises directly: zero third-party requests, zero CSP
   violations, no horizontal scroll at 320 px, ≥44 px touch targets.
 
+## Browser verification (AI agents)
+
+The constitutional gate ("verified in a real browser at ≤390 px, touch + keyboard") is checked
+manually through the Chrome DevTools MCP. To stay out of the developer's way:
+
+- **Own dev server** — run `pnpm dev --port 5174 --strictPort`. `:5173` is the developer's
+  instance, `:4173` is `pnpm preview`, `:4174` is `tools/serve.mjs`. If `:5174` is taken, use
+  the next free port and keep it for the whole session.
+- **Reuse, don't multiply** — one dev server and one tab per session. Before starting anything,
+  check what is already running (`ss -ltnp`) and reuse it; before opening a tab, `list_pages`
+  and adopt an existing tab on your own port instead of opening a second one.
+- **Mock service** — `pnpm mock-ai` on `:8787`. The mock allows any origin, so `:5174` works.
+  Reuse a running instance; never stop the developer's.
+- **Isolated tab** — open the tab with `new_page({ isolatedContext })`: its localStorage and
+  IndexedDB stay empty and separate from the developer's data. Because the storage is
+  per-origin, the service configuration has to be entered once per port
+  (`http://localhost:8787/v1`, key `test`, auth `Bearer`, model `mock-chat`).
+- **Viewport** — `emulate` with `viewport: "390x844x1,mobile,touch"`. Do **not** use
+  `resize_page`; it resizes the developer's browser window.
+- **Checks** — the manual list in `specs/001-ai-language-roleplay/quickstart.md` §8, plus
+  console and network inspection (no third-party requests, no CSP violations).
+- **The developer's tab is read-only** — inspect it only when explicitly asked, and then
+  without changing settings, the service configuration, stored data or the viewport.
+- **Clean up** — close your tab and stop the dev server you started once the work is done.
+
 ## Architecture rules (constitution-enforced)
 
 - **All** HTTP leaves through `src/ai/transport.ts` → `request()` — the single `fetch` seam. Never
