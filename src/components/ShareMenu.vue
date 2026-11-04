@@ -234,7 +234,11 @@ async function cancelImport() {
             <SpinnerIcon v-if="importing" class="h-4 w-4" />
             {{ $t('exportImport.confirmImport') }}
           </button>
-          <button type="button" class="min-h-11 rounded-lg border border-border px-4" @click="cancelImport">
+          <button
+            type="button"
+            class="min-h-11 rounded-lg border border-border px-4"
+            @click="cancelImport"
+          >
             {{ $t('exportImport.cancel') }}
           </button>
         </div>

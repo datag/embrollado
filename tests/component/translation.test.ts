@@ -11,7 +11,11 @@ import TranslationToggle from '@/components/TranslationToggle.vue'
 describe('partner-line translation (FR-057)', () => {
   it('renders the translation muted inside the partner bubble when passed', () => {
     const wrapper = mount(TurnBubble, {
-      props: { text: '¿Dónde está el lavadero?', side: 'partner', translation: 'Wo ist der Waschraum?' },
+      props: {
+        text: '¿Dónde está el lavadero?',
+        side: 'partner',
+        translation: 'Wo ist der Waschraum?',
+      },
       global: { plugins: [i18n] },
     })
     expect(wrapper.text()).toContain('Wo ist der Waschraum?')
