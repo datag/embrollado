@@ -40,7 +40,7 @@ function sendJson(res, status, obj) {
   res.end(JSON.stringify(obj))
 }
 
-function sendStream(res, content) {
+function sendStream(res, content, midPauseMs = 0) {
   res.writeHead(200, {
     'content-type': 'text/event-stream',
     'cache-control': 'no-cache',
@@ -50,26 +50,26 @@ function sendStream(res, content) {
   // from the accumulated JSON string (partnerText is the document's first property). The whole
   // document streams in a fixed handful of chunks (~200 ms) so the progressive-rendering path is
   // exercised without making every e2e turn wait ~0.8 s (the old 12-char chunks) for completion.
+  // `midPauseMs` (model `mock-streaming-chat`) sends the first chunk immediately, then pauses
+  // before the rest — an e2e test observes the mid-stream rendering (partial partner line +
+  // feedback placeholder) over a deterministic window.
   const full = JSON.stringify(content)
   const STREAM_TICKS = 8
   const TICK_MS = 25
-  const slice = Math.max(1, Math.ceil(full.length / STREAM_TICKS))
+  // The pausing model sends small chunks so that the pause lands INSIDE the `partnerText` string
+  // — the app must show the line partially at that moment.
+  const slice = midPauseMs ? 30 : Math.max(1, Math.ceil(full.length / STREAM_TICKS))
   let offset = 0
-  const timer = setInterval(() => {
+  let paused = false
+  let timer = null
+  const final = {
+    id: 'chatcmpl-mock',
+    object: 'chat.completion.chunk',
+    choices: [{ index: 0, delta: { content: '' }, finish_reason: 'stop' }],
+    usage: { prompt_tokens: 10, completion_tokens: 8, total_tokens: 18 },
+  }
+  const writeChunk = () => {
     if (offset >= full.length) {
-      clearInterval(timer)
-      const final = {
-        id: 'chatcmpl-mock',
-        object: 'chat.completion.chunk',
-        choices: [
-          {
-            index: 0,
-            delta: { content: '' },
-            finish_reason: 'stop',
-          },
-        ],
-        usage: { prompt_tokens: 10, completion_tokens: 8, total_tokens: 18 },
-      }
       res.write(`data: ${JSON.stringify(final)}\n\n`)
       res.write('data: [DONE]\n\n')
       res.end()
@@ -83,6 +83,19 @@ function sendStream(res, content) {
       choices: [{ index: 0, delta: { content: piece }, finish_reason: null }],
     }
     res.write(`data: ${JSON.stringify(chunk)}\n\n`)
+  }
+  timer = setInterval(() => {
+    // The mid-stream pause (model `mock-streaming-chat`): the first chunk has been sent, so the
+    // app shows a PARTIAL partner line and the feedback placeholder.
+    if (midPauseMs && !paused && offset > 0) {
+      paused = true
+      clearInterval(timer)
+      timer = setTimeout(() => {
+        timer = setInterval(writeChunk, TICK_MS)
+      }, midPauseMs)
+      return
+    }
+    writeChunk()
   }, TICK_MS)
   // Safety net so a stuck client never holds the process forever.
   setTimeout(() => {
@@ -161,10 +174,13 @@ const server = http.createServer((req, res) => {
         : TURN
       // The `mock-slow-chat` model answers only after a delay — the e2e tests use it to observe
       // the locked send button / spinner while a request is in flight for a comfortable window.
+      // `mock-streaming-chat` pauses in the middle of the document so the e2e test can observe
+      // the mid-stream rendering (partial partner line + feedback placeholder) deterministically.
       const delayMs = parsed.model === 'mock-slow-chat' ? 1000 : 0
+      const midPauseMs = parsed.model === 'mock-streaming-chat' ? 2000 : 0
       if (stream) {
-        if (delayMs) setTimeout(() => sendStream(res, payload), delayMs)
-        else sendStream(res, payload)
+        if (delayMs) setTimeout(() => sendStream(res, payload, midPauseMs), delayMs)
+        else sendStream(res, payload, midPauseMs)
         return
       }
       const usage = { prompt_tokens: 10, completion_tokens: 8, total_tokens: 18 }

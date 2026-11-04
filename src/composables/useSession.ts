@@ -275,6 +275,9 @@ export function useSession(): UseSessionReturn {
       lastHandle = opening
       phase.value = 'waiting-answer'
     } catch (err) {
+      // A failed attempt never becomes part of the conversation — nothing is persisted and any
+      // partially streamed partner line is discarded, so a retry starts a fresh response.
+      partnerProgress.value = ''
       phase.value = 'failed'
       handleError(err)
     }
@@ -340,6 +343,9 @@ export function useSession(): UseSessionReturn {
       // Manuell nachbestellte Bilder gibt es nur für den Start der Konversation — nicht für jeden
       // Turn (owner-Anforderung). Illustrationen bleiben für importierte Sessions lesbar.
     } catch (err) {
+      // A failed attempt never becomes part of the conversation — nothing is persisted and any
+      // partially streamed partner line is discarded, so a retry starts a fresh response (T129).
+      partnerProgress.value = ''
       phase.value = 'failed'
       handleError(err)
     }

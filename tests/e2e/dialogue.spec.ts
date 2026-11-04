@@ -210,4 +210,43 @@ test.describe('dialogue cycle', () => {
     await expect(continued).toBeVisible({ timeout: 20_000 })
     await expect(continued).toContainText('Well done!')
   })
+
+  test('streams the partner line and holds the feedback position while it arrives', async ({
+    page,
+  }) => {
+    // The `mock-streaming-chat` model pauses inside the `partnerText` string, so the mid-stream
+    // rendering is observable: the line is only partially there and the assessment is still
+    // pending (FR-035).
+    await configureService(page, { chatModel: 'mock-streaming-chat' })
+    await startConversation(page)
+
+    // The opening turn: the partner line streams in — partially.
+    const streaming = page.getByTestId('partner-streaming')
+    await expect(streaming).toBeVisible({ timeout: 20_000 })
+    await expect(streaming).toContainText('Hello! Nice to')
+    await expect(streaming).not.toContainText('come from?')
+    // The opening turn has no learner answer, so there is no assessment to wait for.
+    await expect(page.getByTestId('feedback-placeholder')).toHaveCount(0)
+
+    // The complete line replaces the streamed one.
+    await expectPartnerLine(page, 'Hello! Nice to meet you.')
+    await expect(page.getByTestId('partner-streaming')).toHaveCount(0)
+
+    await page.getByTestId('dialogue-input').fill('Where do you come from?')
+    await page.getByTestId('send').click()
+
+    // While the turn is generated, the feedback block's position is held by the loading card —
+    // the app's own status message, never the partner's voice (FR-061).
+    const placeholder = page.getByTestId('feedback-placeholder')
+    await expect(placeholder).toBeVisible({ timeout: 20_000 })
+    await expect(placeholder).toContainText('Your answer is being assessed…')
+    // The new partner line streams in partially, too.
+    await expect(page.getByTestId('partner-streaming')).toContainText('Hello! Nice to')
+    await expect(page.getByTestId('partner-streaming')).not.toContainText('come from?')
+
+    // When the stream completes, the real assessment replaces the loading card.
+    await expect(page.getByTestId('feedback')).toBeVisible({ timeout: 20_000 })
+    await expect(placeholder).toHaveCount(0)
+    await expect(page.getByTestId('partner-streaming')).toHaveCount(0)
+  })
 })

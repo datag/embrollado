@@ -114,6 +114,7 @@ export default {
     readOnly: 'This conversation has ended and is read-only.',
     waitingFirstLine: 'The partner is thinking…',
     generating: 'The partner is responding…',
+    assessing: 'Your answer is being assessed…',
     partnerLeft: 'The conversation ended.',
     connectHint: 'Ended — you can read and export the transcript.',
     showTranslation: 'Show translation',

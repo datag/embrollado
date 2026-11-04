@@ -2,7 +2,7 @@ import { AiError } from '@/domain/types'
 import type { ServiceConfig } from '@/domain/types'
 import type { EndpointProfile, ModelInfo } from '@/ai/providers'
 import { profileById } from '@/ai/providers'
-import { postJson, postStream, request } from '@/ai/transport'
+import { chunkText, postJson, postStream, request } from '@/ai/transport'
 import { normalizeBodyError } from '@/ai/errors'
 import { pcmToWavBlob } from '@/utils/audio'
 import {
@@ -175,7 +175,18 @@ export async function chatCompletion(opts: ChatCompletionOptions): Promise<ChatR
           headers,
           body,
           (data) => {
-            if (onDelta) onDelta(data)
+            // `data` is a raw SSE frame payload, not the model's text. Extract the text delta so
+            // the accumulated text is the model's JSON document itself — only then can
+            // `growingStringValue` find `partnerText` and render the line progressively (FR-035,
+            // T127). A non-JSON or `choices`-less frame is tolerated (its text is empty).
+            if (onDelta) {
+              try {
+                const text = chunkText(JSON.parse(data))
+                if (text) onDelta(text)
+              } catch {
+                /* non-JSON frame — skipped, as in the parser */
+              }
+            }
           },
           opts.signal,
         )
@@ -223,38 +234,95 @@ export async function chatCompletion(opts: ChatCompletionOptions): Promise<ChatR
   throw new AiError('provider', 'The service did not complete the request.', null)
 }
 
-/** The current visible value of a JSON string field as it streams in (progressive partner line). */
+/**
+ * The current visible value of a JSON string field as it streams in (progressive partner line).
+ * The accumulated text is the model's JSON document (the transport only ever mails text deltas,
+ * T127); this decodes the requested string value's characters, so the partial always matches the
+ * final, parsed value exactly (SC-012). JSON escapes decode as soon as they complete; an escape cut
+ * by a chunk boundary stays raw until the next chunk completes it. Returns '' until the value's
+ * opening quote has arrived. Leading whitespace after the colon is tolerated.
+ */
 export function growingStringValue(acc: string, key: string): string {
-  const keyIdx = acc.indexOf(`"${key}":`)
+  const keyIdx = acc.indexOf(`"${key}"`)
   if (keyIdx === -1) return ''
-  const colonIdx = acc.indexOf(':', keyIdx)
-  const startQuote = acc.indexOf('"', colonIdx + 1)
-  if (startQuote === -1) return ''
-  const rest = acc.slice(startQuote + 1)
+  const colonIdx = acc.indexOf(':', keyIdx + key.length + 2)
+  if (colonIdx === -1) return ''
+  let i = colonIdx + 1
+  while (i < acc.length && /\s/.test(acc[i])) i++
+  if (acc[i] !== '"') return ''
+  i += 1
   let out = ''
-  let closed = false
-  let i = 0
-  while (i < rest.length) {
-    const ch = rest[i]
-    if (ch === '\\') {
+  while (i < acc.length) {
+    const ch = acc[i]
+    if (ch === '"') {
+      i++
+      break // value closed
+    }
+    if (ch !== '\\') {
       out += ch
-      if (i + 1 < rest.length) {
-        out += rest[i + 1]
-        i += 2
-      } else {
-        break
-      }
+      i++
       continue
     }
-    if (ch === '"') {
-      closed = true
-      break
+    const esc = acc[i + 1]
+    if (esc === undefined) break // escape cut by a chunk boundary — completed later
+    switch (esc) {
+      case 'n':
+        out += '\n'
+        i += 2
+        break
+      case 't':
+        out += '\t'
+        i += 2
+        break
+      case 'r':
+        out += '\r'
+        i += 2
+        break
+      case 'b':
+        out += '\b'
+        i += 2
+        break
+      case 'f':
+        out += '\f'
+        i += 2
+        break
+      case '"':
+        out += '"'
+        i += 2
+        break
+      case '\\':
+        out += '\\'
+        i += 2
+        break
+      case '/':
+        out += '/'
+        i += 2
+        break
+      case 'u': {
+        const hex = acc.slice(i + 2, i + 6)
+        if (hex.length < 4) {
+          // Incomplete \uXXXX — copy the raw characters; the next chunk completes them.
+          out += `\\u${hex}`
+          i += 2 + hex.length
+          break
+        }
+        const code = parseInt(hex, 16)
+        if (Number.isNaN(code)) {
+          out += `\\u${hex}`
+          i += 2 + hex.length
+          break
+        }
+        out += String.fromCharCode(code)
+        i += 6
+        break
+      }
+      default:
+        // Unknown escape — keep both characters raw (tolerant).
+        out += '\\' + esc
+        i += 2
     }
-    out += ch
-    i++
   }
-  const value = closed ? out : out.replace(/\\[bnr]*$/, '')
-  return value.replace(/\\n/g, ' ').replace(/\\"/g, '"')
+  return out
 }
 
 /** Leniently parse a JSON object from model text (extract + tolerate unknown keys). */

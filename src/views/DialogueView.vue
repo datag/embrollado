@@ -10,6 +10,7 @@ import { LEVELS } from '@/domain/catalogue'
 import { getIllustrationsBySession } from '@/data/media'
 import TurnBubble from '@/components/TurnBubble.vue'
 import FeedbackPanel from '@/components/FeedbackPanel.vue'
+import FeedbackPlaceholder from '@/components/FeedbackPlaceholder.vue'
 import SpeechButton from '@/components/SpeechButton.vue'
 import SpinnerIcon from '@/components/SpinnerIcon.vue'
 import ThinkingIndicator from '@/components/ThinkingIndicator.vue'
@@ -349,14 +350,18 @@ watch(
           <TurnBubble :text="pendingLearnerText" side="learner" />
         </div>
 
+        <!-- The feedback block's position is taken by a loading placeholder while the model still
+             produces the turn (FR-035) — only once the stream completes does the real block land
+             here. Both the placeholder and the block sit between the learner's answer and the
+             partner line (FR-011). -->
+        <FeedbackPlaceholder v-if="phase === 'generating'" :label="$t('dialogue.assessing')" />
+
         <!-- the partner's next line streams here -->
         <div v-if="streaming">
           <ThinkingIndicator
             v-if="!sessionState.partnerProgress.value"
             :label="
-              phase === 'generating'
-                ? $t('dialogue.generating')
-                : $t('dialogue.waitingFirstLine')
+              phase === 'generating' ? $t('dialogue.generating') : $t('dialogue.waitingFirstLine')
             "
           />
           <TurnBubble
@@ -364,6 +369,7 @@ watch(
             :text="sessionState.partnerProgress.value"
             side="partner"
             :streaming="true"
+            data-testid="partner-streaming"
           />
         </div>
 

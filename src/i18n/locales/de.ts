@@ -115,6 +115,7 @@ export default {
     readOnly: 'Dieses Gespräch ist beendet und schreibgeschützt.',
     waitingFirstLine: 'Der Partner überlegt…',
     generating: 'Der Partner antwortet…',
+    assessing: 'Deine Antwort wird bewertet…',
     partnerLeft: 'Das Gespräch ist beendet.',
     connectHint: 'Beendet — du kannst das Protokoll lesen und exportieren.',
     showTranslation: 'Übersetzung zeigen',
