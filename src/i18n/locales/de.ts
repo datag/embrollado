@@ -105,6 +105,10 @@ export default {
     tooLong: 'Zu lang',
     required: 'Pflichtfeld',
     ageRange: 'Das Alter muss zwischen 0 und 120 liegen',
+    aiGenerate: 'Zufälligen Eintrag mit der KI erzeugen',
+    aiGenerateHint:
+      'Erzeugt eine zufällige Situation/Persona mit der KI. Überschreibt die bereits ausgefüllten Felder.',
+    aiSeed: 'Erstellt aus: {elements}',
   },
   dialogue: {
     title: 'Gespräch',
@@ -289,7 +293,7 @@ export default {
       'Embrollado ist eine reine Browser-App zum Üben von Fremdsprachen. Du führst ein realistisches Rollenspiel-Gespräch mit einem KI-Partner. Deine Gespräche bleiben in deinem Browser — nur der laufende Dialog geht an den KI-Dienst, den du selbst konfiguriert hast.',
     privacyTitle: 'Privatsphäre',
     privacy:
-      'Deine Gespräche, Bilder und zwischengespeichertes Audio liegen nur in diesem Browser. Der einzige ausgehende Verkehr geht an den von dir konfigurierten KI-Dienst, der das aktive Gespräch, die Situations- und Partner-Wahl, die von dir eingetragenen wahrnehmbaren Merkmale (Aussehen, Alter, Geschlecht, Stimme) und — wenn du „Die KI-Persona kennt dich bereits“ aktivierst — deinen Namen und deine Angaben erhält. Bilder beziehen deinen Namen und deine Angaben immer ein. Der API-Schlüssel wird nur an diesen Dienst gesendet.',
+      'Deine Gespräche, Bilder und zwischengespeichertes Audio liegen nur in diesem Browser. Der einzige ausgehende Verkehr geht an den von dir konfigurierten KI-Dienst, der das aktive Gespräch, die Situations- und Partner-Wahl, die von dir eingetragenen wahrnehmbaren Merkmale (Aussehen, Alter, Geschlecht, Stimme) und — wenn du „Die KI-Persona kennt dich bereits“ aktivierst — deinen Namen und deine Angaben erhält. Bilder beziehen deinen Namen und deine Angaben immer ein. Bei „Erzeugen“ im Neues-Gespräch-Bildschirm erhält der Dienst einen kurzen Prompt mit deinem Niveau, der Zielsprache und einigen zufälligen Stichwörtern — keine personenbezogenen Daten. Der API-Schlüssel wird nur an diesen Dienst gesendet.',
     techTitle: 'Technik',
     tech: 'TypeScript, Vue, Tailwind CSS, Vite. Alle Ressourcen sind gebündelt und werden von dieser Seite geliefert.',
     licenceTitle: 'Lizenz',

@@ -69,6 +69,7 @@ machine.
 | 7 | **Sessions** → *Export* | `embrollado-export-<date>.json` is downloaded; it contains the conversations and no API key |
 | 8 | **Settings** → *Import* that file | A warning names how many conversations will be replaced; after confirming, the same conversations are there |
 | 10 | **Settings** → write your own partner, save it as a template | The template appears in the Setup screen and in later sessions |
+| 11 | **Setup** → *Write my own* → press the 🪄 button (service configured) | The form fills itself with a generated situation/partner; a second press overwrites it; the seed hint names the rolled elements |
 
 ## 5. Build and preview (production behaviour)
 

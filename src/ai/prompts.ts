@@ -2,6 +2,7 @@ import type { Gender, Level, SituationRef, PartnerRef } from '@/domain/types'
 import { audiblePerception, visiblePerception, ageRangePhrase } from '@/domain/perception'
 import { languageName } from '@/domain/catalogue'
 import { TURN_SCHEMA } from '@/ai/schema'
+import type { DraftSeeds } from '@/domain/seeds'
 
 /**
  * System-prompt assembly (T039; turn-payload.md §4). Only the learner's perceivable traits
@@ -410,6 +411,136 @@ export function buildConnectionUserMessage(): { role: 'user'; content: string } 
     role: 'user',
     content: 'Reply with the JSON object {"reply": "ok"}.',
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* AI-generated situation and partner drafts (FR-064)                   */
+/* ------------------------------------------------------------------ */
+
+export interface DraftContext {
+  level: Level
+  targetLanguage: string
+}
+
+/**
+ * The "use verbatim" rule shared by both draft prompts. The elements are constraints, not
+ * suggestions: a weak model that ignores them would fall back to its modal scenario (café,
+ * airport, hospital, job interview — exactly the choices the seed list keeps away from). The
+ * soft extra words may be woven in but never at an element's expense.
+ */
+const VERBATIM_RULE =
+  `Use the elements below VERBATIM — each one must appear in the description, spelled exactly ` +
+  `as given. They are not suggestions; they are the situation. You may weave in the extra words ` +
+  `if they fit, but never at the cost of an element. Do not replace an element with something ` +
+  `more typical, and do not use a café, an airport, a hospital, a hotel or a job interview ` +
+  `unless an element says so. Concrete over generic: name the actual thing, the actual place, ` +
+  `the actual problem.`
+
+/** The twist rule for a plain roll: the draft stays a quiet entry point with no complication. */
+const NO_TWIST_RULE = 'Do not add any complication — no problem, no conflict, no twist.'
+
+/** The twist rule for a planted turn: mention it as an open possibility, never as realised. */
+function twistRule(twist: string): string {
+  return (
+    `One latent ${twist.includes('learner') ? 'turn' : 'twist'} is planted for you: *${twist}*. ` +
+    `Mention it as an open possibility — something is off, but nobody has said what yet. Never ` +
+    `write it as something that already happened, and do not resolve it.`
+  )
+}
+
+/** The instruction block shared by the situation draft (opening rules, role framing, entry point). */
+const SITUATION_RULES =
+  `Write a stage direction in the third person: name "the learner" and the other people in the ` +
+  `scene. Never write "you" and never address the reader directly. Refer to the other person by ` +
+  `what they are doing in the scene ("the person behind the counter", "someone waiting in ` +
+  `line"), never by a job title — the partner is chosen separately and may be anybody. ` +
+  `Describe only the entry point of the conversation: where the learner is, what they are there ` +
+  `for, and what the other person wants first. Do not write a scene, a sequence, a dialogue or ` +
+  `what happens next — the partner improvises the rest. Do not name the partner. End with what ` +
+  `the other person wants right now, so the learner has something to answer.`
+
+/**
+ * The prompt that turns picked seeds into a `{ name, setting }` situation draft. The situation
+ * text itself is written in English regardless of target language (the catalogue uses English);
+ * the level only shapes how demanding a situation suits the learner.
+ */
+export function buildSituationDraftMessages(
+  seed: Extract<DraftSeeds, { kind: 'situation' }>,
+  ctx: DraftContext,
+): Array<{ role: 'system' | 'user'; content: string }> {
+  const twist = seed.twist
+  return [
+    {
+      role: 'system',
+      content: [
+        'You design situations for a language-practice app. A learner practises a spoken ' +
+          'conversation with one AI partner. You write the situation in which that conversation ' +
+          `happens. The learner practises ${languageName(ctx.targetLanguage)} and is at the ` +
+          `${ctx.level} level. The situation description itself is written in English (the ` +
+          "app's catalogue uses English) — the target language is only spoken inside the " +
+          'conversation, never in this description.',
+        SITUATION_RULES,
+        VERBATIM_RULE,
+        twist ? twistRule(twist) : NO_TWIST_RULE,
+        'Write 2 to 3 sentences for "setting" (at most 380 characters). "name" is a short label ' +
+          'for the list, at most 80 characters.',
+      ].join('\n'),
+    },
+    {
+      role: 'user',
+      content: [
+        'Generate a situation from these elements, using each verbatim:',
+        `- Genre of the encounter: ${seed.genre}`,
+        `- Place: ${seed.place}`,
+        `- The learner's aim: ${seed.aim}`,
+        `- Extra words (optional): ${seed.extras.join(', ')}`,
+      ].join('\n'),
+    },
+  ]
+}
+
+/**
+ * The prompt that turns picked seeds into a partner draft. The partner is described in the third
+ * person as a person, never as a situation or a script; `age` and `gender` may be left blank.
+ */
+export function buildPartnerDraftMessages(
+  seed: Extract<DraftSeeds, { kind: 'partner' }>,
+  ctx: DraftContext,
+): Array<{ role: 'system' | 'user'; content: string }> {
+  const twist = seed.twist
+  return [
+    {
+      role: 'system',
+      content: [
+        'You design a conversation partner for a role-play language-practice app. A learner ' +
+          'practises a spoken conversation with one AI partner. You describe a single person — ' +
+          `the partner. The learner practises ${languageName(ctx.targetLanguage)} and is at the ` +
+          `${ctx.level} level. The description is written in English (the app's catalogue uses ` +
+          'English).',
+        'Write in the third person, as a description of the person from the outside ("a patient ' +
+          'ferry captain who …"). Never use "you". Describe only the person — no situation, no ' +
+          'scene, no dialogue, no lines. Their demeanour should fit the kind of encounter below; ' +
+          'make them feel real, with a life of their own.',
+        VERBATIM_RULE,
+        twist ? twistRule(twist) : NO_TWIST_RULE,
+        '"name" is a first name only (at most 60 characters). "occupation" comes verbatim from ' +
+          'the role element. "age" is a whole number between 18 and 99, or null. "gender" is ' +
+          '"female", "male" or "other", or null. "description" is 1 to 2 sentences (at most 380 ' +
+          'characters) about who the person is — their manner, their life, what they care ' +
+          'about. Do not describe the learner and do not mention the target language.',
+      ].join('\n'),
+    },
+    {
+      role: 'user',
+      content: [
+        'Generate a partner from these elements, using the role and place verbatim:',
+        `- Genre of the encounter: ${seed.genre}`,
+        `- Place where the conversation happens: ${seed.place}`,
+        `- Occupation (role): ${seed.role}`,
+        `- Extra words (optional): ${seed.extras.join(', ')}`,
+      ].join('\n'),
+    },
+  ]
 }
 
 export { TURN_SCHEMA }

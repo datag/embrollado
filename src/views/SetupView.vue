@@ -330,6 +330,8 @@ function resolvePartner() {
     <CustomEntryForm
       v-if="form && form.kind === 'situation'"
       kind="situation"
+      :level="level"
+      :target-language="language"
       :initial="form.mode === 'edit' ? form.initial : undefined"
       :editing="form.mode === 'edit'"
       @saved="handleSaved"
@@ -350,6 +352,8 @@ function resolvePartner() {
     <CustomEntryForm
       v-if="form && form.kind === 'partner'"
       kind="partner"
+      :level="level"
+      :target-language="language"
       :initial="form.mode === 'edit' ? form.initial : undefined"
       :editing="form.mode === 'edit'"
       @saved="handleSaved"

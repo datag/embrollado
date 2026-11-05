@@ -82,3 +82,9 @@ Every turn is requested as a strict JSON document (`response_format: json_schema
 rejects the schema (HTTP 400), Embrollado retries once with `json_object` and the schema embedded
 in the prompt, then parses leniently. Models that support `json_schema` earn noticeably more
 reliable feedback.
+
+Besides the turn, the app uses three more strict schemas against the same chat model: the
+illustration narration (`embrollado_scene`) and the two setup-screen drafts
+(`embrollado_situation_draft`, `embrollado_partner_draft`) behind the 🪄 button. All of them are
+plain `chat/completions` requests; a provider that serves the turn serves these too. The drafts
+are sent unstreamed and need no special capability.

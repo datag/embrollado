@@ -12,6 +12,15 @@ Offene Punkte, nach Themen gruppiert.
 
 - [ ] Konversations-Settings: festlegen, wer beginnt (User oder AI) inkl. Default.
 - [ ] Überlegung: User-Kontext ebenfalls in den Konversation-Start verschieben und dort auch mehrere User-Persona ermöglichen
+- [x] Situation/Persona per KI erzeugen lassen (🪄-Button im „Eigene Eintrag“-Formular) — FR-064/T134
+  - Die App würfelt strukturierte Seed-Elemente (Art der Begegnung, Ort, konkretes Anliegen bzw. Beruf,
+    ca. 1/3 mal eine latente Wendung, plus zwei weiche Zusatzwörter) und der Prompt zwingt das Modell,
+    diese wörtlich zu verwenden — so ist die Vielfalt garantiert statt dem Modell überlassen. Der
+    Entwurf füllt die Formularfelder (erneutes Drücken überschreibt), wird vor dem Befüllen validiert
+    (ein fehlerhafter Entwurf überschreibt nichts) und das Formular ist während des Requests gesperrt.
+  - Offen: `keyMoments` werden weiterhin nirgends ausgewertet (tote Daten) — der Szenenbogen könnte
+    später in den Dialog-Prompt aufgenommen werden, das wäre aber eine eigene Änderung mit
+    Regressionstests, weil es jede Session betrifft.
 
 ## Conversation
 

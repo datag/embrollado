@@ -1,5 +1,5 @@
 import { AiError } from '@/domain/types'
-import type { ServiceConfig } from '@/domain/types'
+import type { Gender, ServiceConfig } from '@/domain/types'
 import type { EndpointProfile, ModelInfo } from '@/ai/providers'
 import { profileById } from '@/ai/providers'
 import { chunkText, postJson, postStream, request } from '@/ai/transport'
@@ -9,9 +9,17 @@ import {
   buildResponseFormat,
   FALLBACK_RESPONSE_FORMAT,
   CONNECTION_SCHEMA,
+  SITUATION_DRAFT_SCHEMA,
+  PARTNER_DRAFT_SCHEMA,
   type SchemaObject,
 } from '@/ai/schema'
-import { schemaInPrompt } from '@/ai/prompts'
+import {
+  schemaInPrompt,
+  buildSituationDraftMessages,
+  buildPartnerDraftMessages,
+  type DraftContext,
+} from '@/ai/prompts'
+import type { SituationSeeds, PartnerSeeds } from '@/domain/seeds'
 
 /**
  * The single AI adapter (T024; constitution Principle IV). All request construction, response
@@ -417,6 +425,105 @@ export async function testConnection(service: ServiceConfig): Promise<Connection
       return { ok: false, message: err.message }
     }
     return { ok: false, message: String(err) }
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* AI-generated situation and partner drafts (FR-064)                   */
+/* ------------------------------------------------------------------ */
+
+export interface SituationDraft {
+  name: string
+  setting: string
+}
+
+export interface PartnerDraft {
+  name: string
+  age: number | null
+  gender: Gender | null
+  occupation: string
+  description: string
+}
+
+/** The malformed-draft error: the model answered, but not with a usable entry. */
+function draftError(): AiError {
+  return new AiError('provider', 'The service answered in an unexpected format.', null)
+}
+
+/**
+ * Generate a situation draft from picked seeds. The model answers with a strict JSON object
+ * (`{ name, setting }`); the result is validated here before it can be filled into a form, so a
+ * malformed or empty draft never overwrites what the learner already wrote.
+ */
+export async function generateSituationDraft(
+  service: ServiceConfig,
+  seed: SituationSeeds,
+  ctx: DraftContext,
+): Promise<SituationDraft> {
+  const result = await chatCompletion({
+    service,
+    messages: buildSituationDraftMessages(seed, ctx),
+    schema: {
+      name: 'embrollado_situation_draft',
+      schema: SITUATION_DRAFT_SCHEMA as unknown as SchemaObject,
+    },
+    stream: false,
+    maxRetries: 1,
+  })
+  if (result.refusal) throw new AiError('refusal', result.refusal)
+  const parsed = parseLooseJson(result.content) as Partial<SituationDraft> | null
+  if (!parsed) throw draftError()
+  const name = typeof parsed.name === 'string' ? parsed.name.trim() : ''
+  const setting = typeof parsed.setting === 'string' ? parsed.setting.trim() : ''
+  if (!name || !setting) throw draftError()
+  return { name: name.slice(0, 80), setting: setting.slice(0, 400) }
+}
+
+/**
+ * Generate a partner draft from picked seeds. `age`/`gender` may come back null; the free-text
+ * fields are validated and truncated to the form's limits. Unknown gender values fall back to
+ * `other` so a draft always fits the `Persona` model.
+ */
+export async function generatePartnerDraft(
+  service: ServiceConfig,
+  seed: PartnerSeeds,
+  ctx: DraftContext,
+): Promise<PartnerDraft> {
+  const result = await chatCompletion({
+    service,
+    messages: buildPartnerDraftMessages(seed, ctx),
+    schema: {
+      name: 'embrollado_partner_draft',
+      schema: PARTNER_DRAFT_SCHEMA as unknown as SchemaObject,
+    },
+    stream: false,
+    maxRetries: 1,
+  })
+  if (result.refusal) throw new AiError('refusal', result.refusal)
+  const parsed = parseLooseJson(result.content) as Partial<PartnerDraft> | null
+  if (!parsed) throw draftError()
+  const name = typeof parsed.name === 'string' ? parsed.name.trim() : ''
+  const occupation = typeof parsed.occupation === 'string' ? parsed.occupation.trim() : ''
+  const description = typeof parsed.description === 'string' ? parsed.description.trim() : ''
+  if (!name || !occupation || !description) throw draftError()
+  let age: number | null = null
+  if (typeof parsed.age === 'number' && Number.isFinite(parsed.age)) {
+    const rounded = Math.round(parsed.age)
+    if (rounded >= 0 && rounded <= 120) age = rounded
+  }
+  const rawGender = parsed.gender
+  const gender: Gender | null =
+    rawGender === null
+      ? null // unspecified — keep it nullable like the form's "Not specified"
+      : rawGender === 'female' || rawGender === 'male' || rawGender === 'other'
+        ? rawGender
+        : 'other' // an unknown real value still yields a usable gender
+  return {
+    name: name.slice(0, 60),
+    age,
+    gender,
+    occupation: occupation.slice(0, 60),
+    description: description.slice(0, 400),
   }
 }
 

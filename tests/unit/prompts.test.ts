@@ -4,6 +4,8 @@ import {
   buildTurnUserMessage,
   buildSceneMessages,
   buildIllustrationPrompt,
+  buildSituationDraftMessages,
+  buildPartnerDraftMessages,
 } from '@/ai/prompts'
 import type { Level } from '@/domain/types'
 
@@ -337,5 +339,70 @@ describe('prompt builder (T045, T039, T112)', () => {
     )
     expect(prompt).toContain('hands a coin')
     expect(prompt).toContain('no text')
+  })
+})
+
+describe('draft prompts (T134 / FR-064)', () => {
+  const ctx = { level: 'intermediate' as Level, targetLanguage: 'es' }
+
+  it('forces the situation elements into the prompt verbatim and names "the learner"', () => {
+    const messages = buildSituationDraftMessages(
+      {
+        kind: 'situation',
+        genre: 'a small conflict',
+        place: 'a laundromat in Vienna',
+        aim: 'to exchange a parcel that was sent to the wrong street',
+        twist: null,
+        extras: ['Lisbon', 'apricot jam'],
+      },
+      ctx,
+    )
+    const all = messages.map((m) => m.content).join('\n')
+    expect(all).toContain('a laundromat in Vienna')
+    expect(all).toContain('to exchange a parcel that was sent to the wrong street')
+    expect(all).toContain('a small conflict')
+    // The wayfinder form is instructed explicitly: name "the learner", never second person.
+    expect(all).toContain('name "the learner"')
+    expect(all).toContain('Never write "you"')
+    expect(all).toContain('Concrete over generic')
+    // A plain roll must not invite a complication.
+    expect(messages[0].content).toContain('Do not add any complication')
+  })
+
+  it('plants the latent twist only when one was drawn', () => {
+    const withTwist = buildSituationDraftMessages(
+      {
+        kind: 'situation',
+        genre: 'a request for help',
+        place: 'a ferry terminal ticket window',
+        aim: 'to retrieve a package left at the wrong door',
+        twist: 'the place is about to close and the clock is ticking',
+        extras: ['Marisol', 'a wool blanket'],
+      },
+      ctx,
+    )[0].content
+    expect(withTwist).toContain('the place is about to close and the clock is ticking')
+    expect(withTwist).toContain('open possibility')
+    expect(withTwist).not.toContain('Do not add any complication')
+  })
+
+  it('builds a partner draft that keeps the role verbatim and never uses "you"', () => {
+    const messages = buildPartnerDraftMessages(
+      {
+        kind: 'partner',
+        genre: 'a first meeting',
+        place: 'a lighthouse visitor room',
+        role: 'a lighthouse keeper',
+        twist: null,
+        extras: ['Reykjavík', 'a radio playing softly'],
+      },
+      ctx,
+    )
+    const all = messages.map((m) => m.content).join('\n')
+    expect(all).toContain('a lighthouse keeper')
+    expect(all).toContain('a lighthouse visitor room')
+    // The partner draft is about a person only, never a script, and never addresses "you".
+    expect(all).toContain('third person')
+    expect(all).toContain('Never use "you"')
   })
 })

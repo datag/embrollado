@@ -104,6 +104,10 @@ export default {
     tooLong: 'Too long',
     required: 'Required',
     ageRange: 'Age must be between 0 and 120',
+    aiGenerate: 'Generate a random entry with AI',
+    aiGenerateHint:
+      'Generate a random situation/partner with AI. This overwrites the fields you already filled in.',
+    aiSeed: 'Made from: {elements}',
   },
   dialogue: {
     title: 'Conversation',
@@ -285,7 +289,7 @@ export default {
       'Embrollado is a browser-only practice app for foreign languages. You hold a realistic role-play conversation with an AI partner. Your conversations stay in your browser — only the live dialogue goes to the AI service you configured.',
     privacyTitle: 'Privacy',
     privacy:
-      'Your conversations, pictures and cached audio live only in this browser. The only outbound traffic is to the AI service you configure, which receives the conversation you are actively having, the situation and partner setup, the perceivable traits you entered (appearance, age, gender, voice), and — when you enable “The AI partner already knows you” — your name and details. Pictures also always include your name and details. The API key is sent only to that service.',
+      'Your conversations, pictures and cached audio live only in this browser. The only outbound traffic is to the AI service you configure, which receives the conversation you are actively having, the situation and partner setup, the perceivable traits you entered (appearance, age, gender, voice), and — when you enable “The AI partner already knows you” — your name and details. Pictures also always include your name and details. When you use “Generate” in the setup screen, the service receives a short prompt with your chosen level, the target language and a few random seed words — no personal data. The API key is sent only to that service.',
     techTitle: 'Technology',
     tech: 'TypeScript, Vue, Tailwind CSS, Vite. All assets are bundled and serve from this site.',
     licenceTitle: 'Licence',

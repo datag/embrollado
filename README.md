@@ -117,6 +117,13 @@ picture generation, and — in the dialogue — only when you tick "The AI partn
 when starting a conversation (off by default); otherwise the partner gets to know you during the
 talk, the way strangers do. The privacy notes and a pseudonym tip in the app say so explicitly.
 
+In the **Setup → "Write my own"** form, a 🪄 button proposes a random situation or partner for you:
+the app rolls a few seed elements (a kind of encounter, a place, a concrete goal — and sometimes a
+latent twist) and the AI writes an entry that fills the form, which you can edit and save like a
+hand-written one (a new press overwrites the fields). It sends only your chosen level, the target
+language and the seed words — nothing personal. If you haven't configured a service yet, the button
+points you to Settings.
+
 See [docs/configure-ai-service.md](docs/configure-ai-service.md) for provider-specific tips.
 
 ## Where your data lives

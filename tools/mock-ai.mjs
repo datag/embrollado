@@ -163,41 +163,68 @@ const server = http.createServer((req, res) => {
       }
       const stream = parsed.stream === true
       // On-demand illustration requests carry the embrollado_scene schema: answer with a ready
-      // narration that the image endpoint renders verbatim.
-      const isScene = parsed.response_format?.json_schema?.name === 'embrollado_scene'
+      // narration that the image endpoint renders verbatim. AI-generated situation/partner drafts
+      // carry embrollado_situation_draft / embrollado_partner_draft and are answered with a
+      // ready-made entry that the Setup form fills in.
+      const schemaName = parsed.response_format?.json_schema?.name
+      const isScene = schemaName === 'embrollado_scene'
+      const isSituationDraft = schemaName === 'embrollado_situation_draft'
+      const isPartnerDraft = schemaName === 'embrollado_partner_draft'
       const payload = isScene
         ? {
             scene:
               'A man in his late twenties in dark clothes hands a coin to a woman in her late ' +
               'thirties in front of a small campsite washroom building at dusk.',
           }
-        : TURN
+        : isSituationDraft
+          ? {
+              name: 'At the harbour loft',
+              setting:
+                'The learner needs a signed receipt for an empty crate and finds a second-hand ' +
+                'mirror at the harbour loft; the person on the pier unwraps it and starts talking.',
+            }
+          : isPartnerDraft
+            ? {
+                name: 'Idris',
+                age: 46,
+                gender: 'male',
+                occupation: 'a ferry captain',
+                description:
+                  'A patient ferry captain who knows every tide and a good story, calm until the ' +
+                  'talk turns to the weather he has survived.',
+              }
+            : TURN
       // The `mock-slow-chat` model answers only after a delay — the e2e tests use it to observe
       // the locked send button / spinner while a request is in flight for a comfortable window.
       // `mock-streaming-chat` pauses in the middle of the document so the e2e test can observe
       // the mid-stream rendering (partial partner line + feedback placeholder) deterministically.
+      // The delay applies to streamed AND unstreamed answers (the setup-screen drafts are
+      // unstreamed, and their locked button needs the same observable window).
       const delayMs = parsed.model === 'mock-slow-chat' ? 1000 : 0
       const midPauseMs = parsed.model === 'mock-streaming-chat' ? 2000 : 0
-      if (stream) {
-        if (delayMs) setTimeout(() => sendStream(res, payload, midPauseMs), delayMs)
-        else sendStream(res, payload, midPauseMs)
-        return
+      const send = () => {
+        if (stream) {
+          sendStream(res, payload, midPauseMs)
+          return
+        }
+        const usage = { prompt_tokens: 10, completion_tokens: 8, total_tokens: 18 }
+        sendJson(res, 200, {
+          id: 'chatcmpl-mock',
+          object: 'chat.completion',
+          created: Date.now(),
+          model: parsed.model ?? 'mock-chat',
+          choices: [
+            {
+              index: 0,
+              message: { role: 'assistant', content: JSON.stringify(payload) },
+              finish_reason: 'stop',
+            },
+          ],
+          usage,
+        })
       }
-      const usage = { prompt_tokens: 10, completion_tokens: 8, total_tokens: 18 }
-      sendJson(res, 200, {
-        id: 'chatcmpl-mock',
-        object: 'chat.completion',
-        created: Date.now(),
-        model: parsed.model ?? 'mock-chat',
-        choices: [
-          {
-            index: 0,
-            message: { role: 'assistant', content: JSON.stringify(payload) },
-            finish_reason: 'stop',
-          },
-        ],
-        usage,
-      })
+      if (delayMs) setTimeout(send, delayMs)
+      else send()
     })
     return
   }

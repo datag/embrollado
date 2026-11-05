@@ -87,6 +87,39 @@ export const SCENE_SCHEMA = {
   },
 } as const
 
+/**
+ * The AI-generated situation draft (FR-064). The chat model writes a name and a stage direction for
+ * a situation the learner can then review and save like a hand-written one. Strict, all properties
+ * required, `additionalProperties: false`.
+ */
+export const SITUATION_DRAFT_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['name', 'setting'],
+  properties: {
+    name: { type: 'string' },
+    setting: { type: 'string' },
+  },
+} as const
+
+/**
+ * The AI-generated partner draft (FR-064). The model proposes a name, age, gender, occupation and a
+ * short description; the learner reviews them and saves the entry like a hand-written one. `age`
+ * and `gender` are optional (null / empty string), everything else is required.
+ */
+export const PARTNER_DRAFT_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['name', 'age', 'gender', 'occupation', 'description'],
+  properties: {
+    name: { type: 'string' },
+    age: { type: ['integer', 'null'], minimum: 0, maximum: 120 },
+    gender: { type: ['string', 'null'] },
+    occupation: { type: 'string' },
+    description: { type: 'string' },
+  },
+} as const
+
 export type SchemaObject = Record<string, unknown>
 
 /** Build the `response_format` value for a profile (D13: schema placement differs). */

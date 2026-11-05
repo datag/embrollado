@@ -471,6 +471,15 @@ on a service without those capabilities and verify the graceful fallback.
   incomplete.
 - **FR-049**: Learner-defined entries MUST be stored on the learner's own device only and MUST NOT
   be uploaded anywhere.
+- **FR-064**: In the setup screen's own-entry form, the learner MUST be able to have a random
+  situation or partner proposed by the AI in place of writing one. The app draws a structured set
+  of seed elements (a kind of encounter, a place, a concrete aim — or a role for a partner — and,
+  roughly a third of the time, a latent twist, plus two soft extra words) and the prompt forces the
+  model to use those elements verbatim, so variety is guaranteed rather than left to the model's
+  taste. The drafted entry fills the form's fields (a new press overwrites them). A draft MUST be
+  validated before it is applied: a malformed, empty or non-JSON answer MUST be rejected with an
+  error and MUST NOT overwrite what the learner already wrote, and the request MUST be locked with
+  a loading indicator while it runs. The drafted entry is saved exactly like a hand-written one.
 
 **Keeping speech and illustrations**
 

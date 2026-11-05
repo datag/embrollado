@@ -126,3 +126,39 @@ test('removing a one-off entry clears it without a confirmation; removing a temp
   await situationPicker(page).getByTestId('remove-entry').click()
   await expect(situationPicker(page).getByText('Kept template')).toBeVisible()
 })
+
+test('the AI button fills a situation draft into the form, then saves it as a one-off', async ({
+  page,
+}) => {
+  await configureService(page)
+  await page.goto('/#/new')
+
+  await page.getByRole('button', { name: 'Write my own' }).first().click()
+  await page.getByTestId('ai-generate').click()
+
+  // The mock answers the situation-draft schema with a fixed entry.
+  await expect(page.getByLabel('Name', { exact: true })).toHaveValue('At the harbour loft')
+  await expect(page.locator('textarea')).toHaveValue(/The learner needs a signed receipt/)
+
+  // Saving it reuses the normal one-off path — the entry becomes selectable in the list.
+  await page.getByRole('button', { name: 'Continue' }).click()
+  await expect(
+    situationPicker(page).getByRole('button', { name: /At the harbour loft/ }),
+  ).toBeVisible()
+  await expect(situationPicker(page).getByTestId('remove-entry')).toBeVisible()
+})
+
+test('the AI button fills a partner draft (occupation, age, gender) into the form', async ({
+  page,
+}) => {
+  await configureService(page)
+  await page.goto('/#/new')
+
+  await page.getByRole('button', { name: 'Write my own' }).last().click()
+  await page.getByTestId('ai-generate').click()
+
+  await expect(page.getByLabel('Name', { exact: true })).toHaveValue('Idris')
+  await expect(page.getByLabel('Occupation')).toHaveValue('a ferry captain')
+  await expect(page.getByTestId('custom-gender')).toHaveValue('male')
+  await expect(page.locator('textarea')).toHaveValue(/A patient ferry captain/)
+})
