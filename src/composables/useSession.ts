@@ -56,8 +56,12 @@ export interface SessionError {
 interface TurnRequest {
   /** The parsed turn JSON. */
   parsed: Record<string, unknown>
-  /** The message that was sent — the answer the model has to assess. */
-  requestMessage: { role: 'user'; content: string } | null
+  /**
+   * The message that joins the stored history. A stored answer is "already assessed — context
+   * only"; only the answer that is being sent right now carries the "assess this" mark — so the
+   * model never has two answers to rate (FR-040).
+   */
+  historyMessage: { role: 'user'; content: string } | null
   /** The partner's line — the assistant half of the history entry. */
   partnerLine: string
 }
@@ -232,11 +236,15 @@ export function useSession(): UseSessionReturn {
     const { service } = useServiceConfig()
     if (!service.chatModel)
       throw { kind: 'not-configured', message: 'serviceNotConfigured' } as SessionError
-    if (messages.length === 0) return { parsed: {}, requestMessage: null, partnerLine: '' }
-    const userMessage = buildTurnUserMessage(
-      learnerText,
-      learnerText == null || learnerText.trim() === '' ? 'opening' : 'current',
-    )
+    if (messages.length === 0) return { parsed: {}, historyMessage: null, partnerLine: '' }
+    const kind = learnerText == null || learnerText.trim() === '' ? 'opening' : 'current'
+    const userMessage = buildTurnUserMessage(learnerText, kind)
+    // The answer that is being sent now is the one to assess ("current"). Every answer that is
+    // already stored is context only — the same mark the resumed session uses. So the history
+    // never holds a second "assess this" message, and the model rates exactly one answer: the
+    // last one (FR-040, T135).
+    const historyMessage =
+      kind === 'opening' ? userMessage : buildTurnUserMessage(learnerText, 'context')
     const result = await chatCompletion({
       service,
       messages: [...messages, userMessage],
@@ -257,7 +265,7 @@ export function useSession(): UseSessionReturn {
     // The history is NOT extended here: the entry joins it only once the turn is stored. A
     // rejected answer or a failed write would otherwise leave the attempt behind — and the retry
     // would send the learner's answer a second time, on top of the failed one.
-    return { parsed, requestMessage: userMessage, partnerLine }
+    return { parsed, historyMessage, partnerLine }
   }
 
   /**
@@ -284,7 +292,7 @@ export function useSession(): UseSessionReturn {
 
     let acc = ''
     try {
-      const { parsed, requestMessage, partnerLine } = await requestTurn(null, (data) => {
+      const { parsed, historyMessage, partnerLine } = await requestTurn(null, (data) => {
         acc += data
         partnerProgress.value = growingStringValue(acc, 'partnerText')
       })
@@ -303,8 +311,8 @@ export function useSession(): UseSessionReturn {
       await saveTurn(opening)
       // The turn is stored — only now does it join the model-side history. A failed attempt
       // leaves the history untouched, so a retry starts from the same context.
-      if (requestMessage) {
-        messages.push(requestMessage, { role: 'assistant', content: partnerLine })
+      if (historyMessage) {
+        messages.push(historyMessage, { role: 'assistant', content: partnerLine })
       }
       turns.value = await refreshTurns(s.id, opening)
       lastHandle = opening
@@ -332,7 +340,7 @@ export function useSession(): UseSessionReturn {
 
     let acc = ''
     try {
-      const { parsed, requestMessage, partnerLine } = await requestTurn(text, (data) => {
+      const { parsed, historyMessage, partnerLine } = await requestTurn(text, (data) => {
         acc += data
         partnerProgress.value = growingStringValue(acc, 'partnerText')
       })
@@ -373,9 +381,10 @@ export function useSession(): UseSessionReturn {
       await saveTurn(turn)
       // The turn is stored — only now does it join the model-side history. A failed attempt
       // (a rejected answer, a failed write) leaves the history untouched, so the retry sends
-      // the learner's answer exactly once (T129).
-      if (requestMessage) {
-        messages.push(requestMessage, { role: 'assistant', content: partnerLine })
+      // the learner's answer exactly once (T129). The stored answer is context from here on —
+      // only the answer that is sent next is marked as the one to assess (T135).
+      if (historyMessage) {
+        messages.push(historyMessage, { role: 'assistant', content: partnerLine })
       }
       turns.value = await refreshTurns(s.id, turn)
       lastHandle = turn
