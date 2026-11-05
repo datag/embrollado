@@ -59,8 +59,9 @@ Offene Punkte, nach Themen gruppiert.
 ## Image Generation
 
 - [ ] Prüfen: Bekommt Image-Gen den vollen Kontext, inkl. Aussehen der Personen? Negativbeispiel: Persona-Kontext "blaue Jeans und weißes Oberteil", und (schwaches?) Bild-Modell macht ein Blumenkleid daraus.
-- [ ] Bildstil (Illustrationen) festlegen. Notiz: Stil einmalig mit LLM aus gespeicherten Bildern als JSON beschreiben lassen.
+- [ ] Bildstil (Illustrationen) festlegen. Notiz: Teils bereits gegeben. Stil einmalig mit LLM aus gespeicherten/auserlesenen Bildern als JSON beschreiben lassen.
 - [ ] Konsistente Images (also bei Folge-Bildern)
+- [ ] "<model> does not support explicit pixel sizes. Use resolution and aspect_ratio instead." (model: Sourceful V2, xAI...)
 
 ## Sonstiges AI
 
