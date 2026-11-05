@@ -229,9 +229,11 @@ name and the personal details leave the device only when the per-session option 
 (FR-060) or in the picture context of §5. The privacy notes and the pseudonym tip in the app say
 so.
 
-The situation description is written from the learner's perspective ("you are queuing…"); the
-prompt therefore resolves the ambiguity once: in the situation text, "you" refers to the learner,
-not to the partner.
+The situation description is written as a stage direction in the third person, naming "the
+learner" and the other people in the scene (catalogue entries follow this convention; a learner's
+own entry in the second person is also respected). The prompt therefore resolves any role ambiguity
+once: in the situation text, "the learner" (or the "you" of a second-person entry) is the person the
+partner talks to — the app user — never the partner.
 
 ## 5. On-demand illustration prompts (FR-028 as amended)
 
@@ -249,7 +251,9 @@ request produces the finished scene, a second renders it:
            call as one split scene — two panels, one shared moment — so both people appear.
 
    User:   Situation: {situation.name} — {situation.setting}
-           Note: in the situation description, "you" refers to the learner.
+           Note on roles: "the learner" is the person behind the screen — the app user who plays
+            that role. If the situation addresses that person as "you", then "you" there is the
+            learner; the other people named in it are not the partner.
            Partner: {name} — {age} years old, {gender}, {occupation}. {description}
            Learner: {settings.name} — {age band}, {gender}, {appearance}; details: {settings.details}
            Conversation so far:

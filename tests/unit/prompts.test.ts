@@ -114,9 +114,18 @@ describe('prompt builder (T045, T039, T112)', () => {
     expect(prompt).toContain('in a phone call you only hear them')
   })
 
-  it('resolves the ambiguous "you" in the situation text to the learner', () => {
+  it('gives a roles frame so "the learner" and the partner are unambiguous in the situation', () => {
     const prompt = buildSystemPrompt(base)
-    expect(prompt).toContain('"you" refers to the learner, not to you')
+    expect(prompt).toContain('"the learner" is the person you are talking to')
+    expect(prompt).toContain('never you')
+  })
+
+  it('keeps a second-person situation entry resolvable to the learner as well', () => {
+    const prompt = buildSystemPrompt({
+      ...base,
+      situation: { ...base.situation, setting: 'You are queuing at a bakery.' },
+    })
+    expect(prompt).toContain('"you" there is the learner, never you')
   })
 
   it('uses the level-specific rules', () => {

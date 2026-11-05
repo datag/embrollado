@@ -105,7 +105,7 @@ FR-003, FR-044, FR-045, FR-046.
 | ------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
 | `id`                | string                         | Required; `builtin:<slug>` for the 13 predefined situations, UUID for learner-defined ones                                            |
 | `name`              | string                         | Required, ≤ 80 characters                                                                                                             |
-| `setting`           | string                         | Required, ≤ 400 characters — where and what is happening                                                                              |
+| `setting`           | string                         | Required, ≤ 400 characters — where and what is happening; written in the third person as a stage direction ("the learner …") with the other people named by what they do |
 | `keyMoments`        | string[]                       | Required; the situation's key moments — legacy illustration hooks (FR-028 as amended: pictures are on demand)                         |
 | `suggestedPartners` | string[]                       | Optional hints; not a restriction (FR-044)                                                                                            |
 | `origin`            | `"builtin" \| "learner"`       | Required                                                                                                                              |

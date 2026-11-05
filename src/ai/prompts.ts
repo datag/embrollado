@@ -104,7 +104,9 @@ export function buildSystemPrompt(input: PromptInput): string {
   ].join('')
   const situation =
     `Situation: ${input.situation.name}. ${input.situation.setting} ` +
-    `In the situation description, "you" refers to the learner, not to you.`
+    `Roles in the situation: "the learner" is the person you are talking to — the user of this ` +
+    `app; the other people named there are not you. If the situation addresses that person as ` +
+    `"you", then "you" there is the learner, never you.`
 
   return [
     role,
@@ -380,7 +382,9 @@ export function buildSceneMessages(
       role: 'user',
       content: [
         `Situation: ${ctx.situation.name} — ${ctx.situation.setting}`,
-        `Note: in the situation description, "you" refers to the learner — the person behind the screen.`,
+        `Note on roles: "the learner" is the person behind the screen — the app user who plays ` +
+          `that role. If the situation addresses that person as "you", then "you" there is the ` +
+          `learner, the other people named in it are not.`,
         ``,
         describePartner(ctx.partner),
         describeLearnerInScene(ctx),

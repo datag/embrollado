@@ -23,6 +23,15 @@ describe('catalogue (T031)', () => {
     }
   })
 
+  it('writes every built-in situation as a third-person wayfinder ("the learner")', () => {
+    // SC: situation settings name "the learner" and the other people by what they do, so
+    // partner/learner role ambiguity is structurally excluded — no second-person "you/your".
+    for (const s of SITUATIONS) {
+      expect(s.setting).toMatch(/\bthe learner\b/i)
+      expect(s.setting).not.toMatch(/\b(you|your)\b/i)
+    }
+  })
+
   it('exposes 5 predefined partners', () => {
     expect(PARTNERS).toHaveLength(5)
     for (const p of PARTNERS) {
