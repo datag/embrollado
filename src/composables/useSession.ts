@@ -48,6 +48,20 @@ export interface SessionError {
   message: string
 }
 
+/**
+ * The result of one turn request: what the model answered and the history entry it produced.
+ * The entry joins the model-side history only when the turn is actually stored — a failed attempt
+ * must leave the history untouched (T129), or the retry would send the learner's answer twice.
+ */
+interface TurnRequest {
+  /** The parsed turn JSON. */
+  parsed: Record<string, unknown>
+  /** The message that was sent — the answer the model has to assess. */
+  requestMessage: { role: 'user'; content: string } | null
+  /** The partner's line — the assistant half of the history entry. */
+  partnerLine: string
+}
+
 export interface UseSessionReturn {
   session: Ref<Session | null>
   turns: Ref<Turn[]>
@@ -122,7 +136,9 @@ export function useSession(): UseSessionReturn {
    * stored turns.
    */
   const translationOverrides = reactive(new Map<string, boolean>())
-  // Per-session AI chat history: the system prompt + the turns so far.
+  // Per-session AI chat history: the system prompt + the turns so far. It mirrors the stored
+  // conversation exactly — a turn joins it only after it was stored, so a failed attempt leaves
+  // no phantom answer in the context the service sees (T129).
   const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = []
   let lastHandle: Turn | null = null
 
@@ -208,15 +224,15 @@ export function useSession(): UseSessionReturn {
     }
   }
 
-  /** One API call: returns the parsed turn JSON and the raw streamed text. */
+  /** One API call: returns the parsed turn JSON and the history entry it produced. */
   async function requestTurn(
     learnerText: string | null,
     onDelta: (data: string) => void,
-  ): Promise<Record<string, unknown>> {
+  ): Promise<TurnRequest> {
     const { service } = useServiceConfig()
     if (!service.chatModel)
       throw { kind: 'not-configured', message: 'serviceNotConfigured' } as SessionError
-    if (messages.length === 0) return {}
+    if (messages.length === 0) return { parsed: {}, requestMessage: null, partnerLine: '' }
     const userMessage = buildTurnUserMessage(
       learnerText,
       learnerText == null || learnerText.trim() === '' ? 'opening' : 'current',
@@ -238,8 +254,22 @@ export function useSession(): UseSessionReturn {
     // stored instead, the previous turn's rating would sit directly above the next request and
     // anchor the model's new rating to the WRONG (previous) answer — the observable "lag by one".
     const partnerLine = typeof parsed.partnerText === 'string' ? parsed.partnerText : result.content
-    messages.push(userMessage, { role: 'assistant', content: partnerLine })
-    return parsed
+    // The history is NOT extended here: the entry joins it only once the turn is stored. A
+    // rejected answer or a failed write would otherwise leave the attempt behind — and the retry
+    // would send the learner's answer a second time, on top of the failed one.
+    return { parsed, requestMessage: userMessage, partnerLine }
+  }
+
+  /**
+   * The stored turns after a write. The read is best-effort: a failing read must not turn a
+   * stored turn into a failed one — the retry would store the same answer a second time.
+   */
+  async function refreshTurns(sessionId: string, stored: Turn): Promise<Turn[]> {
+    try {
+      return await getTurns(sessionId)
+    } catch {
+      return [...turns.value, stored]
+    }
   }
 
   /** Open a session and produce the partner's first line. */
@@ -254,7 +284,7 @@ export function useSession(): UseSessionReturn {
 
     let acc = ''
     try {
-      const parsed = await requestTurn(null, (data) => {
+      const { parsed, requestMessage, partnerLine } = await requestTurn(null, (data) => {
         acc += data
         partnerProgress.value = growingStringValue(acc, 'partnerText')
       })
@@ -271,7 +301,12 @@ export function useSession(): UseSessionReturn {
         feedbackLanguage(),
       )
       await saveTurn(opening)
-      turns.value = await getTurns(s.id)
+      // The turn is stored — only now does it join the model-side history. A failed attempt
+      // leaves the history untouched, so a retry starts from the same context.
+      if (requestMessage) {
+        messages.push(requestMessage, { role: 'assistant', content: partnerLine })
+      }
+      turns.value = await refreshTurns(s.id, opening)
       lastHandle = opening
       phase.value = 'waiting-answer'
     } catch (err) {
@@ -297,7 +332,7 @@ export function useSession(): UseSessionReturn {
 
     let acc = ''
     try {
-      const parsed = await requestTurn(text, (data) => {
+      const { parsed, requestMessage, partnerLine } = await requestTurn(text, (data) => {
         acc += data
         partnerProgress.value = growingStringValue(acc, 'partnerText')
       })
@@ -336,7 +371,13 @@ export function useSession(): UseSessionReturn {
         feedbackLanguage: feedbackLanguage(),
       }
       await saveTurn(turn)
-      turns.value = await getTurns(s.id)
+      // The turn is stored — only now does it join the model-side history. A failed attempt
+      // (a rejected answer, a failed write) leaves the history untouched, so the retry sends
+      // the learner's answer exactly once (T129).
+      if (requestMessage) {
+        messages.push(requestMessage, { role: 'assistant', content: partnerLine })
+      }
+      turns.value = await refreshTurns(s.id, turn)
       lastHandle = turn
       pendingText.value = null
       phase.value = 'waiting-answer'
@@ -554,16 +595,14 @@ export function useSession(): UseSessionReturn {
   async function retry() {
     if (!session.value) return
     if (pendingText.value) {
-      // Re-send the answer that failed — the learner's text is kept (FR-025, FR-035).
+      // Re-send the answer that failed — the learner's text is kept (FR-025, FR-035) and sent
+      // exactly once: the failed attempt never entered the model-side history.
       await sendAnswer(pendingText.value)
       return
     }
-    const last = lastHandle
-    if (last && last.learnerText) {
-      await sendAnswer(last.learnerText)
-    } else {
-      await startInitialTurn()
-    }
+    // No answer is pending: the opening line failed — request it again from scratch. (A stored
+    // answer is never re-sent here: it has been assessed already and would be rated twice.)
+    await startInitialTurn()
   }
 
   async function load(id: string) {

@@ -291,4 +291,65 @@ test.describe('dialogue cycle', () => {
     )
     expect(Math.abs(drift)).toBeLessThanOrEqual(48)
   })
+
+  test('sends the failed answer only once when the learner retries (T129)', async ({ page }) => {
+    await configureService(page)
+    await startConversation(page)
+    await expectPartnerLine(page, 'Hello! Nice to meet you.')
+
+    // The first learner turn answers without a usable partnerText: the app rejects the answer
+    // ("unexpected format", FR-025) and offers the retry. Every later request goes to the mock.
+    let broken = false
+    await page.route('**/v1/chat/completions', async (route) => {
+      const body = route.request().postData() ?? ''
+      const isLearnerTurn = body.includes('this is the answer you assess')
+      if (!isLearnerTurn || broken) {
+        await route.continue()
+        return
+      }
+      broken = true
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          choices: [
+            {
+              index: 0,
+              message: { role: 'assistant', content: '{"translation":"nope"}' },
+              finish_reason: 'stop',
+            },
+          ],
+        }),
+      })
+    })
+
+    const answer = 'Is the washroom nearby?'
+    await page.getByTestId('dialogue-input').fill(answer)
+    await page.getByTestId('send').click()
+
+    // The rejected answer shows the error and offers the retry.
+    await expect(
+      page.getByText('The service answered in an unexpected format.').first(),
+    ).toBeVisible({ timeout: 20_000 })
+    await page.getByRole('button', { name: 'Send again' }).click()
+
+    // The retry succeeds — the assessment lands, and the answer is shown exactly once.
+    await expect(page.getByTestId('feedback')).toBeVisible({ timeout: 20_000 })
+    await expect(page.locator('p.whitespace-pre-wrap', { hasText: answer })).toHaveCount(1)
+
+    // The request the service received carries the answer exactly once: the failed attempt left
+    // nothing behind in the model-side history, so the retry did not repeat it.
+    const payload = await page.evaluate(() => {
+      const raw = sessionStorage.getItem('embrollado.debug.v1')
+      if (!raw) return null
+      const doc = JSON.parse(raw) as {
+        data: { entries: Array<{ direction: string; kind: string; payload: string }> }
+      }
+      // The entries are newest first — the newest chat request is the retry.
+      const request = doc.data.entries.find((e) => e.direction === 'request' && e.kind === 'chat')
+      return request?.payload ?? null
+    })
+    expect(payload).not.toBeNull()
+    expect(payload!.split(answer).length - 1).toBe(1)
+  })
 })

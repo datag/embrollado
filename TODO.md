@@ -35,6 +35,7 @@ Offene Punkte, nach Themen gruppiert.
     worden — T127). Der Bewertungsblock selbst wird weiterhin als ein Block geliefert; Abschnitt für
     Abschnitt wäre machbar (die JSON-Feldreihenfolge entspricht der Blockreihenfolge), ist aber
     bewusst offen — siehe D15 in `research.md`.
+- [x] Bei AI-Response-Fehler die eigene Nachricht nicht 2x anhängen. Schien passiert zu sein "Du wiederholst aber exakt deinen vorherigen Satz"
 
 ### Darstellung
 
