@@ -330,6 +330,10 @@ export default {
     expandJson: 'Eingebettetes JSON aufklappen',
     showRaw: 'Roh anzeigen',
     notPersisted: 'Das Protokoll konnte nicht gespeichert werden — es überlebt nur diese Seite.',
+    trimmedCount:
+      'Das Protokoll behält die neuesten {kept} Einträge — {dropped} ältere wurden verworfen.',
+    trimmedStorage:
+      '{dropped} ältere Einträge dieser Sitzung passten nicht in den Tab-Speicher — ein Neuladen behält die neuesten {kept}.',
     clear: 'Protokoll leeren',
     close: 'Panel schließen',
     badge: 'Debug',

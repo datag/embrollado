@@ -16,13 +16,14 @@ import JsonCode from '@/components/JsonCode.vue'
  * The log survives a reload in this tab via sessionStorage and dies when the tab closes. It is never
  * exported and never leaves the device.
  */
-const { entries, clear, persistenceFailed } = useDebugLog()
+const { entries, status, clear, persistenceFailed } = useDebugLog()
 const { close: closePanel } = useDebugPanel()
 const { t } = useI18n()
 
 const panelRef = ref<HTMLElement | null>(null)
 const backEl = ref<HTMLButtonElement | null>(null)
 const list = computed(() => entries())
+const logStatus = computed(() => status())
 const selectedId = ref<string | null>(null)
 const selected = computed<DebugLogEntry | null>(
   () => list.value.find((e) => e.id === selectedId.value) ?? null,
@@ -164,6 +165,31 @@ watch(
               data-testid="debug-not-persisted"
             >
               {{ t('debug.notPersisted') }}
+            </p>
+            <!-- The log is never silently shortened: say what was dropped and why. -->
+            <p
+              v-if="logStatus.dropped > 0"
+              class="text-xs text-fg-muted"
+              data-testid="debug-trimmed-count"
+            >
+              {{
+                t('debug.trimmedCount', {
+                  kept: list.length,
+                  dropped: logStatus.dropped,
+                })
+              }}
+            </p>
+            <p
+              v-if="logStatus.notPersisted > 0"
+              class="text-xs text-fg-muted"
+              data-testid="debug-trimmed-storage"
+            >
+              {{
+                t('debug.trimmedStorage', {
+                  kept: logStatus.persistedCount,
+                  dropped: logStatus.notPersisted,
+                })
+              }}
             </p>
           </div>
         </div>

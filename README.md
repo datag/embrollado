@@ -154,16 +154,19 @@ low on space it prunes **only** the speech cache — never a transcript or a pic
 A **Debug** chip at the end of the footer opens a full-width modal (available in production too)
 that lists every AI request and response of the current session in strict chronological order
 (newest first). The log is kept in `sessionStorage`, so it survives a reload in the same tab and
-ends when the tab is closed — it is never exported and never leaves the device. Each entry is shown
-with an ISO-like timestamp (`YYYY-MM-DD HH:MM:SS`), the request/response direction, the kind (Chat,
-TTS, Image, Other), the method, path, and a status chip with the response time shown muted beside
-it. While the modal is open the page behind is scroll-locked. Clicking an entry shows the **real**
-request/response headers (collapsed by default; the API key is always `<REDACTED>`) plus the type
-and kind, and the payload — unfolded by default so embedded JSON string values render as readable
-nested blocks, and long string values (≥ 50 characters / code points, or containing a line break)
-sit unquoted in a highlighted box so prompt/response prose stays readable; go to "Show raw" for the
-byte-exact form. Base64/binary payloads are shortened to `abcde<TRUNCATED>vwxyz`; ordinary text is
-kept intact.
+ends when the tab is closed — it is never exported and never leaves the device. Two independent
+caps keep it bounded, and the panel says so instead of showing a silently shortened log: the
+**live list** keeps the newest 100 entries of the session (50 exchanges), while the **stored
+copy** is additionally limited to 256 KB, so on a long dialogue only the newest entries survive a
+reload — the panel names how many did not fit. Each entry is shown with an ISO-like timestamp
+(`YYYY-MM-DD HH:MM:SS`), the request/response direction, the kind (Chat, TTS, Image, Other), the
+method, path, and a status chip with the response time shown muted beside it. While the modal is
+open the page behind is scroll-locked. Clicking an entry shows the **real** request/response
+headers (collapsed by default; the API key is always `<REDACTED>`) plus the type and kind, and the
+payload — unfolded by default so embedded JSON string values render as readable nested blocks, and
+long string values (≥ 50 characters / code points, or containing a line break) sit unquoted in a
+highlighted box so prompt/response prose stays readable; go to "Show raw" for the byte-exact form.
+Base64/binary payloads are shortened to `abcde<TRUNCATED>vwxyz`; ordinary text is kept intact.
 
 ## Deployment
 

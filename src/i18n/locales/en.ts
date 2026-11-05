@@ -326,6 +326,9 @@ export default {
     expandJson: 'Expand embedded JSON',
     showRaw: 'Show raw',
     notPersisted: 'The log could not be saved — it only survives this page.',
+    trimmedCount: 'The log keeps the newest {kept} entries — {dropped} older ones were dropped.',
+    trimmedStorage:
+      "{dropped} older entries of this session did not fit into the tab's storage — a reload keeps the newest {kept}.",
     clear: 'Clear log',
     close: 'Close panel',
     badge: 'Debug',

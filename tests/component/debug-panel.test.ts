@@ -2,7 +2,7 @@ import { describe, expect, it, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { i18n } from '@/i18n'
 import DebugPanel from '@/components/DebugPanel.vue'
-import { clearDebugLog, logRequest, logResponse } from '@/ai/debugLog'
+import { clearDebugLog, debugLogStatus, logRequest, logResponse } from '@/ai/debugLog'
 
 const SECRET = 'sk-supersecretvalue'
 const makeHeaders = () => ({ authorization: `Bearer ${SECRET}` })
@@ -147,5 +147,27 @@ describe('debug panel', () => {
       expect(box.classes()).toContain('json-decoded')
       expect(styles).not.toMatch(/margin/)
     }
+  })
+
+  it('explains a shortened log instead of showing it silently', () => {
+    // More traffic than the storage budget can hold: the live log keeps everything, the persisted
+    // copy does not — the panel has to say so.
+    for (let i = 0; i < 40; i++) {
+      logRequest(CHAT_URL, {
+        method: 'POST',
+        headers: {},
+        body: JSON.stringify({ big: 'x'.repeat(20_000), i }),
+      })
+    }
+    const status = debugLogStatus()
+    expect(status.notPersisted).toBeGreaterThan(0)
+
+    const wrapper = mountPanel()
+    const hint = wrapper.find('[data-testid="debug-trimmed-storage"]')
+    expect(hint.exists()).toBe(true)
+    expect(hint.text()).toContain(String(status.notPersisted))
+    expect(hint.text()).toContain(String(status.persistedCount))
+    // The list itself still holds the whole session.
+    expect(wrapper.findAll('[data-testid="debug-entry"]')).toHaveLength(40)
   })
 })

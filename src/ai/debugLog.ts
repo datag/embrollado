@@ -8,8 +8,19 @@
  * Redaction happens here (headers, the bearer key anywhere it appears), and truncation happens
  * here too: only base64/binary values (or strings over the hard safety net) are shortened, so a
  * multi-MB base64 image never sits in memory while ordinary prose stays intact.
+ *
+ * Two independent caps keep the log bounded: the LIVE log keeps the newest {@link MAX_ENTRIES}
+ * entries of the session (it is never shortened by the storage budget — that one protects
+ * `sessionStorage` only), while the PERSISTED copy is additionally limited by a byte budget, so
+ * only the newest entries survive a reload. How many did not fit is reported by
+ * {@link debugLogStatus} and shown in the panel — the log is never silently shortened.
  */
-import { readDebugEntries, writeDebugEntries, clearDebugEntries } from '@/data/debugSession'
+import {
+  readDebugDocument,
+  writeDebugEntries,
+  clearDebugEntries,
+  type DebugDocument,
+} from '@/data/debugSession'
 
 export type DebugDirection = 'request' | 'response'
 export type DebugRequestKind = 'chat' | 'tts' | 'image' | 'other'
@@ -40,7 +51,11 @@ const SAFETY_MAX_LEN = 50_000
 const TRUNCATE_MARKER = '<TRUNCATED>'
 /** A raw, non-JSON text value is hard-capped so an unbounded body can never bloat the log. */
 const MAX_RAW_CHARS = 50_000
-const MAX_ENTRIES = 50
+/**
+ * How many entries the LIVE log keeps. The live log is not bound by the storage budget (that one
+ * protects `sessionStorage` only), so the panel shows the whole session until this cap is hit.
+ */
+const MAX_ENTRIES = 100
 
 /** Serialise a parsed value to pretty JSON after truncating long strings. */
 function safeStringify(value: unknown): string {
@@ -206,6 +221,14 @@ let entries: DebugLogEntry[] = []
 const listeners = new Set<() => void>()
 /** True once a persist attempt failed and the log only lives for this page. */
 let persistenceFailed = false
+/** Entries the live log dropped because it hit its entry-count cap (gone for good). */
+let dropped = 0
+/** Session entries that are not in the stored list (count-cap + byte-budget drops), cumulative. */
+let trimmed = 0
+/** Session entries that did not fit into the storage budget — a reload loses them. */
+let notPersisted = 0
+/** How many entries fit into the storage budget (what a reload would keep). */
+let persistedCount = 0
 
 /** Monotonic counter assigned at each event (request send / response arrival). */
 let seqCounter = 0
@@ -216,9 +239,21 @@ function nextSeq(): number {
 function readPersisted() {
   entries = []
   persistenceFailed = false
-  entries = readDebugEntries()
+  dropped = 0
+  trimmed = 0
+  persistedCount = 0
+  const doc: DebugDocument = readDebugDocument()
+  entries = doc.entries
   // Never let a storage-extracted log exceed the in-memory cap.
-  entries = entries.slice(0, MAX_ENTRIES)
+  if (entries.length > MAX_ENTRIES) {
+    dropped += entries.length - MAX_ENTRIES
+    entries = entries.slice(0, MAX_ENTRIES)
+  }
+  dropped += doc.dropped
+  trimmed = Math.max(doc.trimmed, dropped)
+  // The entries that did not fit into the byte budget are gone after the reload — the panel says so.
+  notPersisted = Math.max(0, trimmed - dropped)
+  persistedCount = entries.length
 }
 
 // Hydrate from the previous page load in this tab (sessionStorage).
@@ -228,11 +263,19 @@ function notify() {
   for (const listener of listeners) listener()
 }
 
-/** Persist best-effort; on failure the log keeps working in memory only. */
+/**
+ * Persist best-effort; on failure the log keeps working in memory only.
+ *
+ * The byte budget belongs to the STORAGE: the pruned copy is written, but the live log is NOT
+ * replaced by it. Cutting the live list here would silently drop the session's earlier requests
+ * from the panel as soon as the serialised log outgrew the budget — the bug this fix removes.
+ */
 function persist() {
-  const result = writeDebugEntries(entries)
+  const result = writeDebugEntries(entries, dropped, trimmed)
   if (result.ok) {
-    if (result.entries.length !== entries.length) entries = result.entries
+    trimmed = result.trimmed
+    persistedCount = result.entries.length
+    notPersisted = Math.max(0, trimmed - dropped)
   } else {
     persistenceFailed = true
   }
@@ -243,7 +286,10 @@ function pushEntry(entry: DebugLogEntry) {
   // Strict chronological order (newest first), independent of when a body read finished: sort by
   // event timestamp, then by event sequence for ties. Entries are never re-ordered by insert time.
   entries.sort((a, b) => b.timestamp - a.timestamp || b.seq - a.seq)
-  entries = entries.slice(0, MAX_ENTRIES)
+  if (entries.length > MAX_ENTRIES) {
+    dropped += entries.length - MAX_ENTRIES
+    entries = entries.slice(0, MAX_ENTRIES)
+  }
   persist()
   notify()
 }
@@ -261,6 +307,21 @@ export function debugLogEntries(): readonly DebugLogEntry[] {
   return entries
 }
 
+/** Why the log may be shorter than the session it belongs to. */
+export interface DebugLogStatus {
+  /** Entries dropped from the live log because it hit its entry-count cap (gone for good). */
+  dropped: number
+  /** Session entries that did not fit into the storage budget — a reload loses them. */
+  notPersisted: number
+  /** How many entries fit into the storage budget (what a reload would keep). */
+  persistedCount: number
+}
+
+/** The counters that explain a shortened log (see {@link DebugLogStatus}). */
+export function debugLogStatus(): DebugLogStatus {
+  return { dropped, notPersisted, persistedCount }
+}
+
 /** Whether storage is unavailable so the log survives only this page. */
 export function debugPersistenceFailed(): boolean {
   return persistenceFailed
@@ -270,6 +331,10 @@ export function debugPersistenceFailed(): boolean {
 export function clearDebugLog(): void {
   entries = []
   persistenceFailed = false
+  dropped = 0
+  trimmed = 0
+  notPersisted = 0
+  persistedCount = 0
   clearDebugEntries()
   notify()
 }

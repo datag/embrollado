@@ -3,6 +3,7 @@ import {
   classifyKind,
   clearDebugLog,
   debugLogEntries,
+  debugLogStatus,
   debugPersistenceFailed,
   formatJsonText,
   formatSseText,
@@ -10,9 +11,27 @@ import {
   logResponse,
   truncateLongStrings,
 } from '@/ai/debugLog'
-import { readDebugEntries } from '@/data/debugSession'
+import { readDebugDocument, readDebugEntries, writeDebugEntries } from '@/data/debugSession'
+import type { DebugLogEntry } from '@/ai/debugLog'
 
 const SECRET = 'sk-testsecret-123'
+
+/** A stored log entry of a given payload size (for the storage-budget tests). */
+function makeEntry(i: number, payloadSize: number): DebugLogEntry {
+  return {
+    id: `entry-${i}`,
+    seq: i + 1,
+    direction: 'request',
+    timestamp: 1_700_000_000_000 + i,
+    kind: 'chat',
+    method: 'POST',
+    path: '/v1/chat/completions',
+    status: null,
+    durationMs: null,
+    headers: {},
+    payload: 'x'.repeat(payloadSize),
+  }
+}
 
 beforeEach(() => clearDebugLog())
 
@@ -251,16 +270,69 @@ describe('debug log persistence (sessionStorage)', () => {
     }
   })
 
-  it('caps the in-memory log and keeps the persisted copy within the byte budget', () => {
+  it('caps the live log by entry count and keeps the persisted copy within the byte budget', () => {
     for (let i = 0; i < 200; i++) {
       logRequest('https://api.example.com/v1/chat/completions', {
         method: 'POST',
         headers: {},
-        body: JSON.stringify({ big: 'x'.repeat(2000), i }),
+        body: JSON.stringify({ big: 'x'.repeat(1000), i }),
       })
     }
-    expect(debugLogEntries()).toHaveLength(50) // across a reload the stored list is also capped
+    expect(debugLogEntries()).toHaveLength(100) // the live log keeps 100 entries …
+    expect(debugLogStatus().dropped).toBe(100) // … and says how many it had to drop
     const bytes = JSON.stringify(readDebugEntries()).length
     expect(bytes).toBeLessThan(256 * 1024)
+  })
+
+  it('keeps every entry in memory when the persisted copy hits the byte budget (regression)', () => {
+    // A real dialogue fills the budget quickly: every chat request carries the whole system prompt
+    // plus the history. The byte budget protects the STORAGE — it must NOT shorten the live log,
+    // or the session's earlier requests silently vanish from the panel mid-dialogue.
+    for (let i = 0; i < 40; i++) {
+      logRequest('https://api.example.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {},
+        body: JSON.stringify({ big: 'x'.repeat(20_000), i }),
+      })
+    }
+
+    // The live log still holds the whole session …
+    expect(debugLogEntries()).toHaveLength(40)
+    // … while the persisted copy is trimmed to the byte budget (oldest first).
+    const persisted = readDebugEntries()
+    expect(persisted.length).toBeLessThan(40)
+    expect(JSON.stringify(persisted).length).toBeLessThanOrEqual(256 * 1024)
+    // The panel can explain the difference.
+    const status = debugLogStatus()
+    expect(status.notPersisted).toBe(40 - persisted.length)
+    expect(status.persistedCount).toBe(persisted.length)
+    // The counters survive a reload, so the panel still explains the shortened log afterwards.
+    const doc = readDebugDocument()
+    expect(doc.trimmed).toBe(status.notPersisted)
+    expect(doc.dropped).toBe(0)
+  })
+
+  it('stores the entry-count drops so a reload can still explain the shortened log', () => {
+    for (let i = 0; i < 120; i++) {
+      logRequest('https://api.example.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {},
+        body: JSON.stringify({ i }),
+      })
+    }
+    expect(debugLogEntries()).toHaveLength(100)
+    expect(debugLogStatus().dropped).toBe(20)
+    expect(readDebugDocument().dropped).toBe(20)
+  })
+
+  it('never lowers the count of lost entries, even when the stored list shrinks afterwards', () => {
+    const many = Array.from({ length: 40 }, (_, i) => makeEntry(i, 20_000))
+    const first = writeDebugEntries(many, 0, 0)
+    expect(first.trimmed).toBeGreaterThan(0)
+
+    // A reload restores only what fit — the next write must not pretend that nothing was lost.
+    const second = writeDebugEntries(first.entries, 0, first.trimmed)
+    expect(second.trimmed).toBe(first.trimmed)
+    expect(readDebugDocument().trimmed).toBe(first.trimmed)
   })
 })
