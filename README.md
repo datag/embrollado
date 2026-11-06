@@ -126,6 +126,15 @@ points you to Settings.
 
 See [docs/configure-ai-service.md](docs/configure-ai-service.md) for provider-specific tips.
 
+With the **OpenRouter** profile, every request carries the app attribution headers OpenRouter
+documents (`HTTP-Referer` with the app's canonical URL, `X-OpenRouter-Title`, `X-OpenRouter-
+Categories`, `X-OpenRouter-App-Visibility: hidden`), so the provider can attribute the traffic to
+this app and show it in its statistics — without listing it publicly. They carry app constants
+only (name, address, category): no personal data, no information about your device. A browser
+cannot set its own `User-Agent`, and the OpenAI-compatible payload has no field for the calling
+app, so headers are the only way — see
+[docs/configure-ai-service.md](docs/configure-ai-service.md#app-attribution-openrouter).
+
 ## Where your data lives
 
 | Data                                                      | Where                                                           |

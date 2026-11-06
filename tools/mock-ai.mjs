@@ -115,7 +115,12 @@ const server = http.createServer((req, res) => {
   // CORS — allow any browser origin (local dev), mirroring a permissive server config.
   res.setHeader('access-control-allow-origin', req.headers.origin ?? '*')
   res.setHeader('access-control-allow-methods', 'GET,POST,OPTIONS')
-  res.setHeader('access-control-allow-headers', 'content-type, authorization, x-api-key, api-key')
+  // The app attribution headers (FR-066) are listed too, so the mock behaves like OpenRouter and
+  // a request with the `openrouter` profile survives the preflight.
+  res.setHeader(
+    'access-control-allow-headers',
+    'content-type, authorization, x-api-key, api-key, http-referer, x-openrouter-title, x-openrouter-categories, x-openrouter-app-visibility',
+  )
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204)

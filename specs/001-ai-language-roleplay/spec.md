@@ -374,6 +374,16 @@ on a service without those capabilities and verify the graceful fallback.
 - **FR-025**: If the AI service returns an answer that does not match the expected content, the
   system MUST show a comprehensible error instead of displaying the answer as if it were valid
   feedback.
+- **FR-066**: The app MUST identify itself to the AI service with app attribution headers where
+  the provider documents them (OpenRouter: `HTTP-Referer` with the app's canonical URL,
+  `X-OpenRouter-Title`, `X-OpenRouter-Categories`, `X-OpenRouter-App-Visibility`), so that the
+  provider can attribute the traffic to this app. The headers MUST carry app constants only and
+  MUST NOT contain anything about the learner, the credentials or the origin of the learner's
+  installation. A profile whose server does not allow the headers MUST NOT receive them — a
+  rejected CORS preflight would break every request. The app MUST NOT put its name into the
+  `User-Agent` header (a browser discards a `User-Agent` set from JavaScript) and MUST NOT add a
+  field for it to the request payload (the OpenAI-compatible body has none, and strict servers
+  reject unknown fields).
 
 **Speech and illustration**
 

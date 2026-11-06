@@ -9,6 +9,13 @@ import type { AuthMode, ServiceConfig } from '@/domain/types'
 export type SchemaPlacement = 'nested' | 'sibling'
 export type JsonMode = 'json_schema' | 'json_object'
 
+/**
+ * Which app-attribution header scheme a profile uses. `null` = the profile gets no attribution
+ * headers — a server that does not allow them in its CORS preflight would reject the request
+ * outright (see `ai/attribution.ts`).
+ */
+export type AttributionScheme = 'openrouter'
+
 export interface EndpointProfile {
   id: string
   label: string
@@ -32,6 +39,8 @@ export interface EndpointProfile {
   corsHint: string | null
   /** Optional query string appended to `GET {baseUrl}/models` (OpenRouter: output_modalities=all). */
   modelsFilter: string | null
+  /** App attribution headers, when the provider documents them; null = no attribution. */
+  attributionScheme: AttributionScheme | null
 }
 
 export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
@@ -51,6 +60,7 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     sendRealKey: true,
     corsHint: null,
     modelsFilter: null,
+    attributionScheme: null,
   },
   openrouter: {
     id: 'openrouter',
@@ -72,6 +82,9 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     // The unfiltered list hides every TTS model (they declare output_modalities: ["speech"] and
     // are excluded from the default text-only listing); `all` returns chat, speech and image.
     modelsFilter: '?output_modalities=all',
+    // OpenRouter documents app attribution (app page, rankings, per-app analytics) and allows
+    // the headers in its CORS preflight — the only profile that gets them (FR-066).
+    attributionScheme: 'openrouter',
   },
   ollama: {
     id: 'ollama',
@@ -91,6 +104,7 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     corsHint:
       'OLLAMA_ORIGINS="http://localhost:5173" ollama serve  (or: ollama origin add <origin>)',
     modelsFilter: null,
+    attributionScheme: null,
   },
   llamacpp: {
     id: 'llamacpp',
@@ -108,6 +122,7 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     sendRealKey: true,
     corsHint: 'llama-server --cors-origins "http://localhost:5173"',
     modelsFilter: null,
+    attributionScheme: null,
   },
   vllm: {
     id: 'vllm',
@@ -126,6 +141,7 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     corsHint:
       'vllm serve <model> --allowed-origins \'["http://localhost:5173"]\'  (empty by default since v0.32)',
     modelsFilter: null,
+    attributionScheme: null,
   },
   lmstudio: {
     id: 'lmstudio',
@@ -143,6 +159,7 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     sendRealKey: true,
     corsHint: null, // no documented flag (verified: none found)
     modelsFilter: null,
+    attributionScheme: null,
   },
   custom: {
     id: 'custom',
@@ -161,6 +178,7 @@ export const PROVIDER_PROFILES: Record<string, EndpointProfile> = {
     sendRealKey: true,
     corsHint: "Allow the app origin in your server's CORS configuration.",
     modelsFilter: null,
+    attributionScheme: null,
   },
 }
 

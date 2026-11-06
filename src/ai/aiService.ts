@@ -3,6 +3,7 @@ import type { Gender, ServiceConfig } from '@/domain/types'
 import type { EndpointProfile, ModelInfo } from '@/ai/providers'
 import { profileById } from '@/ai/providers'
 import { chunkText, postJson, postStream, request } from '@/ai/transport'
+import { attributionHeaders } from '@/ai/attribution'
 import { normalizeBodyError } from '@/ai/errors'
 import { pcmToWavBlob } from '@/utils/audio'
 import {
@@ -55,9 +56,13 @@ export function authHeaders(
   profile: EndpointProfile,
 ): Record<string, string> {
   const key = profile.sendRealKey ? service.apiKey.trim() : 'ollama'
-  if (service.authMode === 'x-api-key') return { 'x-api-key': key }
-  if (service.authMode === 'api-key') return { 'api-key': key }
-  return { authorization: `Bearer ${key}` }
+  let auth: Record<string, string>
+  if (service.authMode === 'x-api-key') auth = { 'x-api-key': key }
+  else if (service.authMode === 'api-key') auth = { 'api-key': key }
+  else auth = { authorization: `Bearer ${key}` }
+  // The app attribution rides on every request of that provider — this is the only place where
+  // request headers are built, so chat, model list, speech and images carry them alike (FR-066).
+  return { ...auth, ...attributionHeaders(profile) }
 }
 
 function buildUrl(service: ServiceConfig, path: string): string {

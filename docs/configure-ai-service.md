@@ -30,6 +30,36 @@ Embrollado talks to any OpenAI-compatible service. Everything below happens in
 When a request fails because the service did not allow the browser origin, Embrollado shows the
 matching flag for the selected profile (spec FR-039).
 
+## App attribution (OpenRouter)
+
+When the profile is **OpenRouter**, every request additionally carries the headers OpenRouter uses
+to attribute the traffic to an app:
+
+| Header                        | Value                                 | Meaning                                                                 |
+| ----------------------------- | ------------------------------------- | ----------------------------------------------------------------------- |
+| `HTTP-Referer`                | `https://datag.github.io/embrollado/` | The app's canonical URL — the identity OpenRouter keys its app page on. |
+| `X-OpenRouter-Title`          | `Embrollado`                          | The display name in the rankings and in the app analytics.              |
+| `X-OpenRouter-Categories`     | `roleplay`                            | The marketplace category (role-play and character-based chat apps).     |
+| `X-OpenRouter-App-Visibility` | `hidden`                              | Keeps the app out of the public rankings and the marketplace.           |
+
+The values are constants of the app — the name, the app's address and a category. No personal data
+and no information about your device is part of them. OpenRouter can therefore show which models
+this app uses; the app stays out of the public lists, and the usage appears in the analytics of
+the OpenRouter account that holds the key.
+
+Two things are deliberately **not** done:
+
+- **No `User-Agent`.** The browser owns that header and silently discards a value set from
+  JavaScript — `fetch(url, { headers: { 'User-Agent': 'Embrollado/1.0' } })` arrives with the
+  browser's own user agent. A web app cannot put its name there.
+- **No field in the payload.** The OpenAI-compatible body has no field for the calling app (`user`
+  identifies the end user), and strict servers reject unknown fields with an HTTP 400.
+
+The headers are sent only for the OpenRouter profile. They are non-simple headers, so the browser
+sends a CORS preflight first — a server that does not allow them in its
+`Access-Control-Allow-Headers` would reject every request. OpenRouter allows them; local servers
+such as Ollama do not, so they never receive them.
+
 ## How the connection test works
 
 "Test the connection" sends **one minimal chat request** (`{"reply":"ok"}`) and reports:

@@ -174,6 +174,8 @@ Notes carried by a profile:
 - `authMode: 'x-api-key'` sends `x-api-key` and **no** `Authorization` header; `api-key` sends
   `api-key` (Azure-style).
 - A URL template profile appends `?api-version=…` to every path (Azure).
+- `attributionScheme` names the app-attribution headers the provider documents; `null` = the
+  profile sends none (see §11).
 - `response_format` for speech is always sent explicitly, because the servers' defaults differ and
   unsupported values are hard errors.
 - Ollama ignores the API key but requires a non-empty one; the app sends a placeholder rather
@@ -262,3 +264,39 @@ nothing is ever applied automatically. Lists are sorted naturally.
 - Send a request the learner did not trigger (FR-023).
 - Log, export or display the API key (FR-022).
 - Route a request through an intermediary of our own (FR-038).
+
+## 13. App attribution (FR-066)
+
+Some providers attribute the traffic to the calling app and show it in their statistics. The app
+identifies itself with **headers**, not with the `User-Agent` and not with the payload:
+
+```http
+HTTP-Referer: https://datag.github.io/embrollado/
+X-OpenRouter-Title: Embrollado
+X-OpenRouter-Categories: roleplay
+X-OpenRouter-App-Visibility: hidden
+```
+
+- **Why not `User-Agent`:** the header belongs to the browser, which silently discards a value set
+  from JavaScript (`fetch(url, { headers: { 'User-Agent': … } })` arrives with the browser's own
+  UA — verified in Chrome 157). A browser app cannot put its name there.
+- **Why not a payload field:** the OpenAI-compatible body has no field for the calling app (`user`
+  identifies the end user), and strict OpenAI-compatible servers reject unknown fields with an
+  HTTP 400.
+- **Why per profile:** the headers are non-simple headers, so the browser sends a CORS preflight.
+  A server that does not list them in `Access-Control-Allow-Headers` rejects the request
+  outright — Ollama allows only `Authorization`, `Content-Type`, `User-Agent`, `Accept`,
+  `X-Requested-With`, `OpenAI-Beta` and the `x-stainless-*` headers. Only a profile that
+  documents the headers receives them; today that is `openrouter` alone, whose preflight allows
+  `HTTP-Referer`, `X-OpenRouter-Title`, `X-Title`, `X-OpenRouter-Categories` and
+  `X-OpenRouter-App-Visibility` (verified against the live API).
+- **The values are app constants.** `HTTP-Referer` carries the canonical URL of the app, not the
+  origin of the learner's installation — otherwise every self-hosted copy would become its own app
+  entry and the learner's local address would leave the device. The headers carry nothing about
+  the learner, the conversation or the credentials (Principle II).
+- **Visibility.** `X-OpenRouter-App-Visibility: hidden` keeps the app out of the public rankings
+  and the marketplace; the attribution still works and the usage shows in our own analytics. The
+  header only acts while the app is being created — once the app entry exists, its visibility can
+  only be changed by the provider.
+- The headers are built in `authHeaders()` (`src/ai/aiService.ts`), the one place where request
+  headers are created, so the chat, model-list, speech and image requests all carry them.
