@@ -90,6 +90,11 @@ Hash routing (`createWebHashHistory`) so the app works on any static host withou
 - The **name and the personal details** are sent in the picture context (FR-028) and reach the
   dialogue only when the learner enables the per-session option "The AI partner already knows you"
   (FR-060). Otherwise the partner must learn them during the conversation (FR-059).
+- The profile is **frozen per conversation** (FR-065): when a conversation starts, the profile as
+  it is then is stored with the session and used for every later request of that conversation —
+  also after a reload or a re-import. A later change of the profile applies to the **next**
+  conversation, never to a running one. The service configuration (address, key, model) is not
+  frozen: it stays live.
 - A **pseudonym tip** next to the profile fields makes clear that these values can reach the
   configured provider.
 - Both name and details are optional; the picture context falls back to "the learner has not

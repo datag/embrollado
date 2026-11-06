@@ -36,8 +36,9 @@ export async function configureService(
   await expect(page.getByText('Connected.')).toBeVisible({ timeout: 15_000 })
 }
 
-export async function startConversation(page: Page) {
+export async function startConversation(page: Page, opts: { knowsLearner?: boolean } = {}) {
   await page.goto('/#/new')
+  if (opts.knowsLearner) await page.getByTestId('knows-learner').check()
   await page.getByRole('button', { name: /washroom/i }).click()
   await page.getByRole('button', { name: /Confectioner/i }).click()
   await page.getByRole('button', { name: 'Start the conversation' }).click()

@@ -49,6 +49,27 @@ export interface SessionOptions {
   knowsLearner: boolean
 }
 
+/**
+ * The learner as this conversation knows them: the profile parts that enter the prompt, frozen
+ * when the session started (FR-065). The snapshot travels with the session, so a resumed or
+ * re-imported conversation keeps its person — later profile edits never rewrite its past.
+ */
+export interface LearnerSnapshot {
+  name: string
+  details: string
+  appearance: string
+  voice: string
+  age: number | null
+  gender: Gender | null
+}
+
+/** The frozen context of a conversation: the learner and the feedback language (FR-065). */
+export interface SessionContext {
+  learner: LearnerSnapshot
+  /** The language the feedback is delivered in — the native language, else the interface one. */
+  feedbackLanguage: string
+}
+
 export interface Session {
   id: string
   title: string
@@ -57,6 +78,17 @@ export interface Session {
   situation: SituationRef
   partner: PartnerRef
   options: SessionOptions
+  /**
+   * The learner context of this conversation, frozen when it started (FR-065). Optional on
+   * purpose: sessions created before this field existed stay type-valid — they fall back to the
+   * live profile and are frozen the next time they are opened.
+   */
+  learner?: LearnerSnapshot
+  /**
+   * The language the feedback of this conversation is delivered in, frozen with the session
+   * (FR-065). Optional for the same reason as `learner`.
+   */
+  feedbackLanguage?: string
   state: SessionState
   createdAt: string
   updatedAt: string

@@ -71,7 +71,7 @@ A single JSON file, UTF-8, named `embrollado-export-YYYY-MM-DD-HHmm.json`.
 ```json
 {
   "format": "embrollado.export",
-  "version": 3,
+  "version": 4,
   "exportedAt": "2026-10-28T14:05:00.000Z",
   "app": { "name": "embrollado", "schema": 1 },
   "sessions": [
@@ -84,6 +84,15 @@ A single JSON file, UTF-8, named `embrollado-export-YYYY-MM-DD-HHmm.json`.
       "situation": { "id": "builtin:campsite-washroom", "name": "…", "setting": "…", "custom": false },
       "partner":   { "id": "builtin:nicole", "name": "Nicole", "age": 38, "occupation": "Konditorin", "custom": false },
       "options": { "knowsLearner": false },
+      "learner": {
+        "name": "Dominik",
+        "details": "…",
+        "appearance": "…",
+        "voice": "…",
+        "age": 42,
+        "gender": "male"
+      },
+      "feedbackLanguage": "de",
       "state": "ended",
       "createdAt": "2026-10-28T13:40:00.000Z",
       "updatedAt": "2026-10-28T14:04:00.000Z",
@@ -119,7 +128,11 @@ Rules:
 - **Cached audio is never exported** — it is a cache, and old lines are refetched on demand
   (FR-029, FR-050).
 - The **learner's settings and service configuration are not exported** either; an import restores
-  the conversations, not the credentials.
+  the conversations, not the credentials. The **frozen context of a conversation is exported**
+  (`learner`, `feedbackLanguage`, FR-065): it belongs to the conversation, not to the settings —
+  an imported conversation keeps its person. A file from an older version has no context: the
+  imported conversation then freezes the profile of the importing device the next time it is
+  opened.
 - The file is assembled from **chunked `BlobPart`s** (one `JSON.stringify` per session), so the
   whole export is never one giant string in memory.
 

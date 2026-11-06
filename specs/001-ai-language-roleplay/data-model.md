@@ -51,6 +51,8 @@ A single practice conversation. FR-015, FR-016, FR-053.
 | `partner`           | `PartnerRef`                               | Required                                                                                                                                                              |
 | `situationSnapshot` | `SituationSnapshot`                        | Required — the situation and partner as they were described when the session started, so later edits or deletions of a learner-defined template never rewrite history |
 | `options`           | `SessionOptions`                           | Required — the conversation options chosen when the session started (e.g. `{ knowsLearner }`), snapshotted like the situation (FR-060)                                |
+| `learner`           | `LearnerSnapshot`                          | Optional — the learner as this conversation knows them (name, details, perceivable traits), frozen when the session started (FR-065). A session created before this field existed has none: it takes the current profile once and freezes it |
+| `feedbackLanguage`  | ISO 639-1                                  | Optional — the language the feedback of this conversation is delivered in, frozen with the session (FR-065); optional for the same reason as `learner`                    |
 | `state`             | `"active" \| "ended"`                      | Required                                                                                                                                                              |
 | `createdAt`         | ISO 8601 string                            | Required                                                                                                                                                              |
 | `updatedAt`         | ISO 8601 string                            | Required                                                                                                                                                              |
@@ -137,6 +139,23 @@ A per-session snapshot chosen when the conversation starts (FR-060).
 | Field          | Type    | Rules                                                                                           |
 | -------------- | ------- | ----------------------------------------------------------------------------------------------- |
 | `knowsLearner` | boolean | Default `false`. True releases the stored name + details to the partner from the first line on. |
+
+### LearnerSnapshot
+
+The learner as a conversation knows them, frozen when the conversation starts (FR-065).
+
+| Field       | Type                                    | Rules                                                                                     |
+| ----------- | --------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `name`      | string                                  | The name as it was at the start of the conversation; released to the partner only with the `knowsLearner` option (FR-060) |
+| `details`   | string                                  | The personal details as they were at the start of the conversation; same release rule      |
+| `appearance` | string                                 | What someone sees of the learner, as it was at the start (FR-059)                         |
+| `voice`     | string                                  | What someone hears of the learner, as it was at the start (FR-059)                         |
+| `age`       | number \| null                          | The age as it was at the start; sent as an approximate band                                |
+| `gender`    | `"female" \| "male" \| "other" \| null` | The gender as it was at the start                                                          |
+
+The snapshot is part of the session record and of the export (storage-export.md §4) — an imported
+conversation keeps its person. It is NOT the profile in the settings: the settings stay editable
+and apply to the next conversation that starts.
 
 ### ServiceConfig
 

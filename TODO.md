@@ -31,13 +31,21 @@ Offene Punkte, nach Themen gruppiert.
 - [ ] Eingabe-Hilfe für eine Gap/Lücke `???`
 - [ ] Emoji für Stimmungen/Mimik?
 - [ ] HTML5-Attribut für Input-Sprache?
-- [ ] Untersuchen; möglicher BUG: Situation/Persona und auch User-Kontext ist für eine Konversation fix. Auch wenn sich zwischenzeitlich z.B. die Infos zum User geändert haben, muss die Konversation stets mit den urspünglichen Settings laufen. Sicherstellen, dass die Settings nicht live herausgezogen werden, sondern direkt an den Metadaten der Konversation inkl. Persistenz stecken. Andere Settings wie z.B. Modell etc. sollen hingegen live herangezogen werden.
+- [x] Untersuchen; möglicher BUG: Situation/Persona und auch User-Kontext ist für eine Konversation fix. Auch wenn sich zwischenzeitlich z.B. die Infos zum User geändert haben, muss die Konversation stets mit den urspünglichen Settings laufen. Sicherstellen, dass die Settings nicht live herausgezogen werden, sondern direkt an den Metadaten der Konversation inkl. Persistenz stecken. Andere Settings wie z.B. Modell etc. sollen hingegen live herangezogen werden.
+  - Bestätigt: der System-Prompt wurde live aus `useSettings()` gebaut — bei jedem `load()` (also
+    bei jedem Reload) neu, also mit dem Profil von _jetzt_ statt dem von damals (FR-065/T136). Der
+    Kontext (Lernender + Feedback-Sprache) wird jetzt beim Start der Konversation am Session-Datensatz
+    eingefroren und persistiert; Prompt, `Turn.feedbackLanguage` und der Szenen-Prompt der Illustration
+    lesen nur noch den Session-Datensatz. Die Service-Konfiguration (Modell, Adresse, Key) bleibt live.
+    Alte Konversationen ohne Snapshot frieren beim ersten Öffnen den aktuellen Stand ein (ohne
+    `updatedAt` zu ändern). Der Kontext wandert mit dem Export (Version 4) mit.
 - [x] Streamed responses mit unserem structured JSON überhaupt sinnvoll bzw. partielles Rendern der Chunks möglich?
   - Die Partnerline wird jetzt progressiv gerendert (der SSE-Frame war nie bis zum Model-Text extrahiert
     worden — T127). Der Bewertungsblock selbst wird weiterhin als ein Block geliefert; Abschnitt für
     Abschnitt wäre machbar (die JSON-Feldreihenfolge entspricht der Blockreihenfolge), ist aber
     bewusst offen — siehe D15 in `research.md`.
 - [x] Bei AI-Response-Fehler die eigene Nachricht nicht 2x anhängen. Schien passiert zu sein "Du wiederholst aber exakt deinen vorherigen Satz"
+- [ ] Für Token-Cache erwägen, die Hinweise "The learner answered — this is the answer you assess:" und "Earlier in the conversation the learner said (already assessed …):" nicht mit aufzunehmen, sondern über die Regel "nur letzte Message". Prüfen, ob sich das negativ auf das Bewertungsverhalten ausübt.
 
 ### Darstellung
 

@@ -211,6 +211,37 @@ test.describe('dialogue cycle', () => {
     await expect(continued).toContainText('Well done!')
   })
 
+  test('keeps the learner of the start after the profile changed (FR-065)', async ({ page }) => {
+    await configureService(page)
+
+    // The profile at the start of the conversation.
+    await page.getByTestId('profile-name').fill('Dominik')
+    await startConversation(page, { knowsLearner: true })
+    await expectPartnerLine(page, 'Hello! Nice to meet you.')
+    const conversationUrl = page.url()
+
+    // The learner changes their profile while the conversation runs.
+    await page.goto('/#/settings')
+    await page.getByTestId('profile-name').fill('Monika')
+
+    // A full reload rebuilds the system prompt from the stored session.
+    await page.goto(conversationUrl)
+    await page.reload()
+    await expect(page.getByTestId('dialogue-input')).toBeEnabled({ timeout: 20_000 })
+    await page.getByTestId('dialogue-input').fill('Is the washroom nearby?')
+    await page.getByTestId('send').click()
+    await expect(page.getByTestId('feedback')).toBeVisible({ timeout: 20_000 })
+
+    // The request that was just sent still describes Dominik.
+    await page.getByTestId('debug-toggle').click()
+    const panel = page.getByTestId('debug-panel')
+    await expect(panel).toBeVisible()
+    await panel.getByTestId('debug-entry').filter({ hasText: 'Request' }).first().click()
+    const payload = panel.getByTestId('debug-payload')
+    await expect(payload).toContainText('Their name is Dominik')
+    await expect(payload).not.toContainText('Monika')
+  })
+
   test('streams the partner line and holds the feedback position while it arrives', async ({
     page,
   }) => {

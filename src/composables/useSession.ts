@@ -3,13 +3,20 @@ import type { Session, Turn, Illustration, AudioEntry } from '@/domain/types'
 import {
   createSession,
   endSession as endSessionStore,
+  freezeSessionContext,
   getSession,
   getTurns,
   saveTurn,
   updateTurn,
   type NewSessionInput,
 } from '@/data/sessions'
-import { assembleFeedback, createOpeningTurn, translationVisible } from '@/domain/session'
+import {
+  assembleFeedback,
+  conversationContext,
+  createOpeningTurn,
+  sessionContext,
+  translationVisible,
+} from '@/domain/session'
 import {
   buildSystemPrompt,
   buildTurnUserMessage,
@@ -109,11 +116,6 @@ export interface UseSessionReturn {
 
 const lastBadgeIndexByTier = new Map<string, number>()
 
-function feedbackLanguage(): string {
-  const { settings } = useSettings()
-  return settings.nativeLanguage ?? settings.interfaceLanguage
-}
-
 export function useSession(): UseSessionReturn {
   const session = ref<Session | null>(null)
   // shallowRef: the stored Turn objects stay plain (a deep reactive proxy cannot be written to
@@ -148,6 +150,17 @@ export function useSession(): UseSessionReturn {
 
   function clearMessages() {
     messages.length = 0
+  }
+
+  /**
+   * The feedback language of the running conversation — the one frozen with the session (FR-065).
+   * Without a session (before one is loaded) it falls back to the live profile.
+   */
+  function feedbackLanguage(): string {
+    const { settings } = useSettings()
+    const s = session.value
+    if (!s) return conversationContext(settings).feedbackLanguage
+    return sessionContext(s, settings).feedbackLanguage
   }
 
   /** A partner line is "answered" once a later turn carries a learner answer. */
@@ -187,23 +200,30 @@ export function useSession(): UseSessionReturn {
     }
   }
 
+  /**
+   * The system prompt of a conversation. Every input comes from the session record: the situation,
+   * the partner, the level, the target language and — since FR-065 — the learner context and the
+   * feedback language, all frozen when the session started. The live profile is only consulted for
+   * a session that predates the snapshot (and only until it is frozen).
+   */
   async function buildSystemPromptFor(sessionValue: Session): Promise<string> {
     const { settings } = useSettings()
+    const context = sessionContext(sessionValue, settings)
     const knowsLearner = sessionValue.options?.knowsLearner ?? false
     return buildSystemPrompt({
       partner: sessionValue.partner,
       situation: sessionValue.situation,
       level: sessionValue.level,
       targetLanguage: sessionValue.language,
-      feedbackLanguage: settings.nativeLanguage ?? settings.interfaceLanguage,
+      feedbackLanguage: context.feedbackLanguage,
       knowsLearner,
-      appearance: settings.appearance.trim() || null,
-      voice: settings.voice.trim() || null,
-      age: settings.age,
-      gender: settings.gender,
+      appearance: context.learner.appearance || null,
+      voice: context.learner.voice || null,
+      age: context.learner.age,
+      gender: context.learner.gender,
       // Name and details leave the device only with the per-session option enabled.
-      learnerName: knowsLearner ? settings.name.trim() || null : null,
-      learnerDetails: knowsLearner ? settings.details.trim() || null : null,
+      learnerName: knowsLearner ? context.learner.name || null : null,
+      learnerDetails: knowsLearner ? context.learner.details || null : null,
     })
   }
 
@@ -426,16 +446,19 @@ export function useSession(): UseSessionReturn {
     illustrationHint.value = null
     try {
       // Step 1 — narrate the current moment from the full context (one chat request).
+      // The people are the ones the conversation was started with — the frozen context, never
+      // the current profile (FR-065).
+      const context = sessionContext(s, settings)
       const sceneResult = await chatCompletion({
         service,
         messages: buildSceneMessages({
           partner: s.partner,
           situation: s.situation,
-          learnerName: settings.name.trim() || null,
-          learnerDetails: settings.details.trim() || null,
-          appearance: settings.appearance.trim() || null,
-          age: settings.age,
-          gender: settings.gender,
+          learnerName: context.learner.name || null,
+          learnerDetails: context.learner.details || null,
+          appearance: context.learner.appearance || null,
+          age: context.learner.age,
+          gender: context.learner.gender,
           dialogue: turns.value.map((t) => ({
             partnerText: t.partnerText,
             learnerText: t.learnerText,
@@ -615,10 +638,19 @@ export function useSession(): UseSessionReturn {
   }
 
   async function load(id: string) {
-    const found = await getSession(id)
+    let found = await getSession(id)
     if (!found) {
       session.value = null
       return
+    }
+    // A session created before the context was frozen (an older app version, or an import
+    // without one) takes the current profile as its context — once, and stored with it, so the
+    // conversation never drifts again (FR-065).
+    if (!found.learner) {
+      const { settings } = useSettings()
+      const context = conversationContext(settings)
+      await freezeSessionContext(found.id, context)
+      found = { ...found, ...context }
     }
     session.value = found
     turns.value = await getTurns(id)
@@ -634,7 +666,8 @@ export function useSession(): UseSessionReturn {
   }
 
   async function start(input: NewSessionInput): Promise<string> {
-    const created = await createSession(input)
+    const { settings } = useSettings()
+    const created = await createSession(input, conversationContext(settings))
     session.value = created
     lastBadgeIndexByTier.delete(created.id)
     await startInitialTurn()

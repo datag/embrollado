@@ -1,6 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createSession } from '@/data/sessions'
+import type { SessionContext } from '@/domain/types'
 import { useSession } from '@/composables/useSession'
+
+/** The frozen context of a conversation (FR-065) — empty learner, English feedback. */
+const CONTEXT: SessionContext = {
+  learner: { name: '', details: '', appearance: '', voice: '', age: null, gender: null },
+  feedbackLanguage: 'en',
+}
 
 /**
  * A failed turn must leave nothing behind — neither in the transcript nor in the model-side
@@ -64,25 +71,28 @@ function learnerMessages(payload: {
 }
 
 async function seedSession(): Promise<string> {
-  const session = await createSession({
-    language: 'es',
-    level: 'intermediate',
-    situation: {
-      id: 'builtin:bakery-queue',
-      name: 'In the bakery queue',
-      setting: 'You are queuing at a bakery.',
-      custom: false,
+  const session = await createSession(
+    {
+      language: 'es',
+      level: 'intermediate',
+      situation: {
+        id: 'builtin:bakery-queue',
+        name: 'In the bakery queue',
+        setting: 'You are queuing at a bakery.',
+        custom: false,
+      },
+      partner: {
+        id: 'builtin:nicole',
+        name: 'Nicole',
+        age: 38,
+        occupation: 'confectioner',
+        custom: false,
+        description: 'A confectioner.',
+      },
+      options: { knowsLearner: false },
     },
-    partner: {
-      id: 'builtin:nicole',
-      name: 'Nicole',
-      age: 38,
-      occupation: 'confectioner',
-      custom: false,
-      description: 'A confectioner.',
-    },
-    options: { knowsLearner: false },
-  })
+    CONTEXT,
+  )
   return session.id
 }
 

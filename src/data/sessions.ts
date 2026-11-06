@@ -3,6 +3,7 @@ import type {
   PartnerRef,
   Persona,
   Session,
+  SessionContext,
   SessionOptions,
   SituationRef,
   Turn,
@@ -33,7 +34,15 @@ export function buildSessionTitle(situationName: string, partnerName: string): s
   return title.slice(0, 80)
 }
 
-export async function createSession(input: NewSessionInput): Promise<Session> {
+/**
+ * Create a session together with its frozen context (FR-065): the learner and the feedback
+ * language are stored with the session, so the conversation runs with them for its whole life —
+ * later profile edits never rewrite it.
+ */
+export async function createSession(
+  input: NewSessionInput,
+  context: SessionContext,
+): Promise<Session> {
   const now = new Date().toISOString()
   const session: Session = {
     id: newSessionId(),
@@ -43,6 +52,8 @@ export async function createSession(input: NewSessionInput): Promise<Session> {
     situation: { ...input.situation },
     partner: { ...input.partner },
     options: { ...input.options },
+    learner: { ...context.learner },
+    feedbackLanguage: context.feedbackLanguage,
     state: 'active',
     createdAt: now,
     updatedAt: now,
@@ -52,6 +63,21 @@ export async function createSession(input: NewSessionInput): Promise<Session> {
   const db = await getDB()
   await db.put(STORE.sessions, session)
   return session
+}
+
+/**
+ * Freeze the context of a session that was created before the snapshot existed (FR-065) — a
+ * conversation from an older app version or an import without one. `updatedAt` is deliberately NOT
+ * touched: the session list is sorted by the activity, and the backfill must not move the
+ * conversation to the top.
+ */
+export async function freezeSessionContext(id: string, context: SessionContext): Promise<void> {
+  const db = await getDB()
+  const session = await db.get(STORE.sessions, id)
+  if (!session) return
+  session.learner = { ...context.learner }
+  session.feedbackLanguage = context.feedbackLanguage
+  await db.put(STORE.sessions, session)
 }
 
 export function sessionToRef(s: {

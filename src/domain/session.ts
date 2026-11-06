@@ -1,10 +1,63 @@
-import type { Assumption, Badge, Issue, Session, Turn } from '@/domain/types'
+import type {
+  Assumption,
+  Badge,
+  Issue,
+  LearnerProfile,
+  Session,
+  SessionContext,
+  Turn,
+} from '@/domain/types'
 import { buildBadge } from '@/domain/badge'
 
 /**
  * Session domain logic (T053): the last line of defence against a malformed model answer. Runs on
  * the raw parsed turn JSON before anything is persisted or rendered.
  */
+
+/**
+ * Resolve the effective feedback language that is sent to the model (FR-034): the native language
+ * when one is set, else the interface language.
+ */
+export function resolveFeedbackLanguage(
+  nativeLanguage: string | null,
+  interfaceLanguage: string,
+): string {
+  if (nativeLanguage) return nativeLanguage
+  return interfaceLanguage
+}
+
+/**
+ * Freeze the current profile into the context of a conversation (FR-065). The name, the details,
+ * the perceivable traits and the feedback language are taken as they are right now — later profile
+ * edits never change a running conversation.
+ */
+export function conversationContext(profile: LearnerProfile): SessionContext {
+  return {
+    learner: {
+      name: profile.name.trim(),
+      details: profile.details.trim(),
+      appearance: profile.appearance.trim(),
+      voice: profile.voice.trim(),
+      age: profile.age,
+      gender: profile.gender,
+    },
+    feedbackLanguage: resolveFeedbackLanguage(profile.nativeLanguage, profile.interfaceLanguage),
+  }
+}
+
+/**
+ * The context a conversation runs with (FR-065): the snapshot frozen at its start. A session that
+ * was created before the snapshot existed (or imported without one) falls back to the live profile
+ * — and is frozen by the caller the next time it is opened.
+ */
+export function sessionContext(session: Session, live: LearnerProfile): SessionContext {
+  const snapshot = session.learner
+  if (!snapshot) return conversationContext(live)
+  return {
+    learner: snapshot,
+    feedbackLanguage: session.feedbackLanguage ?? conversationContext(live).feedbackLanguage,
+  }
+}
 
 /**
  * Whether a partner line's translation may be shown (FR-057). An explicit decision (the learner's

@@ -137,6 +137,7 @@ function onGender(event: Event) {
         :value="settings.name"
         type="text"
         maxlength="61"
+        data-testid="profile-name"
         class="min-h-11 w-full rounded-lg border border-border px-3"
         :class="nameTooLong ? 'border-error' : ''"
         @input="onName"

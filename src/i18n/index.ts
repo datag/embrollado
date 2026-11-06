@@ -21,12 +21,3 @@ export const i18n = createI18n({
 export function setInterfaceLanguage(lang: InterfaceLanguage): void {
   i18n.global.locale.value = lang
 }
-
-/** Resolve the effective feedback language that is sent to the model (FR-034). */
-export function resolveFeedbackLanguage(
-  nativeLanguage: string | null,
-  interfaceLanguage: InterfaceLanguage,
-): string {
-  if (nativeLanguage) return nativeLanguage
-  return interfaceLanguage
-}

@@ -139,10 +139,17 @@ Service-configuration edits made in one tab are picked up automatically by every
 the same browser profile (a `storage` event reloads the document from `localStorage`), so no tab
 keeps running on a stale configuration.
 
+A **conversation keeps its person**: when it starts, your profile (name, details, appearance,
+voice, age, gender) and the feedback language are stored with the conversation and used for every
+later request — also after a reload or a re-import. Changing your profile later affects the
+**next** conversation, never a running one. The service configuration (address, key, model) stays
+live and applies immediately.
+
 Everything is wiped when the browser clears site data. Use **Export/Import** to move or back it up:
 
 - **Export** downloads `embrollado-export-<date>.json` — the conversations in a portable,
-  versioned envelope. Pictures are optional; cached audio and the API key are never exported.
+  versioned envelope. Pictures are optional; cached audio and the API key are never exported. The
+  frozen context of a conversation travels with it, so an imported conversation keeps its person.
 - **Import** replaces the device's conversations after a warning. Files up to 250 MB, from any
   Embrollado version ≥ 1 (newer versions are refused).
 

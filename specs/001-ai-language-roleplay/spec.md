@@ -297,6 +297,12 @@ on a service without those capabilities and verify the graceful fallback.
 - **FR-060**: The learner MUST be able to enable, per session and when starting a conversation, an
   option that the AI partner already knows them from the start (default off). Enabled, the partner
   receives the stored name and personal details from the first line on.
+- **FR-065**: The context of a conversation MUST be frozen when the conversation starts: the
+  learner (name, personal details, perceivable traits) and the feedback language are stored with
+  the session and MUST be used for every later request of that conversation — also after a reload,
+  a re-import or a later change of the profile in the settings. A conversation MUST NOT continue
+  with a different person than the one it started with. The service configuration (address,
+  credentials, model) is NOT part of this context and MUST stay live.
 
 **Dialogue cycle**
 

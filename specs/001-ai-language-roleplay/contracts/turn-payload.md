@@ -165,7 +165,14 @@ ratio of at least 4.5:1 against the badge background (WCAG 1.4.3).
 
 ## 4. The system prompt
 
-The system prompt is assembled by `ai/prompts.ts` from:
+The system prompt is assembled by `ai/prompts.ts` from **the session record only** (FR-065): the
+situation, the partner, the level, the target language and the frozen learner context (the
+perceivable traits, the name/details when the option is on, and the feedback language) are read
+from the session, never from the live settings. A conversation therefore always runs with the
+person it started with — also after a reload, a re-import or a later profile change. The service
+configuration (model, address, key) is the exception: it stays live.
+
+The prompt is assembled from:
 
 1. **Role** — "You are {partner.name}, {partner.age}, {partner.occupation}. {partner.description}".
 2. **Situation** — "{situation.name}: {situation.setting}".

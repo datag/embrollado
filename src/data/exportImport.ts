@@ -1,4 +1,4 @@
-import type { Session, Turn, Illustration } from '@/domain/types'
+import type { LearnerSnapshot, Session, Turn, Illustration } from '@/domain/types'
 import { getDB, STORE, metaSet } from '@/data/db'
 import { listSessions, getTurns } from '@/data/sessions'
 import { getIllustrationsBySession } from '@/data/media'
@@ -10,11 +10,12 @@ import { getIllustrationsBySession } from '@/data/media'
  *   `JSON.stringify` per session) so the whole file is never one giant in-memory string.
  * - Import: size cap, format/version validation, migration chain, a warning that names the
  *   affected conversations, then a replace over all four stores in ONE transaction.
- * - The API key, the endpoint and the settings are never part of an export (FR-022).
+ * - The API key, the endpoint and the settings are never part of an export (FR-022). The
+ *   frozen context of a conversation is (FR-065): it is part of the conversation, not a setting.
  */
 
 export const EXPORT_FORMAT = 'embrollado.export'
-export const EXPORT_VERSION = 3
+export const EXPORT_VERSION = 4
 export const MAX_IMPORT_BYTES = 250 * 1024 * 1024
 
 export interface ExportSession {
@@ -26,6 +27,10 @@ export interface ExportSession {
   situation: Session['situation']
   partner: Session['partner']
   options: Session['options']
+  /** The learner context frozen with the conversation (FR-065); null for a legacy session. */
+  learner: LearnerSnapshot | null
+  /** The feedback language frozen with the conversation (FR-065); null for a legacy session. */
+  feedbackLanguage: string | null
   state: Session['state']
   createdAt: string
   updatedAt: string
@@ -113,6 +118,8 @@ export async function buildExportSessions(includePictures: boolean): Promise<Exp
       situation: session.situation,
       partner: session.partner,
       options: session.options ?? { knowsLearner: false },
+      learner: session.learner ?? null,
+      feedbackLanguage: session.feedbackLanguage ?? null,
       state: session.state,
       createdAt: session.createdAt,
       updatedAt: session.updatedAt,
@@ -197,6 +204,18 @@ export const migrations: Record<number, (doc: ExportDoc) => ExportDoc> = {
       }
       return { ...rest, options: rest.options ?? { knowsLearner: false } }
     }),
+  }),
+  // 4: sessions carry the frozen conversation context (FR-065) — the learner and the feedback
+  // language as they were when the conversation started. Older files have no context: null, so
+  // the imported conversation freezes the current profile the next time it is opened.
+  4: (doc) => ({
+    ...doc,
+    version: 4,
+    sessions: doc.sessions.map((s) => ({
+      ...s,
+      learner: s.learner ?? null,
+      feedbackLanguage: s.feedbackLanguage ?? null,
+    })),
   }),
 }
 
@@ -302,6 +321,10 @@ function toStoredSession(exportSession: ExportSession): Session {
     situation: exportSession.situation,
     partner: exportSession.partner,
     options: exportSession.options ?? { knowsLearner: false },
+    // A file without a context (an older export) yields a session without one — it freezes the
+    // current profile the next time it is opened (FR-065).
+    learner: exportSession.learner ?? undefined,
+    feedbackLanguage: exportSession.feedbackLanguage ?? undefined,
     state: exportSession.state,
     createdAt: exportSession.createdAt,
     updatedAt: exportSession.updatedAt,

@@ -4,7 +4,9 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { partnerById, situationById } from '@/domain/catalogue'
 import type { Level, Persona, Situation } from '@/domain/types'
+import { conversationContext } from '@/domain/session'
 import { personaToRef, sessionToRef, createSession } from '@/data/sessions'
+import { useSettings } from '@/composables/useSettings'
 import {
   readTemplates,
   addPersonaTemplate,
@@ -23,6 +25,7 @@ import SpinnerIcon from '@/components/SpinnerIcon.vue'
 
 const router = useRouter()
 const { t } = useI18n()
+const { settings } = useSettings()
 
 const language = ref('en')
 const level = ref<Level>('intermediate')
@@ -268,13 +271,18 @@ async function begin() {
   starting.value = true
   try {
     // Create the session record only — the Dialogue view opens it and streams the first line.
-    const session = await createSession({
-      language: language.value,
-      level: level.value,
-      situation: sit,
-      partner: par,
-      options: { knowsLearner: knowsLearner.value },
-    })
+    // The learner context and the feedback language are frozen with it (FR-065): later profile
+    // edits never change this conversation.
+    const session = await createSession(
+      {
+        language: language.value,
+        level: level.value,
+        situation: sit,
+        partner: par,
+        options: { knowsLearner: knowsLearner.value },
+      },
+      conversationContext(settings),
+    )
     // A new conversation must not preselect the one-off entries again on the next setup visit.
     persistOneShots({ selectedSituationId: null, selectedPartnerId: null })
     router.push(`/conversation/${session.id}`)
