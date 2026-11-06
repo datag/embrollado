@@ -52,6 +52,69 @@ describe('debug log helpers', () => {
     expect(out).toBe('AAAAA<TRUNCATED>AAAAA')
   })
 
+  it('truncates encrypted reasoning data identified by its type', () => {
+    const blob = 'E'.repeat(300)
+    const payload = {
+      choices: [
+        {
+          message: {
+            reasoning_details: [
+              {
+                type: 'reasoning.encrypted',
+                data: blob,
+                id: 'gemini-continuation',
+                format: 'google-gemini-v1',
+                index: 0,
+              },
+            ],
+          },
+        },
+      ],
+    }
+
+    const out = truncateLongStrings(payload) as {
+      choices: Array<{
+        message: { reasoning_details: Array<Record<string, unknown>> }
+      }>
+    }
+    const detail = out.choices[0].message.reasoning_details[0]
+    expect(detail.data).toBe('EEEEE<TRUNCATED>EEEEE')
+    expect(detail.type).toBe('reasoning.encrypted')
+    expect(detail.id).toBe('gemini-continuation')
+    expect(detail.format).toBe('google-gemini-v1')
+  })
+
+  it('keeps long data and readable reasoning intact without the encrypted type', () => {
+    const data = 'D'.repeat(300)
+    const text = 'Let me think through this step by step. '.repeat(20)
+    const out = truncateLongStrings({
+      data,
+      reasoning: { type: 'reasoning.text', text },
+    }) as Record<string, unknown>
+    const reasoning = out.reasoning as Record<string, unknown>
+
+    expect(out.data).toBe(data)
+    expect(reasoning.text).toBe(text)
+    expect(reasoning.text).not.toContain('<TRUNCATED>')
+  })
+
+  it('truncates encrypted reasoning in a streamed delta frame', () => {
+    const blob = 'S'.repeat(300)
+    const frame = {
+      choices: [
+        {
+          delta: {
+            reasoning_details: [{ type: 'reasoning.encrypted', data: blob }],
+          },
+        },
+      ],
+    }
+    const out = formatSseText(`data: ${JSON.stringify(frame)}\n\n`)
+
+    expect(out).toContain('SSSSS<TRUNCATED>SSSSS')
+    expect(out).not.toContain(blob)
+  })
+
   it('keeps a long prose string intact when it is not under a binary field (regression)', () => {
     const text = 'Das ist ein langer Text '.repeat(100) // ~2400 chars
     const out = (truncateLongStrings({ content: text }) as Record<string, unknown>)[

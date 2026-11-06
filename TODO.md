@@ -4,6 +4,8 @@ Offene Punkte, nach Themen gruppiert.
 
 ## Development
 
+- [x] Traffic inspection: Verschlüsseltes Reasoning (`reasoning.encrypted`) ebenfalls wie Base64-Blobs kürzen.
+
 ## Build & Deployment
 
 ## Conversation List

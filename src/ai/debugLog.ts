@@ -6,8 +6,9 @@
  * device. The store is plain (no Vue): components subscribe through `composables/useDebugLog.ts`.
  *
  * Redaction happens here (headers, the bearer key anywhere it appears), and truncation happens
- * here too: only base64/binary values (or strings over the hard safety net) are shortened, so a
- * multi-MB base64 image never sits in memory while ordinary prose stays intact.
+ * here too: only base64/binary values, encrypted reasoning blobs (or strings over the hard safety
+ * net) are shortened, so a multi-MB base64 image never sits in memory while ordinary prose stays
+ * intact.
  *
  * Two independent caps keep the log bounded: the LIVE log keeps the newest {@link MAX_ENTRIES}
  * entries of the session (it is never shortened by the storage budget — that one protects
@@ -44,8 +45,8 @@ export interface DebugLogEntry {
 }
 
 /** Values longer than this become `abcde<TRUNCATED>vwxyz` when shown (development TODO). */
-/** Values under a base64/binary field longer than this become `abcde<TRUNCATED>vwxyz`. */
-const BASE64_MIN_LEN = 64
+/** Opaque values (base64/binary fields and encrypted reasoning) longer than this are shortened. */
+const OPAQUE_MIN_LEN = 64
 /** Hard safety net: any string longer than this is truncated regardless of its field name. */
 const SAFETY_MAX_LEN = 50_000
 const TRUNCATE_MARKER = '<TRUNCATED>'
@@ -68,6 +69,8 @@ function safeStringify(value: unknown): string {
 
 /** Field names whose value holds base64/binary data (e.g. `b64_json` from the image API). */
 const BASE64_KEY = /b64|base64/i
+/** OpenRouter's discriminator for an opaque encrypted-reasoning payload. */
+const ENCRYPTED_REASONING_TYPE = 'reasoning.encrypted'
 
 /** Shorten a string value; returns a new string. */
 function abbreviate(text: string): string {
@@ -75,23 +78,35 @@ function abbreviate(text: string): string {
 }
 
 /**
- * Recursively shorten string values. Only values held under a base64/binary field name (or any
- * string over the hard safety net) are truncated — ordinary prose is preserved intact, so a long
- * answer or prompt no longer collapses to `abcde<TRUNCATED>vwxyz`. The field name travels with the
- * walk: objects pass their key down, arrays inherit the parent's key (so `{"b64": [...]}` works).
+ * Recursively shorten string values. Only values held under a base64/binary field name, the
+ * `data` of an encrypted reasoning detail (or any string over the hard safety net) are truncated —
+ * ordinary prose is preserved intact, so a long answer or prompt no longer collapses to
+ * `abcde<TRUNCATED>vwxyz`. The field name travels with the walk: objects pass their key down,
+ * arrays inherit the parent's key (so `{"b64": [...]}` works).
  */
 export function truncateLongStrings(value: unknown, key?: string): unknown {
   if (typeof value === 'string') {
     const isBinaryField = key !== undefined && BASE64_KEY.test(key)
-    if ((isBinaryField && value.length > BASE64_MIN_LEN) || value.length > SAFETY_MAX_LEN)
+    if ((isBinaryField && value.length > OPAQUE_MIN_LEN) || value.length > SAFETY_MAX_LEN)
       return abbreviate(value)
     return value
   }
   if (Array.isArray(value)) return value.map((child) => truncateLongStrings(child, key))
   if (value && typeof value === 'object') {
+    const source = value as Record<string, unknown>
     const out: Record<string, unknown> = {}
-    for (const [childKey, child] of Object.entries(value))
+    for (const [childKey, child] of Object.entries(source))
       out[childKey] = truncateLongStrings(child, childKey)
+    // OpenRouter returns encrypted reasoning as
+    // `{ type: "reasoning.encrypted", data: "<opaque blob>" }`. The type is the protocol's
+    // discriminator; the generic `data` field name alone is too broad to truncate safely.
+    if (
+      source.type === ENCRYPTED_REASONING_TYPE &&
+      typeof out.data === 'string' &&
+      out.data.length > OPAQUE_MIN_LEN
+    ) {
+      out.data = abbreviate(out.data)
+    }
     return out
   }
   return value
